@@ -4,7 +4,8 @@
   "description": "Simple Telegram bot for Dagon VPN management",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsc && node dist/index.js",
+    "prestart": "tsc",
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,12 +19,13 @@
   },
   "homepage": "https://github.com/temqua/vpn-bot#readme",
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "node-telegram-bot-api": "^0.61.0"
+    "node-telegram-bot-api": "^0.61.0",
+    "pg": "^8.9.0"
   },
   "devDependencies": {
     "@types/node": "^18.13.0",
     "@types/node-telegram-bot-api": "^0.57.6",
+    "dotenv": "^16.0.3",
     "typescript": "^4.9.5"
   }
 }
