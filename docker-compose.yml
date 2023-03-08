@@ -1,12 +1,26 @@
-version: '3.4'
+version: '3.9'
 
 services:
   vpnbot:
-    image: vpnbot
     build:
       context: .
       dockerfile: ./Dockerfile
+    network_mode: host
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
-    ports:
-      - 45532:45532
+
+  vpndb:
+    image: postgres:14.7-bullseye
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - vpndata:/data/db
+      - ./pg-init.sh:/docker-entrypoint-initdb.d/pg-init.sh:ro
+      - ./postgresql.conf:/etc/postgresql/14/main/postgresql.conf
+
+volumes:
+  vpndata:
