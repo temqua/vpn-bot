@@ -2,17 +2,22 @@ version: '3.9'
 
 services:
   vpndb:
-    image: postgres:14.7-bullseye
+    image: postgres:14.7-alpine
     container_name: vpndb
     network_mode: host
     restart: unless-stopped
+    expose:
+      - "5433"
+    command: -p 5433
     env_file:
       - .env
+    environment:
+      - PG_PORT=5433
     volumes:
       - ./pg-init.sql:/docker-entrypoint-initdb.d/pg-init.sql:ro
       - vpndata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -p 5433"]
       interval: 5s
       timeout: 10s
       retries: 5

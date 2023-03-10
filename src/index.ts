@@ -17,10 +17,10 @@ bot.onText(/\/echo (.+)/, (msg: Message, match: RegExpMatchArray) => {
   bot.sendMessage(chatId, resp);
 });
 
-bot.on("message", (msg: Message) => {
+bot.onText(/Hello|Привет/, (msg: Message, match: RegExpMatchArray) => {
   const chatId: number = msg.chat.id;
-
-  bot.sendMessage(chatId, `Hello, ${msg.from.first_name} ${msg.from.last_name}!`);
-  bot.sendMessage(chatId, `What do you want to do?`);
-
+  bot.sendMessage(
+    chatId,
+    `Hello, ${msg.from.first_name} ${msg.from.last_name}!`
+  );
 });
