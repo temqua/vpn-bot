@@ -12,14 +12,14 @@ services:
     env_file:
       - .env
     environment:
-      - PG_PORT=5433
+      - POSTGRES_PORT=5433
     volumes:
       - ./pg-init.sql:/docker-entrypoint-initdb.d/pg-init.sql:ro
       - vpndata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -p 5433"]
       interval: 5s
-      timeout: 10s
+      timeout: 45s
       retries: 5
 
   vpnbot:
@@ -31,7 +31,7 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
     depends_on:
       vpndb: 
         condition: service_healthy
