@@ -2,19 +2,19 @@ version: '3.9'
 
 services:
   vpndb:
-    image: postgres:14.7-bullseye
+    image: postgres:14.7-alpine
     container_name: vpndb
     network_mode: host
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - ./pg-init.sql:/docker-entrypoint-initdb.d/pg-init.sql:ro
       - vpndata:/var/lib/postgresql/data
+      - ./data.sql:/docker-entrypoint-initdb.d/pg-init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 5s
-      timeout: 10s
+      timeout: 45s
       retries: 5
 
   vpnbot:
