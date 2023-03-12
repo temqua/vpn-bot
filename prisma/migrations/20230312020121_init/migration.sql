@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "VpnType" AS ENUM ('IPSec', 'Wireguard');
+
 -- CreateTable
 CREATE TABLE "VpnUser" (
     "id" SERIAL NOT NULL,
@@ -8,6 +11,7 @@ CREATE TABLE "VpnUser" (
     "lastName" TEXT,
     "languageCode" TEXT,
     "telegramId" INTEGER,
+    "vpnType" "VpnType" NOT NULL DEFAULT 'IPSec',
     "phone" TEXT,
 
     CONSTRAINT "VpnUser_pkey" PRIMARY KEY ("id")

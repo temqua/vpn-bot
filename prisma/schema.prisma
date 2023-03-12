@@ -19,6 +19,7 @@ model VpnUser {
     lastName String?
     languageCode String?
     telegramId Int?
+    vpnType VpnType @default(IPSec)
     socialLinks SocialLink[]
     payments Payment[]
     phone String?
@@ -29,6 +30,11 @@ model SocialLink {
   link String 
   user VpnUser @relation(fields: [userId], references: [id])
   userId Int
+}
+
+enum VpnType {
+  IPSec
+  Wireguard
 }
 
 model Payment {
