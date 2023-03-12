@@ -9,7 +9,7 @@ export async function getUser(msg: Message, username: string): Promise<void> {
   console.log(
     `attempt to get user by username ${username} chat id ${msg.chat.id}`
   );
-  const user = await prisma.user.findFirst({
+  const user = await prisma.vpnUser.findFirst({
     where: {
       username,
     },
