@@ -1,47 +1,40 @@
 import { PrismaClient } from "@prisma/client";
 import TelegramBot, { Message } from "node-telegram-bot-api";
+import { getAllUsers, getUser } from "./controllers/users";
+import { dictionary } from "./utils";
 const dotenv = require("dotenv");
 dotenv.config();
 const token: string = process.env.BOT_TOKEN;
 export const bot: TelegramBot = new TelegramBot(token, { polling: true });
 export const prisma = new PrismaClient();
+export const adminChatId = 190349851;
 
-export function sendMessage(received: Message, code: string, message: string = ""): void {
-    const chatId = received.chat.id;
-    const response = dictionary[code];
-    const responseText = received.from.language_code === 'ru' ? response.ru : response.en;
-    if (message) {
-        responseText.concat(message);
-    }
-    bot.sendMessage(chatId, responseText);
-}
+bot.onText(/\/ping (.+)/, (msg: Message, match: RegExpMatchArray) => {
+  const chatId = msg.chat.id;
+  const resp = match[1];
+  bot.sendMessage(chatId, resp);
+});
 
-export interface Dictionary {
-  [key: string]: {
-    ru: string,
-    en: string
+bot.onText(/Hello|Привет/, (msg: Message, match: RegExpMatchArray) => {
+  const chatId: number = msg.chat.id;
+  bot.sendMessage(
+    chatId,
+    `${dictionary.hello[msg.from.language_code]}, ${msg.from.first_name} ${
+      msg.from.last_name
+    }!`
+  );
+});
+
+bot.onText(/\/user get (.+)/, async (msg: Message, match: RegExpMatchArray) => {
+  if (match[1] === "all") {
+    await getAllUsers(msg);
+  } else {
+    const username = match[1];
+    await getUser(msg, username);
   }
-}
+});
 
-export const dictionary: Dictionary = {
-  forbidden: {
-    ru: 'Запрещённая команда',
-    en: 'Forbidden command'
-  },
-  else: {
-    ru: 'Что-нибудь ещё?',
-    en: 'Something else?'
-  },
-  hello: {
-    ru: 'Привет',
-    en: 'Hello'
-  },
-  found: {
-    ru: 'По запросу найдено следующее: ',
-    en: 'Found next records: '
-  },
-  not_found: {
-    ru: 'По вашему запросу ничего не найдено',
-    en: 'Not found any records for your request'
-  }
-}
+// bot.onText(/\/user create (.+)/, async (msg: Message, match: RegExpMatchArray) => {
+//   const username = match[1];
+//   await getUser(msg, username);
+// });

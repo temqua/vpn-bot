@@ -2,10 +2,11 @@
   "name": "vpn-bot",
   "version": "1.0.0",
   "description": "Simple Telegram bot for Dagon VPN management",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "scripts": {
+    "build": "tsc",
     "prestart": "tsc && prisma migrate deploy && prisma generate",
-    "start": "node dist/index.js",
+    "start": "node dist/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

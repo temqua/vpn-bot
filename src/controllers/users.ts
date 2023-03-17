@@ -1,7 +1,9 @@
+import { VpnUser } from "@prisma/client";
 import { Message } from "node-telegram-bot-api";
-import { prisma, sendMessage } from "../main";
+import { adminChatId, prisma } from "../main";
+import { sendMessage } from "../utils";
 export async function getUser(msg: Message, username: string): Promise<void> {
-  if (msg.from.id !== 190349851 ) {
+  if (msg.from.id !== adminChatId ) {
     sendMessage(msg, "forbidden");
     sendMessage(msg, "else");
     return;
@@ -9,14 +11,38 @@ export async function getUser(msg: Message, username: string): Promise<void> {
   console.log(
     `attempt to get user by username ${username} chat id ${msg.chat.id}`
   );
-  const user = await prisma.vpnUser.findFirst({
+  const user: VpnUser = await prisma.vpnUser.findFirst({
     where: {
-      username,
+      username: username,
     },
   });
   if (user) {
-    sendMessage(msg, "found", `user: ${user}`);
+    sendMessage(msg, "found", `user: ${JSON.stringify(user)}`);
   } else {
     sendMessage(msg, "not_found");
   }
+}
+
+export async function getAllUsers(msg: Message): Promise<void> {
+  if (msg.from.id !== adminChatId ) {
+    sendMessage(msg, "forbidden");
+    sendMessage(msg, "else");
+    return;
+  }
+  console.log(
+    `attempt to get all users chat id ${msg.chat.id}`
+  );
+  const users: VpnUser[] = await prisma.vpnUser.findMany();
+  if (users) {
+    sendMessage(msg, "found", `\`\`\`${JSON.stringify(users)}\`\`\``);
+  } else {
+    sendMessage(msg, "not_found");
+  }
+}
+
+
+
+
+export async function createUser(msg: Message): Promise<void> {
+
 }
