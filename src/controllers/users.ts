@@ -23,6 +23,27 @@ export async function getUser(msg: Message, username: string): Promise<void> {
   }
 }
 
+export async function getUserById(msg: Message, userId: number): Promise<void> {
+  if (msg.from.id !== adminChatId ) {
+    sendMessage(msg, "forbidden");
+    sendMessage(msg, "else");
+    return;
+  }
+  console.log(
+    `attempt to get user by id ${userId} chat id ${msg.chat.id}`
+  );
+  const user: VpnUser = await prisma.vpnUser.findFirst({
+    where: {
+      id: userId,
+    },
+  });
+  if (user) {
+    sendMessage(msg, "found", `user: ${JSON.stringify(user)}`);
+  } else {
+    sendMessage(msg, "not_found");
+  }
+}
+
 export async function getAllUsers(msg: Message): Promise<void> {
   if (msg.from.id !== adminChatId ) {
     sendMessage(msg, "forbidden");

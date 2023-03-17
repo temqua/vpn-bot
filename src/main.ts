@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import TelegramBot, { Message } from "node-telegram-bot-api";
-import { getAllUsers, getUser } from "./controllers/users";
+import { getAllUsers, getUser, getUserById } from "./controllers/users";
 import { dictionary } from "./utils";
 const dotenv = require("dotenv");
 dotenv.config();
@@ -33,6 +33,14 @@ bot.onText(/\/user get (.+)/, async (msg: Message, match: RegExpMatchArray) => {
     await getUser(msg, username);
   }
 });
+
+bot.onText(
+  /\/user getById (.+)/,
+  async (msg: Message, match: RegExpMatchArray) => {
+    const userId = +match[1];
+    await getUserById(msg, userId);
+  }
+);
 
 // bot.onText(/\/user create (.+)/, async (msg: Message, match: RegExpMatchArray) => {
 //   const username = match[1];
