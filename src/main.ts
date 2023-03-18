@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import TelegramBot, { Message } from "node-telegram-bot-api";
-import { getAllUsers, getUser, getUserById } from "./controllers/users";
+import { createUser, getAllUsers, getUser, getUserById } from "./controllers/users";
 import { dictionary } from "./utils";
 const dotenv = require("dotenv");
 dotenv.config();
@@ -15,6 +15,11 @@ bot.onText(/\/ping (.+)/, (msg: Message, match: RegExpMatchArray) => {
   bot.sendMessage(chatId, resp);
 });
 
+bot.onText(/\/ping$/, (msg: Message) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, "pong");
+});
+
 bot.onText(/Hello|Привет/, (msg: Message, match: RegExpMatchArray) => {
   const chatId: number = msg.chat.id;
   bot.sendMessage(
@@ -26,23 +31,23 @@ bot.onText(/Hello|Привет/, (msg: Message, match: RegExpMatchArray) => {
 });
 
 bot.onText(/\/user get (.+)/, async (msg: Message, match: RegExpMatchArray) => {
-  if (match[1] === "all") {
-    await getAllUsers(msg);
-  } else {
-    const username = match[1];
-    await getUser(msg, username);
-  }
+  const username = match[1];
+  await getUser(msg, username);
+});
+
+bot.onText(/\/user get all/, async (msg: Message) => {
+  await getAllUsers(msg);
 });
 
 bot.onText(
-  /\/user getById (.+)/,
+  /\/user get id (.+)/,
   async (msg: Message, match: RegExpMatchArray) => {
     const userId = +match[1];
     await getUserById(msg, userId);
   }
 );
 
-// bot.onText(/\/user create (.+)/, async (msg: Message, match: RegExpMatchArray) => {
-//   const username = match[1];
-//   await getUser(msg, username);
-// });
+bot.onText(/\/user create (.+)/, async (msg: Message, match: RegExpMatchArray) => {
+  const username = match[1];
+  await createUser(msg, username);
+});

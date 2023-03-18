@@ -5,6 +5,7 @@ insert into users (username, "firstName", "lastName", "hasIPSec") values
 ('marinavlasova', 'Марина', 'Власова', true),
 ('masharub', 'Мария', 'Рубцова', true),
 ('kirillbur', 'Кирилл', 'Бурмистров', true),
+('angelinabur', 'Ангелина', 'Бурмистрова', true),
 ('vladkol', 'Владислав', 'К', true),
 ('lapsha', 'Никита', 'Лапша', true),
 ('nikitabodr', 'Никита', 'Бодров', true),

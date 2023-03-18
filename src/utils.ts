@@ -1,10 +1,11 @@
-import { Message } from "node-telegram-bot-api";
+import { Message, SendMessageOptions } from "node-telegram-bot-api";
 import { bot } from "./main";
 
 export function sendMessage(
   received: Message,
   code: string,
-  message: string = ""
+  message: string = "",
+  options?: SendMessageOptions
 ): void {
   const chatId = received.chat.id;
   const response = dictionary[code];
@@ -13,7 +14,7 @@ export function sendMessage(
   if (message) {
     responseText = responseText.concat(message);
   }
-  bot.sendMessage(chatId, responseText);
+  bot.sendMessage(chatId, responseText, options);
 }
 
 export interface Dictionary {
@@ -37,8 +38,8 @@ export const dictionary: Dictionary = {
     en: "Hello",
   },
   found: {
-    ru: "По запросу найдено следующее: ",
-    en: "Found next records: ",
+    ru: "По запросу найдено следующее ",
+    en: "Found next records ",
   },
   not_found: {
     ru: "По вашему запросу ничего не найдено",
