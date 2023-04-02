@@ -19,10 +19,10 @@ model VpnUser {
     lastName String?
     languageCode String? @default("ru")
     telegramId Int?
-    hasIPSec Boolean @default(false)
-    hasWireGuard Boolean @default(false)
     socialLinks SocialLink[]
     payments Payment[]
+    desktopOS DesktopOS
+    phoneOS DeviceOS
     phone String?
 
     @@map("users")
@@ -46,4 +46,15 @@ model Payment {
   currency String @default("RUB")
 
   @@map("payments")
+}
+
+enum DeviceOS {
+  Android
+  iOS
+}
+
+enum DesktopOS {
+  Windows
+  macOS
+  Linux
 }

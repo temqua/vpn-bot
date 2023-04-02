@@ -1,13 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import TelegramBot, { Message } from "node-telegram-bot-api";
-import { createUser, getAllUsers, getUser, getUserById } from "./controllers/users";
+import querystring from 'node:querystring';
+import { createUser, getAllUsers, getUser, getUserById } from "./services/users";
 import { dictionary } from "./utils";
 const dotenv = require("dotenv");
 dotenv.config();
 const token: string = process.env.BOT_TOKEN;
 export const bot: TelegramBot = new TelegramBot(token, { polling: true });
 export const prisma = new PrismaClient();
-export const adminChatId = 190349851;
+export const adminUserId = 190349851;
 
 bot.onText(/\/ping (.+)/, (msg: Message, match: RegExpMatchArray) => {
   const chatId = msg.chat.id;
@@ -48,6 +49,8 @@ bot.onText(
 );
 
 bot.onText(/\/user create (.+)/, async (msg: Message, match: RegExpMatchArray) => {
-  const username = match[1];
-  await createUser(msg, username);
+  const queryString = match[1];
+  const userData = querystring.decode(queryString);
+  // await createUser(msg, username);
 });
+

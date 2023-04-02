@@ -1,9 +1,9 @@
 import { VpnUser } from "@prisma/client";
 import { Message } from "node-telegram-bot-api";
-import { adminChatId, prisma } from "../main";
+import { adminUserId, prisma } from "../main";
 import { sendMessage } from "../utils";
 export async function getUser(msg: Message, username: string): Promise<void> {
-  if (msg.from.id !== adminChatId) {
+  if (msg.from.id !== adminUserId) {
     sendMessage(msg, "forbidden");
     sendMessage(msg, "else");
     return;
@@ -26,7 +26,7 @@ export async function getUser(msg: Message, username: string): Promise<void> {
 }
 
 export async function getUserById(msg: Message, userId: number): Promise<void> {
-  if (msg.from.id !== adminChatId) {
+  if (msg.from.id !== adminUserId) {
     sendMessage(msg, "forbidden");
     sendMessage(msg, "else");
     return;
@@ -47,7 +47,7 @@ export async function getUserById(msg: Message, userId: number): Promise<void> {
 }
 
 export async function getAllUsers(msg: Message): Promise<void> {
-  if (msg.from.id !== adminChatId) {
+  if (msg.from.id !== adminUserId) {
     sendMessage(msg, "forbidden");
     sendMessage(msg, "else");
     return;
@@ -77,10 +77,18 @@ export async function getAllUsers(msg: Message): Promise<void> {
   }
 }
 
-export async function createUser(msg: Message, username: string): Promise<void> {
-
+export async function createUser(msg: Message, user: VpnUser): Promise<void> {
+  if (msg.from.id !== adminUserId) {
+    sendMessage(msg, "forbidden");
+    sendMessage(msg, "else");
+    return;
+  }
 }
 
 export async function deleteUser(msg: Message, username: string): Promise<void> {
-  
+  if (msg.from.id !== adminUserId) {
+    sendMessage(msg, "forbidden");
+    sendMessage(msg, "else");
+    return;
+  }
 }

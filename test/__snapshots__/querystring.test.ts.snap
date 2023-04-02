@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Utils testing query string test 1`] = `
+{
+  "email": "art_nazarov@mail.ru",
+  "username": "artem",
+}
+`;
