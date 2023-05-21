@@ -35,5 +35,38 @@ services:
       vpndb: 
         condition: service_healthy
 
+  ipsec:
+    image: hwdsl2/ipsec-vpn-server
+    restart: always
+    ports:
+      - "500:500/udp"
+      - "4500:4500/udp"
+    privileged: true
+    hostname: ipsec-vpn-server
+    container_name: ipsec
+    volumes:
+      - ikev2-vpn-data:/etc/ipsec.d
+      - /lib/modules:/lib/modules:ro
+
+  wireguard:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.wireguard
+    restart: unless-stopped
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - wireguard-data:/etc/wireguard
+    ports:
+      - 51820:51820/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+
 volumes:
   vpndata:
+  ikev2-vpn-data:
+  wireguard-data:

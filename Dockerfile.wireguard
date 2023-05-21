@@ -1,0 +1,4 @@
+FROM alpine:latest
+RUN apk add wireguard-tools ca-certificates libqrencode wget curl
+COPY ./wireguard-*.sh .
+RUN chmod +x wireguard*.sh && ./wireguard-install.sh
