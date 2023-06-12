@@ -24,8 +24,12 @@ services:
     network_mode: host
     env_file:
       - .env
+    cap_add:
+      - NET_ADMIN
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
+      - PUID=1000
+      - PGID=1000
     depends_on:
       vpndb: 
         condition: service_healthy
