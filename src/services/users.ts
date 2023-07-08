@@ -1,6 +1,7 @@
 import { VpnUser } from "@prisma/client";
 import { Message } from "node-telegram-bot-api";
-import { adminUserId, prisma } from "../main";
+import { adminUserId } from "./consts";
+import prisma from "./prisma";
 import { sendMessage } from "../utils";
 export async function getUser(msg: Message, username: string): Promise<void> {
   if (msg.from.id !== adminUserId) {
@@ -71,7 +72,6 @@ export async function getAllUsers(msg: Message): Promise<void> {
         parse_mode: "MarkdownV2",
       });
     }
-
   } else {
     sendMessage(msg, "not_found");
   }
@@ -85,7 +85,10 @@ export async function createUser(msg: Message, user: VpnUser): Promise<void> {
   }
 }
 
-export async function deleteUser(msg: Message, username: string): Promise<void> {
+export async function deleteUser(
+  msg: Message,
+  username: string
+): Promise<void> {
   if (msg.from.id !== adminUserId) {
     sendMessage(msg, "forbidden");
     sendMessage(msg, "else");

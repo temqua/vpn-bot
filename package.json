@@ -4,8 +4,10 @@
   "description": "Simple Telegram bot for Dagon VPN management",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
-    "prestart": "tsc && prisma migrate deploy && prisma generate",
+    "build": "tsc && npm run prisma:build",
+    "prisma:build": "prisma migrate deploy && prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prestart": "npm run build",
     "start": "node dist/main.js",
     "test": "jest"
   },
