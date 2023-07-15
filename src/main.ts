@@ -6,12 +6,6 @@ import bot from "./services/bot"
 const dotenv = require("dotenv");
 dotenv.config();
 
-bot.onText(/\/ping (.+)/, (msg: Message, match: RegExpMatchArray) => {
-  const chatId = msg.chat.id;
-  const resp = match[1];
-  bot.sendMessage(chatId, resp);
-});
-
 bot.onText(/\/ping$/, (msg: Message) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, "pong");
@@ -27,17 +21,17 @@ bot.onText(/Hello|Привет/, (msg: Message, match: RegExpMatchArray) => {
   );
 });
 
-bot.onText(/\/user get (.+)/, async (msg: Message, match: RegExpMatchArray) => {
+bot.onText(/\/user username=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
   const username = match[1];
   await getUser(msg, username);
 });
 
-bot.onText(/\/user get all/, async (msg: Message) => {
+bot.onText(/\/user all/, async (msg: Message) => {
   await getAllUsers(msg);
 });
 
 bot.onText(
-  /\/user get id (.+)/,
+  /\/user id=(.+)/,
   async (msg: Message, match: RegExpMatchArray) => {
     const userId = +match[1];
     await getUserById(msg, userId);
