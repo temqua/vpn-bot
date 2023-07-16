@@ -1,8 +1,14 @@
 import { Message } from "node-telegram-bot-api";
-import querystring from 'node:querystring';
-import { createUser, getAllUsers, getUser, getUserById } from "./services/users";
-import { dictionary } from "./utils";
-import bot from "./services/bot"
+import querystring from "node:querystring";
+import {
+  createUser,
+  getAllUsers,
+  getUser,
+  getUserById,
+} from "./services/users";
+import { dictionary, getDesktopOS, getDeviceOS, sendMessage } from "./utils";
+import bot from "./services/bot";
+import { isAdmin } from "./services/auth";
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -21,26 +27,52 @@ bot.onText(/Hello|Привет/, (msg: Message, match: RegExpMatchArray) => {
   );
 });
 
-bot.onText(/\/user username=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-  const username = match[1];
-  await getUser(msg, username);
-});
-
-bot.onText(/\/user all/, async (msg: Message) => {
-  await getAllUsers(msg);
-});
-
 bot.onText(
-  /\/user id=(.+)/,
+  /\/user username=(.+)/,
   async (msg: Message, match: RegExpMatchArray) => {
-    const userId = +match[1];
-    await getUserById(msg, userId);
+    if (!isAdmin(msg)) {
+      return;
+    }
+    const username = match[1];
+    await getUser(msg, username);
   }
 );
 
-bot.onText(/\/user create (.+)/, async (msg: Message, match: RegExpMatchArray) => {
-  const queryString = match[1];
-  const userData = querystring.decode(queryString);
-  // await createUser(msg, username);
+bot.onText(/\/user all/, async (msg: Message) => {
+  if (!isAdmin(msg)) {
+    return;
+  }
+  await getAllUsers(msg);
 });
 
+bot.onText(/\/user id=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
+  if (!isAdmin(msg)) {
+    return;
+  }
+  const userId = +match[1];
+  await getUserById(msg, userId);
+});
+
+bot.onText(
+  /\/user create (.+)/,
+  async (msg: Message, match: RegExpMatchArray) => {
+    if (!isAdmin(msg)) {
+      return;
+    }
+    const queryString = match[1];
+    const userData = querystring.decode(queryString);
+    await createUser(msg, {
+      desktopOS: getDesktopOS(userData.desktop_os.toString()),
+      deviceOS: getDeviceOS(userData.device_os.toString()),
+      firstName: userData.first_name.toString(),
+      lastName: userData.last_name.toString(),
+      languageCode: userData.language_code.toString(),
+      phone: userData.phone.toString(),
+      telegramId: +userData.telegram_id,
+      telegramUsername: userData.telegram_username.toString(),
+      createDate: new Date(),
+      username: userData.username.toString(),
+      paymentDate: new Date(),
+    });
+  }
+);

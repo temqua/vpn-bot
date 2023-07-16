@@ -3,12 +3,9 @@ import { Message } from "node-telegram-bot-api";
 import { adminUserId } from "./consts";
 import prisma from "./prisma";
 import { sendMessage } from "../utils";
+import queue, { Operation } from "./queue";
+import { isAdmin } from "./auth";
 export async function getUser(msg: Message, username: string): Promise<void> {
-  if (msg.from.id !== adminUserId) {
-    sendMessage(msg, "forbidden");
-    sendMessage(msg, "else");
-    return;
-  }
   console.log(
     `attempt to get user by username ${username} chat id ${msg.chat.id}`
   );
@@ -27,11 +24,6 @@ export async function getUser(msg: Message, username: string): Promise<void> {
 }
 
 export async function getUserById(msg: Message, userId: number): Promise<void> {
-  if (msg.from.id !== adminUserId) {
-    sendMessage(msg, "forbidden");
-    sendMessage(msg, "else");
-    return;
-  }
   console.log(`attempt to get user by id ${userId} chat id ${msg.chat.id}`);
   const user: VpnUser = await prisma.vpnUser.findFirst({
     where: {
@@ -48,11 +40,6 @@ export async function getUserById(msg: Message, userId: number): Promise<void> {
 }
 
 export async function getAllUsers(msg: Message): Promise<void> {
-  if (msg.from.id !== adminUserId) {
-    sendMessage(msg, "forbidden");
-    sendMessage(msg, "else");
-    return;
-  }
   console.log(`attempt to get all users chat id ${msg.chat.id}`);
   const users: VpnUser[] = await prisma.vpnUser.findMany();
   if (users && users.length) {
@@ -77,21 +64,16 @@ export async function getAllUsers(msg: Message): Promise<void> {
   }
 }
 
-export async function createUser(msg: Message, user: VpnUser): Promise<void> {
-  if (msg.from.id !== adminUserId) {
-    sendMessage(msg, "forbidden");
-    sendMessage(msg, "else");
-    return;
-  }
+export async function createUser(msg: Message, user: NewUser): Promise<void> {
+  await prisma.vpnUser.create({
+    data: user,
+  });
+  queue.send(user.username, Operation.Create);
 }
 
 export async function deleteUser(
   msg: Message,
   username: string
-): Promise<void> {
-  if (msg.from.id !== adminUserId) {
-    sendMessage(msg, "forbidden");
-    sendMessage(msg, "else");
-    return;
-  }
-}
+): Promise<void> {}
+
+export type NewUser = Omit<VpnUser, "id">;

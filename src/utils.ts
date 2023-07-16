@@ -1,5 +1,6 @@
 import { Message, SendMessageOptions } from "node-telegram-bot-api";
-import { bot } from "./main";
+import { DesktopOS, DeviceOS } from "@prisma/client";
+import bot from "./services/bot";
 
 export function sendMessage(
   received: Message,
@@ -46,3 +47,24 @@ export const dictionary: Dictionary = {
     en: "Not found any records for your request",
   },
 };
+
+export const getDesktopOS = (os: string): DesktopOS => {
+  switch (os) {
+    case "Windows": {
+      return DesktopOS.Windows;
+    }
+    case "macOS": {
+      return DesktopOS.macOS;
+    }
+    default: {
+      return DesktopOS.Linux;
+    }
+  }
+};
+
+export const getDeviceOS = (os: string): DeviceOS => {
+  if (os === "Android") {
+    return DeviceOS.Android;
+  }
+  return DeviceOS.iOS;
+}
