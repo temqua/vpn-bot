@@ -1,8 +1,0 @@
-version: '3.9'
-
-services:
-  queue: 
-    image: rabbitmq
-    container_name: queue
-    network_mode: host
-    restart: always

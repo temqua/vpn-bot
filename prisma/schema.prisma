@@ -14,8 +14,8 @@ model VpnUser {
   id               Int       @id @default(autoincrement())
   username         String    @unique
   telegramId       Int?      @map(name: "telegram_id")
-  telegramUsername String    @map(name: "telegram_username")
-  phone            String?
+  telegramUsername String    @unique @map(name: "telegram_username")
+  phone            String?   @unique
   createDate       DateTime  @default(now()) @map("create_date")
   firstName        String?   @map(name: "first_name")
   lastName         String?   @map(name: "last_name")
