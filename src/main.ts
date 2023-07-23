@@ -165,7 +165,7 @@ bot.onText(
 			telegramId: userData.telegram_id ? +userData.telegram_id : 0,
 			telegramUsername: userData.telegram_username?.toString() ?? "",
 			createDate: new Date(),
-			paymentCount: Number(userData.payment_count),
+			paymentCount: Number(userData?.payment_count) ?? 80,
 			username: userData.username.toString(),
 			paymentDate: new Date()
 		});
