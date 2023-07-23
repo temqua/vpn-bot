@@ -10,58 +10,59 @@ type ErrorResponse = {
 	error: string;
 }
 
-export async function getUser(msg: Message, username: string): Promise<void> {
+export async function getUser(msg: Message, username: string): Promise<VpnUser | undefined> {
 	console.log(
 		`attempt to get user by username ${username} chat id ${msg.chat.id}`
 	);
-	const user: VpnUser = await prisma.vpnUser.findFirst({
+	return prisma.vpnUser.findFirst({
 		where: {
 			username: username
 		}
 	});
-	if (user) {
-		sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
-			parse_mode: "MarkdownV2"
-		});
-	} else {
-		sendMessage(msg, "not_found");
-	}
 }
 
-export async function getUserByTelegramUsername(msg: Message, username: string): Promise<boolean> {
+export async function getUserByTelegramUsername(msg: Message, username: string): Promise<VpnUser | undefined> {
 	console.log(
 		`attempt to get user by telegram username ${username} chat id ${msg.chat.id}`
 	);
-	const user: VpnUser = await prisma.vpnUser.findFirst({
+	return prisma.vpnUser.findFirst({
 		where: {
 			telegramUsername: username
 		}
 	});
-	if (user) {
-		sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
-			parse_mode: "MarkdownV2"
-		});
-	} else {
-		sendMessage(msg, "not_found");
-	}
-	return !!user;
+}
+
+export async function getUserByTelegramId(msg: Message, id: number): Promise<VpnUser | undefined> {
+	console.log(
+		`attempt to get user by telegram id ${id} chat id ${msg.chat.id}`
+	);
+	return prisma.vpnUser.findFirst({
+		where: {
+			telegramId: id
+		}
+	});
+}
+
+export async function getPaymentDate(msg: Message, id: number): Promise<Date> {
+	console.log(
+		`attempt to get user payment date by id ${id} chat id ${msg.chat.id}`
+	);
+	const user: VpnUser = await prisma.vpnUser.findFirst({
+		where: {
+			id: id
+		}
+	});
+	return user.paymentDate;
 }
 
 
-export async function getUserById(msg: Message, userId: number): Promise<void> {
+export async function getUserById(msg: Message, userId: number): Promise<VpnUser | undefined> {
 	console.log(`attempt to get user by id ${userId} chat id ${msg.chat.id}`);
-	const user: VpnUser = await prisma.vpnUser.findFirst({
+	return prisma.vpnUser.findFirst({
 		where: {
 			id: userId
 		}
 	});
-	if (user) {
-		sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
-			parse_mode: "MarkdownV2"
-		});
-	} else {
-		sendMessage(msg, "not_found");
-	}
 }
 
 export async function getAllUsers(msg: Message): Promise<void> {

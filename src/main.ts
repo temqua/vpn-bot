@@ -4,14 +4,17 @@ import querystring from "node:querystring";
 import {
 	createUser,
 	getAllUsers,
+	getPaymentDate,
 	getUser,
 	getUserById,
+	getUserByTelegramId,
 	getUserByTelegramUsername,
 	getUserFile
 } from "./services/users";
 import { dictionary, getDesktopOS, getDeviceOS, sendMessage } from "./utils";
 import bot from "./services/bot";
 import { isAdmin } from "./auth";
+import { format } from "date-fns";
 
 const userHelp: string = `
 			/user all — list all users
@@ -30,7 +33,14 @@ bot.onText(
 	}
 );
 bot.onText(/\/me/, async (msg: Message) => {
-	await getUserByTelegramUsername(msg, msg.chat.username);
+	const user = await getUserByTelegramUsername(msg, msg.chat.username);
+	if (user) {
+		sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
+			parse_mode: "MarkdownV2"
+		});
+	} else {
+		sendMessage(msg, "not_found");
+	}
 });
 
 bot.onText(
@@ -45,6 +55,19 @@ bot.onText(
 
 bot.onText(/\/create username=(.+) token=(.+)/, async (msg: Message) => {
 
+});
+
+bot.onText(/\/remind/, async (msg: Message) => {
+	let user = await getUserByTelegramId(msg, msg.from.id);
+	if (!user) {
+		user = await getUserByTelegramUsername(msg, msg.from.username);
+		if (!user) {
+			sendMessage(msg, "unregistered");
+			return;
+		}
+	}
+	const paymentDate = await getPaymentDate(msg, user.id);
+	sendMessage(msg, "payment_date", format(paymentDate, "do of MMMM"));
 });
 
 
@@ -70,7 +93,14 @@ bot.onText(
 			return;
 		}
 		const username = match[1];
-		await getUser(msg, username);
+		const user = await getUser(msg, username);
+		if (user) {
+			sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
+				parse_mode: "MarkdownV2"
+			});
+		} else {
+			sendMessage(msg, "not_found");
+		}
 	}
 );
 
@@ -81,7 +111,14 @@ bot.onText(
 			return;
 		}
 		const username = match[1];
-		await getUserByTelegramUsername(msg, username);
+		const user = await getUserByTelegramUsername(msg, username);
+		if (user) {
+			sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
+				parse_mode: "MarkdownV2"
+			});
+		} else {
+			sendMessage(msg, "not_found");
+		}
 	}
 );
 
@@ -97,7 +134,14 @@ bot.onText(/\/user id=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
 		return;
 	}
 	const userId = +match[1];
-	await getUserById(msg, userId);
+	const user = await getUserById(msg, userId);
+	if (user) {
+		sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
+			parse_mode: "MarkdownV2"
+		});
+	} else {
+		sendMessage(msg, "not_found");
+	}
 });
 
 bot.onText(
@@ -121,6 +165,7 @@ bot.onText(
 			telegramId: userData.telegram_id ? +userData.telegram_id : 0,
 			telegramUsername: userData.telegram_username?.toString() ?? "",
 			createDate: new Date(),
+			paymentCount: Number(userData.payment_count),
 			username: userData.username.toString(),
 			paymentDate: new Date()
 		});

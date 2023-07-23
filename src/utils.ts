@@ -46,6 +46,10 @@ export const dictionary: Dictionary = {
 		ru: "К сожалению, по вашему запросу ничего не найдено",
 		en: "Not found any records for your request"
 	},
+	unregistered: {
+		ru: "К сожалению, пользователи с вашим username или id не зарегистрированы в системе",
+		en: "Unfortunately we weren't able to find users with your telegram id or username"
+	},
 	start: {
 		ru: "Здравствуйте! Это бот для работы с Dagon VPN https://t.me/dagonvpn. Бот напомнит, когда нужно платить за VPN, а также подскажет, какая информация хранится о вас в базе",
 		en: "Hello! The bot is for Dagon VPN https://t.me/dagonvpn. It can remind when you have to pay and show information we store about you."
@@ -53,6 +57,10 @@ export const dictionary: Dictionary = {
 	command_list: {
 		ru: "Список команд",
 		en: "Command list"
+	},
+	payment_date: {
+		ru: "День, когда вам нужно оплачивать VPN ",
+		en: "Your VPN payment date is "
 	}
 };
 
