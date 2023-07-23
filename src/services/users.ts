@@ -3,8 +3,12 @@ import { Message } from "node-telegram-bot-api";
 import prisma from "./prisma";
 import { sendMessage } from "../utils";
 import bot from "./bot";
-import { TOKEN, VPN_SERVER_IP } from "../env";
+import { PORT, TOKEN, VPN_SERVER_IP } from "../env";
 import querystring from "node:querystring";
+
+type ErrorResponse = {
+	error: string;
+}
 
 export async function getUser(msg: Message, username: string): Promise<void> {
 	console.log(
@@ -23,6 +27,26 @@ export async function getUser(msg: Message, username: string): Promise<void> {
 		sendMessage(msg, "not_found");
 	}
 }
+
+export async function getUserByTelegramUsername(msg: Message, username: string): Promise<boolean> {
+	console.log(
+		`attempt to get user by telegram username ${username} chat id ${msg.chat.id}`
+	);
+	const user: VpnUser = await prisma.vpnUser.findFirst({
+		where: {
+			telegramUsername: username
+		}
+	});
+	if (user) {
+		sendMessage(msg, "found", `\`\`\`${JSON.stringify(user)}\`\`\``, {
+			parse_mode: "MarkdownV2"
+		});
+	} else {
+		sendMessage(msg, "not_found");
+	}
+	return !!user;
+}
+
 
 export async function getUserById(msg: Message, userId: number): Promise<void> {
 	console.log(`attempt to get user by id ${userId} chat id ${msg.chat.id}`);
@@ -63,6 +87,17 @@ export async function getAllUsers(msg: Message): Promise<void> {
 	} else {
 		sendMessage(msg, "not_found");
 	}
+	const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/users`, {
+		headers: {
+			"Authorization": `Bearer ${TOKEN}`
+		}
+	});
+	if (result.ok) {
+		await bot.sendMessage(msg.chat.id, `${result.status} ${result.statusText} \n${await result.text()}`);
+	} else {
+		const error = <ErrorResponse>await result.json();
+		await bot.sendMessage(msg.chat.id, `Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`);
+	}
 }
 
 export async function createUser(msg: Message, user: NewUser): Promise<void> {
@@ -70,7 +105,7 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 		const qs = querystring.encode({
 			username: user.username
 		});
-		const result = await fetch(`http://${VPN_SERVER_IP}/user/create/?${qs}`, {
+		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/create/?${qs}`, {
 			headers: {
 				"Authorization": `Bearer ${TOKEN}`
 			}
@@ -84,17 +119,32 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 		} else {
 			await bot.sendMessage(msg.chat.id, `Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`);
 		}
-
 	} catch (error) {
 		await bot.sendMessage(msg.chat.id, `Error occurred while creating user\n${error}`);
 	}
-
 }
 
-export async function deleteUser(
-	msg: Message,
-	username: string
-): Promise<void> {
+export async function getUserFile(msg: Message, username: string): Promise<void> {
+	const qs = querystring.encode({
+		username
+	});
+	try {
+		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/file/?${qs}`, {
+			headers: {
+				"Authorization": `Bearer ${TOKEN}`
+			}
+		});
+		if (result.ok) {
+			const file = await result.arrayBuffer();
+			await bot.sendDocument(msg.chat.id, file as Buffer);
+		} else {
+			const error = <ErrorResponse>await result.json();
+			await bot.sendMessage(msg.chat.id, `Error occurred while receiving file for ${username} \n${error.error}`);
+		}
+	} catch (error) {
+		await bot.sendMessage(msg.chat.id, `Error occurred while receiving file for ${username} \n${error}`);
+	}
+
 }
 
 export type NewUser = Omit<VpnUser, "id">;
