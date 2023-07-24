@@ -1,0 +1,1 @@
+npm install && npm run build:receiver && npm prune --omit=dev && pm2 restart dist/services/receiver.js
