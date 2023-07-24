@@ -1,0 +1,1 @@
+npm install && npm run build && npm prune --omit=dev && pm2 restart dist/main.js
