@@ -5,11 +5,12 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && npm run prisma:build",
-    "receiver:start": "tsc && node dist/services/receiver.js",
+    "build:receiver": "tsc -p ./tsconfig.receiver.json",
     "prisma:build": "prisma migrate deploy && prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prestart": "npm run build",
     "start": "node dist/main.js",
+    "start:receiver": "node dist/services/receiver.js",
     "test": "jest"
   },
   "repository": {
