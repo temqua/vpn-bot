@@ -1,7 +1,6 @@
 import { VpnUser } from "@prisma/client";
 import { Message } from "node-telegram-bot-api";
 import prisma from "./prisma";
-import { sendMessage } from "../utils";
 import bot from "./bot";
 import { PORT, TOKEN, VPN_SERVER_IP } from "../env";
 import querystring from "node:querystring";
@@ -76,29 +75,12 @@ export async function getUserById(msg: Message, userId: number): Promise<VpnUser
 	});
 }
 
-export async function getAllUsers(msg: Message): Promise<void> {
+export async function getAllUsers(msg: Message): Promise<VpnUser[]> {
 	console.log(`attempt to get all users chat id ${msg.chat.id}`);
-	const users: VpnUser[] = await prisma.vpnUser.findMany();
-	if (users && users.length) {
-		console.log("attempt to load users :>> ", users);
-		let chunksCount = users.length / 10;
-		if (chunksCount === 0) {
-			await sendMessage(msg.chat.id, msg.from.language_code, "found", `\`\`\`${JSON.stringify(users)}\`\`\``, {
-				parse_mode: "MarkdownV2"
-			});
-		}
-		for (let index = 0; index < chunksCount; index++) {
-			let chunk: VpnUser[] = users.slice(index * 10, 10);
-			if (index === chunksCount - 1) {
-				chunk = users.slice(index * 10);
-			}
-			await sendMessage(msg.chat.id, msg.from.language_code, "found", `\`\`\`${JSON.stringify(chunk)}\`\`\``, {
-				parse_mode: "MarkdownV2"
-			});
-		}
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, "not_found");
-	}
+	return prisma.vpnUser.findMany();
+}
+
+export async function showIkeClients(msg: Message): Promise<void> {
 	const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/users`, {
 		headers: {
 			"Authorization": `Bearer ${TOKEN}`
@@ -149,7 +131,8 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 		if (result.ok) {
 			const file = await result.arrayBuffer();
 			await bot.sendDocument(msg.chat.id, Buffer.from(file), {}, {
-				filename: username
+				filename: username,
+				contentType: "application/octet-stream"
 			});
 		} else {
 			const error = <ErrorResponse>await result.json();
@@ -158,7 +141,24 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 	} catch (error) {
 		await bot.sendMessage(msg.chat.id, `Error occurred while receiving file for ${username} \n${error}`);
 	}
-
 }
+
+export const formatUser = (user: VpnUser): string => {
+	return `\`\`\`
+id: ${user.id}
+username: ${user.username}
+telegram_id: ${user.telegramId}
+telegram_username: ${user.telegramUsername}
+first_name: ${user.firstName}
+last_name: ${user.lastName}
+phone: ${user.phone}
+language_code: ${user.languageCode}
+payment_count: ${user.paymentCount}
+payment_day: ${user.paymentDay}
+desktop_os: ${user.desktopOS}
+device_os: ${user.deviceOS}
+createDate: ${user.createDate}
+	\`\`\``;
+};
 
 export type NewUser = Omit<VpnUser, "id">;
