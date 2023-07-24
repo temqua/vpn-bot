@@ -63,7 +63,7 @@ export const dictionary: Dictionary = {
 	},
 	payment_date: {
 		ru: "Вам нужно будет оплатить VPN не позднее. чем ",
-		en: "Kindly note the due date for your VPN payment "
+		en: "Kindly note the due date for your VPN payment is "
 	},
 	payment_count: {
 		ru: "Вы платите %message% рублей в месяц",
