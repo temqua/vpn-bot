@@ -17,13 +17,13 @@ import { isAdmin } from "./auth";
 import { format } from "date-fns";
 
 const userHelp: string = `
-			/user all — list all users
-			/user id=<id> — get user by id
-			/user username=<username> — get user by dagon vpn username
-			/user tg=<telegram_username> — get user by telegram username
-			/user file <username> — get zip archive with vpn configs
-			/user create <querystring>— Send data about new user in query string format like this:
-			desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&language_code=ru&phone=1234456&telegram_username=tttt&username=testuser
+/user all — list all users
+/user id=<id> — get user by id
+/user username=<username> — get user by dagon vpn username
+/user tg=<telegram_username> — get user by telegram username
+/user file <username> — get zip archive with vpn configs
+/user create <querystring>— Send data about new user in query string format like this:
+desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&language_code=ru&phone=1234456&telegram_username=tttt&username=testuser
 `;
 
 bot.onText(

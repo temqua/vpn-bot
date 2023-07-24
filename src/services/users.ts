@@ -137,7 +137,9 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 		});
 		if (result.ok) {
 			const file = await result.arrayBuffer();
-			await bot.sendDocument(msg.chat.id, file as Buffer);
+			await bot.sendDocument(msg.chat.id, Buffer.from(file), {}, {
+				filename: username
+			});
 		} else {
 			const error = <ErrorResponse>await result.json();
 			await bot.sendMessage(msg.chat.id, `Error occurred while receiving file for ${username} \n${error.error}`);
