@@ -106,7 +106,7 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 		const qs = querystring.encode({
 			username: user.username
 		});
-		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/create/?${qs}`, {
+		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/create?${qs}`, {
 			headers: {
 				"Authorization": `Bearer ${TOKEN}`
 			}
@@ -130,7 +130,7 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 		username
 	});
 	try {
-		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/file/?${qs}`, {
+		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/file?${qs}`, {
 			headers: {
 				"Authorization": `Bearer ${TOKEN}`
 			}
