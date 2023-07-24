@@ -11,19 +11,19 @@ datasource db {
 }
 
 model VpnUser {
-  id               Int       @id @default(autoincrement())
-  username         String    @unique
-  telegramId       Int?      @map(name: "telegram_id")
-  telegramUsername String    @unique @map(name: "telegram_username")
-  phone            String?   @unique
-  createDate       DateTime  @default(now()) @map("create_date")
-  firstName        String?   @map(name: "first_name")
-  lastName         String?   @map(name: "last_name")
-  languageCode     String?   @default("ru") @map(name: "language_code")
-  paymentCount     Int       @default(80) @map(name: "payment_count")
-  paymentDate      DateTime  @map("payment_date")
-  desktopOS        DesktopOS @map(name: "desktop_os")
-  deviceOS         DeviceOS  @map(name: "device_os")
+  id               Int        @id @default(autoincrement())
+  username         String     @unique
+  telegramId       Int?       @map(name: "telegram_id")
+  telegramUsername String?    @unique @map(name: "telegram_username")
+  phone            String?    @unique
+  createDate       DateTime   @default(now()) @map("create_date")
+  firstName        String?    @map(name: "first_name")
+  lastName         String?    @map(name: "last_name")
+  languageCode     String?    @default("ru") @map(name: "language_code")
+  paymentCount     Int        @default(80) @map(name: "payment_count")
+  paymentDate      DateTime   @map("payment_date")
+  desktopOS        DesktopOS? @map(name: "desktop_os")
+  deviceOS         DeviceOS?  @map(name: "device_os")
 
   @@map("users")
 }

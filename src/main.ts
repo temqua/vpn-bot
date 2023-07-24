@@ -15,6 +15,7 @@ import { dictionary, getDesktopOS, getDeviceOS, sendMessage } from "./utils";
 import bot from "./services/bot";
 import { isAdmin } from "./auth";
 import { format } from "date-fns";
+import { DesktopOS, DeviceOS } from "@prisma/client";
 
 const userHelp: string = `
 /user all — list all users
@@ -156,8 +157,8 @@ bot.onText(
 			await bot.sendMessage(msg.chat.id, "Please provide username! It is required");
 		}
 		await createUser(msg, {
-			desktopOS: getDesktopOS(userData.desktop_os.toString()),
-			deviceOS: getDeviceOS(userData.device_os.toString()),
+			desktopOS: getDesktopOS(userData.desktop_os?.toString()) ?? DesktopOS.Windows,
+			deviceOS: getDeviceOS(userData.device_os?.toString()) ?? DeviceOS.Android,
 			firstName: userData.first_name?.toString() ?? "",
 			lastName: userData.last_name?.toString() ?? "",
 			languageCode: userData.language_code?.toString() ?? "",

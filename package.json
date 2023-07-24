@@ -4,7 +4,7 @@
   "description": "Simple Telegram bot for Dagon VPN management",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc && npm run prisma:build",
+    "build": "npm run prisma:build && tsc",
     "build:receiver": "tsc -p ./tsconfig.receiver.json",
     "prisma:build": "prisma migrate deploy && prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -24,12 +24,11 @@
   },
   "homepage": "https://github.com/temqua/vpn-bot#readme",
   "dependencies": {
-    "@prisma/client": "^4.16.2",
+    "@prisma/client": "^5.0.0",
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "node-telegram-bot-api": "^0.61.0",
-    "pg": "^8.11.1",
-    "prisma": "^4.16.2"
+    "pg": "^8.11.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.21.4",
@@ -39,6 +38,7 @@
     "@types/node-telegram-bot-api": "^0.57.6",
     "jest": "^29.5.0",
     "prettier": "^3.0.0",
+    "prisma": "^5.0.0",
     "typescript": "^4.9.5"
   }
 }
