@@ -32,6 +32,30 @@ export async function getUserByTelegramUsername(msg: Message, username: string):
 	});
 }
 
+
+export async function getUsersBeforePaying(): Promise<VpnUser[]> {
+	const today = new Date();
+	const day = today.getDate();
+	return prisma.vpnUser.findMany({
+		where: {
+			paymentDay: day + 1
+		}
+	});
+}
+
+export async function updateExistingUser(msg: Message, user: VpnUser): Promise<VpnUser> {
+	console.log(
+		`attempt to update user telegram id by telegram username chat id ${msg.chat.id}`
+	);
+	return prisma.vpnUser.update({
+		where: { username: user.username },
+		data: {
+			telegramId: msg.from.id,
+			languageCode: msg.from.language_code
+		}
+	});
+}
+
 export async function getUserByTelegramId(msg: Message, id: number): Promise<VpnUser | undefined> {
 	console.log(
 		`attempt to get user by telegram id ${id} chat id ${msg.chat.id}`
@@ -42,19 +66,6 @@ export async function getUserByTelegramId(msg: Message, id: number): Promise<Vpn
 		}
 	});
 }
-
-export async function getPaymentDate(msg: Message, id: number): Promise<Date> {
-	console.log(
-		`attempt to get user payment date by id ${id} chat id ${msg.chat.id}`
-	);
-	const user: VpnUser = await prisma.vpnUser.findFirst({
-		where: {
-			id: id
-		}
-	});
-	return user.paymentDate;
-}
-
 
 export async function getUserById(msg: Message, userId: number): Promise<VpnUser | undefined> {
 	console.log(`attempt to get user by id ${userId} chat id ${msg.chat.id}`);
@@ -72,7 +83,7 @@ export async function getAllUsers(msg: Message): Promise<void> {
 		console.log("attempt to load users :>> ", users);
 		let chunksCount = users.length / 10;
 		if (chunksCount === 0) {
-			sendMessage(msg, "found", `\`\`\`${JSON.stringify(users)}\`\`\``, {
+			await sendMessage(msg.chat.id, msg.from.language_code, "found", `\`\`\`${JSON.stringify(users)}\`\`\``, {
 				parse_mode: "MarkdownV2"
 			});
 		}
@@ -81,12 +92,12 @@ export async function getAllUsers(msg: Message): Promise<void> {
 			if (index === chunksCount - 1) {
 				chunk = users.slice(index * 10);
 			}
-			sendMessage(msg, "found", `\`\`\`${JSON.stringify(chunk)}\`\`\``, {
+			await sendMessage(msg.chat.id, msg.from.language_code, "found", `\`\`\`${JSON.stringify(chunk)}\`\`\``, {
 				parse_mode: "MarkdownV2"
 			});
 		}
 	} else {
-		sendMessage(msg, "not_found");
+		await sendMessage(msg.chat.id, msg.from.language_code, "not_found");
 	}
 	const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/users`, {
 		headers: {

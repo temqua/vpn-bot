@@ -3,10 +3,10 @@ import { sendMessage } from "./utils";
 import prisma from "./services/prisma";
 import { ADMIN_USER_ID } from "./env";
 
-export const isAdmin = (msg): boolean => {
+export const isAdmin = async (msg): Promise<boolean> => {
 	if (msg.from.id !== ADMIN_USER_ID) {
-		sendMessage(msg, "forbidden");
-		sendMessage(msg, "else");
+		await sendMessage(msg.chat.id, msg.from.language_code, "forbidden");
+		await sendMessage(msg.chat.id, msg.from.language_code, "else");
 	}
 	return msg.from.id === ADMIN_USER_ID;
 };

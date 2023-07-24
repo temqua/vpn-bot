@@ -21,7 +21,7 @@ model VpnUser {
   lastName         String?    @map(name: "last_name")
   languageCode     String?    @default("ru") @map(name: "language_code")
   paymentCount     Int        @default(80) @map(name: "payment_count")
-  paymentDate      DateTime   @map("payment_date")
+  paymentDay       Int?       @default(1) @map("payment_day")
   desktopOS        DesktopOS? @map(name: "desktop_os")
   deviceOS         DeviceOS?  @map(name: "device_os")
 

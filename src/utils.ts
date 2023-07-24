@@ -1,21 +1,24 @@
-import { Message, SendMessageOptions } from "node-telegram-bot-api";
+import { SendMessageOptions } from "node-telegram-bot-api";
 import { DesktopOS, DeviceOS } from "@prisma/client";
 import bot from "./services/bot";
 
-export function sendMessage(
-	received: Message,
+export async function sendMessage(
+	chatId: number,
+	languageCode: string = "ru",
 	code: string,
 	message: string = "",
 	options?: SendMessageOptions
-): void {
-	const chatId = received.chat.id;
+): Promise<void> {
 	const response = dictionary[code];
 	let responseText =
-		received.from.language_code === "ru" ? response.ru : response.en;
-	if (message) {
+		languageCode === "ru" ? response.ru : response.en;
+
+	if (message && responseText.includes("%message%")) {
+		responseText = responseText.replace("%message%", message);
+	} else if (message) {
 		responseText = responseText.concat(message);
 	}
-	bot.sendMessage(chatId, responseText, options);
+	await bot.sendMessage(chatId, responseText, options);
 }
 
 export interface Dictionary {
@@ -59,8 +62,17 @@ export const dictionary: Dictionary = {
 		en: "Command list"
 	},
 	payment_date: {
-		ru: "День, когда вам нужно оплачивать VPN ",
-		en: "Your VPN payment date is "
+		ru: "Вам нужно будет оплатить VPN не позднее. чем ",
+		en: "Kindly note the due date for your VPN payment "
+	},
+	payment_count: {
+		ru: "Вы платите %message% рублей в месяц",
+		en: "Your VPN payment fee is %message% roubles per month"
+	},
+	remind: {
+		ru: "Дорогой клиент! Напоминаем вам о необходимости оплаты за Dagon VPN. Нам было бы приятно, если вы могли бы произвести оплату VPN завтра. Спасибо вам за ваше внимание и понимание.",
+		en: "Dear valued customer! We kindly wish to remind you of the pending payment for Dagon VPN. Your prompt attention to this matter would be greatly appreciated. Tomorrow, if possible, we kindly request that you proceed with the payment for the VPN.\n" +
+			"Thank you for your understanding and continued support."
 	}
 };
 
