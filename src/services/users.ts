@@ -4,6 +4,7 @@ import prisma from "./prisma";
 import bot from "./bot";
 import { PORT, TOKEN, VPN_SERVER_IP } from "../env";
 import querystring from "node:querystring";
+import { getDesktopOS, getDeviceOS, sendMessage } from "../utils";
 
 type ErrorResponse = {
 	error: string;
@@ -40,6 +41,37 @@ export async function getUsersBeforePaying(): Promise<VpnUser[]> {
 			paymentDay: day + 1
 		}
 	});
+}
+
+export async function payUser(msg: Message, count: number) {
+	const user = await getUserByTelegramUsername(msg, msg.chat.username);
+	if (user) {
+		user.payedMonthsCount = count;
+		await prisma.vpnUser.update({
+			where: {
+				id: user.id
+			},
+			data: user
+		});
+		await sendMessage(msg.chat.id, msg.from.language_code, "payed");
+	}
+}
+
+export async function updatedPayedMonths(): Promise<void> {
+	const today = new Date();
+	const day = today.getDate();
+	const users = await prisma.vpnUser.findMany({
+		where: {
+			paymentDay: day
+		}
+	});
+	for (const user of users) {
+		user.payedMonthsCount = user.payedMonthsCount - 1;
+		await prisma.vpnUser.update({
+			where: { id: user.id },
+			data: user
+		});
+	}
 }
 
 export async function updateExistingUser(msg: Message, user: VpnUser): Promise<VpnUser> {
@@ -116,6 +148,38 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 	} catch (error) {
 		await bot.sendMessage(msg.chat.id, `Error occurred while creating user\n${error}`);
 	}
+}
+
+export async function updateUser(msg: Message, username: string, updated: querystring.ParsedUrlQuery): Promise<void> {
+	const currentUser = await prisma.vpnUser.findFirst({
+		where: {
+			username: username
+		}
+	});
+	const user: VpnUser = {
+		...currentUser,
+		desktopOS: updated?.desktop_os ? getDesktopOS(updated?.desktop_os as string) : currentUser.desktopOS,
+		deviceOS: updated?.device_os ? getDeviceOS(updated?.device_os as string) : currentUser.deviceOS,
+		firstName: updated?.first_name?.toString() ?? currentUser.firstName,
+		lastName: updated?.last_name?.toString() ?? currentUser.lastName,
+		phone: updated?.phone?.toString() ?? currentUser.phone,
+		telegramUsername: updated?.telegram_username?.toString() ?? currentUser.telegramUsername,
+		paymentCount: Number(updated?.payment_count ?? currentUser.paymentCount),
+		paymentDay: Number(updated?.payment_day ?? currentUser.paymentDay),
+		payedMonthsCount: Number(updated.payed_months_count ?? currentUser.payedMonthsCount)
+	};
+	try {
+		await prisma.vpnUser.update({
+			where: {
+				username: username
+			},
+			data: user
+		});
+		await bot.sendMessage(msg.chat.id, "User has been successfully updated");
+	} catch (error) {
+		await bot.sendMessage(msg.chat.id, `Error occurred while updating user ${username} \n${error}`);
+	}
+
 }
 
 export async function getUserFile(msg: Message, username: string): Promise<void> {

@@ -11,8 +11,11 @@ import {
 	getUserByTelegramUsername,
 	getUserFile,
 	getUsersBeforePaying,
+	payUser,
 	showIkeClients,
-	updateExistingUser
+	updatedPayedMonths,
+	updateExistingUser,
+	updateUser
 } from "./services/users";
 import { dictionary, getDesktopOS, getDeviceOS, sendMessage } from "./utils";
 import bot from "./services/bot";
@@ -39,6 +42,9 @@ setInterval(async () => {
 	}
 }, ms("12h"));
 
+setInterval(async () => {
+	await updatedPayedMonths();
+}, ms("1 day"));
 
 bot.onText(
 	/\/start/,
@@ -50,6 +56,21 @@ bot.onText(
 		}
 	}
 );
+
+bot.onText(/\/pay/, async (msg: Message) => {
+	await payUser(msg, 1);
+});
+
+
+bot.onText(/\/pay (.+)/, async (msg: Message, match: RegExpMatchArray) => {
+	const data = match[1];
+	const count = data !== "" ? +data : 1;
+	if (isNaN(count)) {
+		await sendMessage(msg.chat.id, msg.from.language_code, "invalid_message_pay");
+	}
+	await payUser(msg, count);
+});
+
 bot.onText(/\/me/, async (msg: Message) => {
 	const user = await getUserByTelegramUsername(msg, msg.chat.username);
 	if (user) {
@@ -87,7 +108,7 @@ bot.onText(/\/remind/, async (msg: Message) => {
 	paymentDate.setDate(user.paymentDay);
 	paymentDate.setHours(0, 0, 0, 0);
 	await sendMessage(msg.chat.id, msg.from.language_code, "payment_date", format(paymentDate, "do MMMM", {
-		locale: user.languageCode === "ru" ? ru : enUS
+		locale: msg.from.language_code === "ru" ? ru : enUS
 	}));
 	await sendMessage(msg.chat.id, msg.from.language_code, "payment_count", user.paymentCount.toString());
 });
@@ -187,7 +208,7 @@ bot.onText(
 		if (queryString === "help") {
 			await bot.sendMessage(msg.chat.id, `
 /user create <querystring>— Send data about new user in query string format like this:
-username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1`
+username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234&payment_count=100&payment_day=1&payedMonthsCount=1`
 			);
 			return;
 		}
@@ -201,15 +222,39 @@ username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&fi
 			deviceOS: getDeviceOS(userData.device_os?.toString()),
 			firstName: userData.first_name?.toString(),
 			lastName: userData.last_name?.toString(),
-			languageCode: userData.language_code?.toString(),
+			languageCode: null,
 			phone: userData.phone?.toString(),
-			telegramId: userData.telegram_id ? +userData.telegram_id : 0,
+			telegramId: null,
 			telegramUsername: userData.telegram_username?.toString(),
 			createDate: new Date(),
 			paymentCount: Number(userData?.payment_count ?? 100),
 			username: userData.username.toString(),
-			paymentDay: Number(userData.payment_day ?? 1)
+			paymentDay: Number(userData.payment_day ?? 1),
+			payedMonthsCount: Number(userData.payed_months_count ?? 0)
 		});
+	}
+);
+
+bot.onText(
+	/\/user\s+update\s+(.+)/,
+	async (msg: Message, match: RegExpMatchArray) => {
+		if (!await isAdmin(msg)) {
+			return;
+		}
+		const queryString = match[1];
+		if (queryString === "help") {
+			await bot.sendMessage(msg.chat.id, `
+/user update <querystring>— Send data about new user in query string format like this:
+telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1&payed_months_count`
+			);
+			return;
+		}
+		const userData = querystring.decode(queryString);
+		if (!userData.username) {
+			await bot.sendMessage(msg.chat.id, "Please provide username which user we updating!");
+			return;
+		}
+		await updateUser(msg, userData.username as string, userData);
 	}
 );
 

@@ -73,7 +73,16 @@ export const dictionary: Dictionary = {
 		ru: "Дорогой клиент! Напоминаем вам о необходимости оплаты за Dagon VPN. Нам было бы приятно, если вы могли бы произвести оплату VPN завтра. Спасибо вам за ваше внимание и понимание.",
 		en: "Dear valued customer! We kindly wish to remind you of the pending payment for Dagon VPN. Your prompt attention to this matter would be greatly appreciated. Tomorrow, if possible, we kindly request that you proceed with the payment for the VPN.\n" +
 			"Thank you for your understanding and continued support."
+	},
+	payed: {
+		ru: "Вы успешно оплатили следующий месяц!",
+		en: "You have successfully payed for next month!"
+	},
+	invalid_message_pay: {
+		ru: "Пожалуйста введите в корректном режиме! Введите количество месяцев, которое оплатили",
+		en: "You entered invalid data! Please enter months count which you payed for"
 	}
+
 };
 
 export const getDesktopOS = (os: string): DesktopOS => {
