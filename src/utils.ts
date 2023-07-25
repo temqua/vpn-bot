@@ -54,8 +54,8 @@ export const dictionary: Dictionary = {
 		en: "Unfortunately we weren't able to find users with your telegram id or username"
 	},
 	start: {
-		ru: "Здравствуйте! Это бот для работы с Dagon VPN https://t.me/dagonvpn. Бот напомнит, когда нужно платить за VPN, а также подскажет, какая информация хранится о вас в базе",
-		en: "Hello! The bot is for Dagon VPN https://t.me/dagonvpn. It can remind when you have to pay and show information we store about you."
+		ru: "Здравствуйте! Это бот для работы с Dagon VPN https://t.me/dagonvpn. Бот напомнит, когда нужно платить за VPN, а также подскажет, какая информация хранится о вас в базе.\nПожалуйста, не забывайте писать /pay, когда оплачиваете месяц. Если оплачиваете несколько месяцев, то пишите /pay <количество месяцев>, например, /pay 3",
+		en: "Hello! The bot is for Dagon VPN https://t.me/dagonvpn. It can remind when you have to pay and show information we store about you.\nPlease don't forget to write /pay when you pay for month. If you wanna pay for several months you can write /pay <months_count> e.g. /pay 3"
 	},
 	command_list: {
 		ru: "Список команд",
@@ -74,13 +74,13 @@ export const dictionary: Dictionary = {
 		en: "Dear valued customer! We kindly wish to remind you of the pending payment for Dagon VPN. Your prompt attention to this matter would be greatly appreciated. Tomorrow, if possible, we kindly request that you proceed with the payment for the VPN.\n" +
 			"Thank you for your understanding and continued support."
 	},
-	payed: {
+	paid: {
 		ru: "Вы успешно оплатили следующий месяц!",
-		en: "You have successfully payed for next month!"
+		en: "You have successfully paid for next month!"
 	},
 	invalid_message_pay: {
 		ru: "Пожалуйста введите в корректном режиме! Введите количество месяцев, которое оплатили",
-		en: "You entered invalid data! Please enter months count which you payed for"
+		en: "You entered invalid data! Please enter months count which you paid for"
 	}
 
 };

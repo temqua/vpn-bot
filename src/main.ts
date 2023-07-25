@@ -12,8 +12,9 @@ import {
 	getUserFile,
 	getUsersBeforePaying,
 	payUser,
+	payUserByUsername,
 	showIkeClients,
-	updatedPayedMonths,
+	updatedPaidMonths,
 	updateExistingUser,
 	updateUser
 } from "./services/users";
@@ -26,11 +27,12 @@ import ru from "date-fns/locale/ru";
 import ms from "ms";
 
 const userHelp: string = `
-/user all — list all users
+/user all or /users — list all users
 /user id=<id> — get user by id
 /user username=<username> — get user by dagon vpn username
 /user tg=<telegram_username> — get user by telegram username
-/user file <username> — get zip archive with vpn configs
+/user file username=<username> — get zip archive with vpn configs
+/user pay username=<username> <count> — set user with username paid for count months. If count is omitted, set to 1 
 /user create <querystring>— Send data about new user in query string format like this:
 username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1
 `;
@@ -43,7 +45,7 @@ setInterval(async () => {
 }, ms("12h"));
 
 setInterval(async () => {
-	await updatedPayedMonths();
+	await updatedPaidMonths();
 }, ms("1 day"));
 
 bot.onText(
@@ -62,13 +64,20 @@ bot.onText(/\/pay/, async (msg: Message) => {
 });
 
 
-bot.onText(/\/pay (.+)/, async (msg: Message, match: RegExpMatchArray) => {
+bot.onText(/\/pay\s+(.+)/, async (msg: Message, match: RegExpMatchArray) => {
 	const data = match[1];
 	const count = data !== "" ? +data : 1;
 	if (isNaN(count)) {
 		await sendMessage(msg.chat.id, msg.from.language_code, "invalid_message_pay");
 	}
 	await payUser(msg, count);
+});
+
+bot.onText(/\/user\s+pay\s+username=(.+)\s+(.+)/, async (msg: Message, match: RegExpMatchArray) => {
+	const username = match[1];
+	const data = match[2];
+	const count = data !== "" ? +data : 1;
+	await payUserByUsername(msg, username, count);
 });
 
 bot.onText(/\/me/, async (msg: Message) => {
@@ -165,7 +174,7 @@ bot.onText(
 	}
 );
 
-bot.onText(/\/user\s+all/, async (msg: Message) => {
+bot.onText(/(\/user\s+all|\/users)/, async (msg: Message) => {
 	if (!await isAdmin(msg)) {
 		return;
 	}
@@ -208,7 +217,7 @@ bot.onText(
 		if (queryString === "help") {
 			await bot.sendMessage(msg.chat.id, `
 /user create <querystring>— Send data about new user in query string format like this:
-username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234&payment_count=100&payment_day=1&payedMonthsCount=1`
+username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234&payment_count=100&payment_day=1&paid_months_count=1`
 			);
 			return;
 		}
@@ -230,7 +239,7 @@ username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&fi
 			paymentCount: Number(userData?.payment_count ?? 100),
 			username: userData.username.toString(),
 			paymentDay: Number(userData.payment_day ?? 1),
-			payedMonthsCount: Number(userData.payed_months_count ?? 0)
+			paidMonthsCount: Number(userData.paid_months_count ?? 0)
 		});
 	}
 );
@@ -245,7 +254,7 @@ bot.onText(
 		if (queryString === "help") {
 			await bot.sendMessage(msg.chat.id, `
 /user update <querystring>— Send data about new user in query string format like this:
-telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1&payed_months_count`
+telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1&paid_months_count`
 			);
 			return;
 		}
@@ -259,7 +268,7 @@ telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&las
 );
 
 bot.onText(
-	/\/user file (.+)/,
+	/\/user\s+file\s+username=(.+)/,
 	async (msg: Message, match: RegExpMatchArray) => {
 		if (!await isAdmin(msg)) {
 			return;

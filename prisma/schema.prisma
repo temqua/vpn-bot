@@ -24,7 +24,7 @@ model VpnUser {
   paymentDay       Int?       @default(1) @map("payment_day")
   desktopOS        DesktopOS? @map(name: "desktop_os")
   deviceOS         DeviceOS?  @map(name: "device_os")
-  payedMonthsCount Int?       @default(0) @map(name: "payed_months_count")
+  paidMonthsCount  Int?       @default(0) @map(name: "paid_months_count")
 
   @@map("users")
 }

@@ -46,18 +46,36 @@ export async function getUsersBeforePaying(): Promise<VpnUser[]> {
 export async function payUser(msg: Message, count: number) {
 	const user = await getUserByTelegramUsername(msg, msg.chat.username);
 	if (user) {
-		user.payedMonthsCount = count;
+		user.paidMonthsCount = count;
 		await prisma.vpnUser.update({
 			where: {
 				id: user.id
 			},
 			data: user
 		});
-		await sendMessage(msg.chat.id, msg.from.language_code, "payed");
+		await sendMessage(msg.chat.id, msg.from.language_code, "paid");
+	} else {
+		await sendMessage(msg.chat.id, msg.from.language_code, "unregistered");
 	}
 }
 
-export async function updatedPayedMonths(): Promise<void> {
+export async function payUserByUsername(msg: Message, username: string, count: number) {
+	const user = await getUserByTelegramUsername(msg, msg.chat.username);
+	if (user) {
+		user.paidMonthsCount = count;
+		await prisma.vpnUser.update({
+			where: {
+				id: user.id
+			},
+			data: user
+		});
+		await sendMessage(msg.chat.id, msg.from.language_code, "paid");
+	} else {
+		await sendMessage(msg.chat.id, msg.from.language_code, "unregistered");
+	}
+}
+
+export async function updatedPaidMonths(): Promise<void> {
 	const today = new Date();
 	const day = today.getDate();
 	const users = await prisma.vpnUser.findMany({
@@ -66,7 +84,7 @@ export async function updatedPayedMonths(): Promise<void> {
 		}
 	});
 	for (const user of users) {
-		user.payedMonthsCount = user.payedMonthsCount - 1;
+		user.paidMonthsCount = user.paidMonthsCount - 1;
 		await prisma.vpnUser.update({
 			where: { id: user.id },
 			data: user
@@ -166,7 +184,7 @@ export async function updateUser(msg: Message, username: string, updated: querys
 		telegramUsername: updated?.telegram_username?.toString() ?? currentUser.telegramUsername,
 		paymentCount: Number(updated?.payment_count ?? currentUser.paymentCount),
 		paymentDay: Number(updated?.payment_day ?? currentUser.paymentDay),
-		payedMonthsCount: Number(updated.payed_months_count ?? currentUser.payedMonthsCount)
+		paidMonthsCount: Number(updated.payed_months_count ?? currentUser.paidMonthsCount)
 	};
 	try {
 		await prisma.vpnUser.update({
