@@ -25,6 +25,7 @@ model VpnUser {
   desktopOS        DesktopOS? @map(name: "desktop_os")
   deviceOS         DeviceOS?  @map(name: "device_os")
   paidMonthsCount  Int?       @default(0) @map(name: "paid_months_count")
+  autoPay          Boolean    @default(false) @map(name: "auto_pay")
 
   @@map("users")
 }

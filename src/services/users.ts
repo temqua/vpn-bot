@@ -8,38 +8,34 @@ import { getDesktopOS, getDeviceOS, sendMessage } from "../utils";
 
 type ErrorResponse = {
 	error: string;
-}
+};
 
 export async function getUser(msg: Message, username: string): Promise<VpnUser | undefined> {
-	console.log(
-		`attempt to get user by username ${username} chat id ${msg.chat.id}`
-	);
+	console.log(`attempt to get user by username ${username} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
-			username: username
-		}
+			username: username,
+		},
 	});
 }
 
 export async function getUserByTelegramUsername(msg: Message, username: string): Promise<VpnUser | undefined> {
-	console.log(
-		`attempt to get user by telegram username ${username} chat id ${msg.chat.id}`
-	);
+	console.log(`attempt to get user by telegram username ${username} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
-			telegramUsername: username
-		}
+			telegramUsername: username,
+		},
 	});
 }
-
 
 export async function getUsersBeforePaying(): Promise<VpnUser[]> {
 	const today = new Date();
 	const day = today.getDate();
 	return prisma.vpnUser.findMany({
 		where: {
-			paymentDay: day + 1
-		}
+			paymentDay: day + 1,
+			autoPay: false,
+		},
 	});
 }
 
@@ -49,9 +45,9 @@ export async function payUser(msg: Message, count: number) {
 		user.paidMonthsCount = count;
 		await prisma.vpnUser.update({
 			where: {
-				id: user.id
+				id: user.id,
 			},
-			data: user
+			data: user,
 		});
 		await sendMessage(msg.chat.id, msg.from.language_code, "paid");
 	} else {
@@ -65,9 +61,9 @@ export async function payUserByUsername(msg: Message, username: string, count: n
 		user.paidMonthsCount = count;
 		await prisma.vpnUser.update({
 			where: {
-				id: user.id
+				id: user.id,
 			},
-			data: user
+			data: user,
 		});
 		await sendMessage(msg.chat.id, msg.from.language_code, "paid");
 	} else {
@@ -80,40 +76,36 @@ export async function updatedPaidMonths(): Promise<void> {
 	const day = today.getDate();
 	const users = await prisma.vpnUser.findMany({
 		where: {
-			paymentDay: day
-		}
+			paymentDay: day,
+		},
 	});
 	for (const user of users) {
 		user.paidMonthsCount = user.paidMonthsCount - 1;
 		await prisma.vpnUser.update({
 			where: { id: user.id },
-			data: user
+			data: user,
 		});
 	}
 }
 
 export async function updateExistingUser(msg: Message, user: VpnUser): Promise<VpnUser> {
-	console.log(
-		`attempt to update user telegram id by telegram username chat id ${msg.chat.id}`
-	);
+	console.log(`attempt to update user telegram id by telegram username chat id ${msg.chat.id}`);
 	return prisma.vpnUser.update({
 		where: { username: user.username },
 		data: {
 			telegramId: msg.from.id,
 			telegramUsername: msg.from.username,
-			languageCode: msg.from.language_code
-		}
+			languageCode: msg.from.language_code,
+		},
 	});
 }
 
 export async function getUserByTelegramId(msg: Message, id: number): Promise<VpnUser | undefined> {
-	console.log(
-		`attempt to get user by telegram id ${id} chat id ${msg.chat.id}`
-	);
+	console.log(`attempt to get user by telegram id ${id} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
-			telegramId: id
-		}
+			telegramId: id,
+		},
 	});
 }
 
@@ -121,8 +113,8 @@ export async function getUserById(msg: Message, userId: number): Promise<VpnUser
 	console.log(`attempt to get user by id ${userId} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
-			id: userId
-		}
+			id: userId,
+		},
 	});
 }
 
@@ -134,46 +126,56 @@ export async function getAllUsers(msg: Message): Promise<VpnUser[]> {
 export async function showIkeClients(msg: Message): Promise<void> {
 	const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/users`, {
 		headers: {
-			"Authorization": `Bearer ${TOKEN}`
-		}
+			"Authorization": `Bearer ${TOKEN}`,
+		},
 	});
 	if (result.ok) {
 		await bot.sendMessage(msg.chat.id, `${result.status} ${result.statusText} \n${await result.text()}`);
 	} else {
 		const error = <ErrorResponse>await result.json();
-		await bot.sendMessage(msg.chat.id, `Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`);
+		await bot.sendMessage(
+			msg.chat.id,
+			`❌Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`,
+		);
+		console.log(`❌Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`)
 	}
 }
 
 export async function createUser(msg: Message, user: NewUser): Promise<void> {
 	try {
 		const qs = querystring.encode({
-			username: user.username
+			username: user.username,
 		});
 		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/create?${qs}`, {
 			headers: {
-				"Authorization": `Bearer ${TOKEN}`
-			}
+				"Authorization": `Bearer ${TOKEN}`,
+			},
 		});
 		if (result.ok) {
 			await prisma.vpnUser.create({
-				data: user
+				data: user,
 			});
 			await bot.sendMessage(msg.chat.id, `${result.status} ${result.statusText} \n${await result.text()}`);
-			await bot.sendMessage(msg.chat.id, "User has been successfully created");
+			await bot.sendMessage(msg.chat.id, "✅User has been successfully created");
+			console.log(`✅User with username ${user.username} has been successfully created`)
 		} else {
-			await bot.sendMessage(msg.chat.id, `Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`);
+			console.log(`❌Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`);
+			await bot.sendMessage(
+				msg.chat.id,
+				`❌Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`,
+			);
 		}
 	} catch (error) {
-		await bot.sendMessage(msg.chat.id, `Error occurred while creating user\n${error}`);
+		console.log(`❌Error occurred while creating user\n${error.stack}`);
+		await bot.sendMessage(msg.chat.id, `❌Error occurred while creating user\n${error.stack}`);
 	}
 }
 
 export async function updateUser(msg: Message, username: string, updated: querystring.ParsedUrlQuery): Promise<void> {
 	const currentUser = await prisma.vpnUser.findFirst({
 		where: {
-			username: username
-		}
+			username: username,
+		},
 	});
 	const user: VpnUser = {
 		...currentUser,
@@ -185,44 +187,53 @@ export async function updateUser(msg: Message, username: string, updated: querys
 		telegramUsername: updated?.telegram_username?.toString() ?? currentUser.telegramUsername,
 		paymentCount: Number(updated?.payment_count ?? currentUser.paymentCount),
 		paymentDay: Number(updated?.payment_day ?? currentUser.paymentDay),
-		paidMonthsCount: Number(updated.payed_months_count ?? currentUser.paidMonthsCount)
+		paidMonthsCount: Number(updated.payed_months_count ?? currentUser.paidMonthsCount),
+		autoPay: updated?.auto_pay === "true" ? true : false,
 	};
 	try {
 		await prisma.vpnUser.update({
 			where: {
-				username: username
+				username: username,
 			},
-			data: user
+			data: user,
 		});
-		await bot.sendMessage(msg.chat.id, "User has been successfully updated");
+		console.log(`✅User with username ${username} has been successfully updated`);
+		await bot.sendMessage(msg.chat.id, "✅User has been successfully updated");
 	} catch (error) {
-		await bot.sendMessage(msg.chat.id, `Error occurred while updating user ${username} \n${error}`);
+		console.log(`❌Error occurred while updating user ${username} \n${error.stack}`);
+		await bot.sendMessage(msg.chat.id, `❌Error occurred while updating user ${username} \n${error.stack}`);
 	}
-
 }
 
 export async function getUserFile(msg: Message, username: string): Promise<void> {
 	const qs = querystring.encode({
-		username
+		username,
 	});
 	try {
 		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/file?${qs}`, {
 			headers: {
-				"Authorization": `Bearer ${TOKEN}`
-			}
+				"Authorization": `Bearer ${TOKEN}`,
+			},
 		});
 		if (result.ok) {
 			const file = await result.arrayBuffer();
-			await bot.sendDocument(msg.chat.id, Buffer.from(file), {}, {
-				filename: `${username}.zip`,
-				contentType: "application/octet-stream"
-			});
+			await bot.sendDocument(
+				msg.chat.id,
+				Buffer.from(file),
+				{},
+				{
+					filename: `${username}.zip`,
+					contentType: "application/octet-stream",
+				},
+			);
 		} else {
 			const error = <ErrorResponse>await result.json();
-			await bot.sendMessage(msg.chat.id, `Error occurred while receiving file for ${username} \n${error.error}`);
+			console.log(`❌Error occurred while receiving file for ${username} \n${error.error}`)
+			await bot.sendMessage(msg.chat.id, `❌Error occurred while receiving file for ${username} \n${error.error}`);
 		}
 	} catch (error) {
-		await bot.sendMessage(msg.chat.id, `Error occurred while receiving file for ${username} \n${error}`);
+		console.log(`❌Error occurred while receiving file for ${username} \n${error.stack}`)
+		await bot.sendMessage(msg.chat.id, `❌Error occurred while receiving file for ${username} \n${error.stack}`);
 	}
 }
 
@@ -241,6 +252,7 @@ payment_day: ${user.paymentDay}
 desktop_os: ${user.desktopOS}
 device_os: ${user.deviceOS}
 createDate: ${user.createDate}
+autoPay: ${user.autoPay}
 	\`\`\``;
 };
 

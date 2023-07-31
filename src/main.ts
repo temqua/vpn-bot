@@ -215,7 +215,7 @@ bot.onText(/\/user\s+create\s+(.+)/, async (msg: Message, match: RegExpMatchArra
 			msg.chat.id,
 			`
 /user create <querystring>— Send data about new user in query string format like this:
-username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234&payment_count=100&payment_day=1&paid_months_count=1`,
+username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234&payment_count=100&payment_day=1&paid_months_count=1&auto_pay=true`,
 		);
 		return;
 	}
@@ -238,6 +238,7 @@ username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&fi
 		username: userData.username.toString(),
 		paymentDay: Number(userData.payment_day ?? 1),
 		paidMonthsCount: Number(userData.paid_months_count ?? 0),
+		autoPay: userData?.auto_pay === "true" ? true : false,
 	});
 });
 
@@ -251,7 +252,7 @@ bot.onText(/\/user\s+update\s+(.+)/, async (msg: Message, match: RegExpMatchArra
 			msg.chat.id,
 			`
 /user update <querystring>— Send data about new user in query string format like this:
-telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1&paid_months_count`,
+telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1&paid_months_count&auto_pay=true`,
 		);
 		return;
 	}
@@ -274,6 +275,6 @@ bot.onText(/\/user\s+file\s+username=(.+)/, async (msg: Message, match: RegExpMa
 bot.onText(/[Пп]идор|[Пп]лохой|[Пп]ошёл на хуй|[Гг]ондон|[Уу]ёбок|[Нн]елюдь/, async (msg: Message) => {
 	await bot.sendMessage(
 		msg.chat.id,
-		"Не обижай меня! Я всего лишь бот. Если у тебя проблемы, то лучше как можно скорее обратись к нужному специалисту. Он точнее подскажет в твоей трудной жизненной ситуации",
+		"❌❌❌Не обижай меня! Я всего лишь бот. Если у тебя проблемы, то лучше как можно скорее обратись к нужному специалисту. Он точнее подскажет в твоей трудной жизненной ситуации",
 	);
 });
