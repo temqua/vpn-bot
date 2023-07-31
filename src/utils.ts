@@ -81,6 +81,10 @@ export const dictionary: Dictionary = {
 	invalid_message_pay: {
 		ru: "Пожалуйста введите в корректном режиме! Введите количество месяцев, которое оплатили",
 		en: "You entered invalid data! Please enter months count which you paid for"
+	},
+	enter_username: {
+		ru: "К сожалению, мы не можем найти вас в системе по telegram username\nПожалуйста введите название своего клиента \\(название архива или конфигурационного файла без расширения\\) в таком формате ",
+		en: "Unfortunately we can't find information about you in system by telegram username\nPlease enter your vpn client name in such format "
 	}
 
 };

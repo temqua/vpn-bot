@@ -100,6 +100,7 @@ export async function updateExistingUser(msg: Message, user: VpnUser): Promise<V
 		where: { username: user.username },
 		data: {
 			telegramId: msg.from.id,
+			telegramUsername: msg.from.username,
 			languageCode: msg.from.language_code
 		}
 	});
@@ -213,7 +214,7 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 		if (result.ok) {
 			const file = await result.arrayBuffer();
 			await bot.sendDocument(msg.chat.id, Buffer.from(file), {}, {
-				filename: username,
+				filename: `${username}.zip`,
 				contentType: "application/octet-stream"
 			});
 		} else {
