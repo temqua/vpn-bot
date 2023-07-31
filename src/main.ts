@@ -77,6 +77,12 @@ bot.onText(/\/user\s+pay\s+username=(.+)\s+(.+)/, async (msg: Message, match: Re
 });
 
 bot.onText(/\/me/, async (msg: Message) => {
+	if (msg.from.username === "") {
+		await sendMessage(msg.chat.id, msg.from.language_code, "enter_username", "``` /me artem ```", {
+			parse_mode: "MarkdownV2",
+		});
+		return;
+	}
 	const user = await getUserByTelegramUsername(msg, msg.from.username);
 	if (user) {
 		await sendMessage(msg.chat.id, msg.from.language_code, "found", `${formatUser(user)}`, {
