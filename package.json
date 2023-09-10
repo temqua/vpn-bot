@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run prisma:build && tsc",
     "build:receiver": "tsc -p ./tsconfig.receiver.json",
-    "prisma:build": "prisma migrate deploy && prisma generate",
+    "prisma:build": "prisma migrate deploy && prisma generate && npm run seeds:up",
     "prisma:migrate": "prisma migrate dev",
     "prestart": "npm run build",
     "seeds:up": "ts-node prisma/seeds.ts",

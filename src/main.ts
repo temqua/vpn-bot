@@ -29,12 +29,12 @@ import ms from "ms";
 import { getBotMessage } from "./services/messages";
 
 setInterval(async () => {
-	console.log("started job trying to get users before paying");
+	console.log(`[${new Date().toISOString()}] started job trying to get users before paying`);
 	const users = await getUsersBeforePaying();
 	for (const user of users) {
 		await sendMessage(user.id, user.languageCode, "remind");
 	}
-	console.log("✅finished job for reminding users");
+	console.log(`[${new Date().toISOString()}] ✅finished job for reminding users`);
 }, ms("12h"));
 
 setInterval(async () => {
@@ -112,7 +112,7 @@ bot.onText(/\/user\s+unpaid/, async (msg: Message) => {
 	if (!(await isAdmin(msg))) {
 		return;
 	}
-	console.log("Attempt to get unpaid users");
+	console.log(`[${new Date().toISOString()}] Attempt to get unpaid users`);
 	const unpaid = await getUnpaid();
 	if (unpaid.length) {
 		const users = unpaid.map(user => formatUser(user));

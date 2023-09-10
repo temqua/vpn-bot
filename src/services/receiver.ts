@@ -81,7 +81,7 @@ const createUser = async (request: IncomingMessage, res: ServerResponse, usernam
 
 const getUserArchive = async (request: IncomingMessage, res: ServerResponse, username: string) => {
 	const filePath = path.resolve(homedir(), process.env.IKE_HOME, `${username}/`, `${username}.zip`);
-	console.log(`generated file path: ${filePath}`);
+	console.log(`[${new Date().toISOString()}] generated file path: ${filePath}`);
 	const mimeType: string = "application/octet-stream";
 	try {
 		await access(filePath, constants.F_OK);
