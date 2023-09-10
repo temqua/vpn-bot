@@ -11,8 +11,10 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "envFile": "${workspaceFolder}/.env",
             "program": "${workspaceFolder}/src/main.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
+            "console": "integratedTerminal",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

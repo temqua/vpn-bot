@@ -39,6 +39,16 @@ export async function getUsersBeforePaying(): Promise<VpnUser[]> {
 	});
 }
 
+export async function getUnpaid(): Promise<VpnUser[]> {
+	return prisma.vpnUser.findMany({
+		where: {
+			paidMonthsCount: {
+				lt: 1
+			}
+		},
+	});
+}
+
 export async function payUser(msg: Message, count: number) {
 	const user = await getUserByTelegramUsername(msg, msg.chat.username);
 	if (user) {
@@ -187,7 +197,7 @@ export async function updateUser(msg: Message, username: string, updated: querys
 		telegramUsername: updated?.telegram_username?.toString() ?? currentUser.telegramUsername,
 		paymentCount: Number(updated?.payment_count ?? currentUser.paymentCount),
 		paymentDay: Number(updated?.payment_day ?? currentUser.paymentDay),
-		paidMonthsCount: Number(updated.payed_months_count ?? currentUser.paidMonthsCount),
+		paidMonthsCount: Number(updated.paid_months_count ?? currentUser.paidMonthsCount),
 		autoPay: updated?.auto_pay === "true" ? true : false,
 	};
 	try {

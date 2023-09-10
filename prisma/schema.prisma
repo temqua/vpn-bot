@@ -30,6 +30,22 @@ model VpnUser {
   @@map("users")
 }
 
+model BotSetting {
+  id          String  @id @unique
+  stringValue String? @map(name: "string_value")
+  jsonValue   Json?   @map(name: "json_value")
+
+  @@map("settings")
+}
+
+model BotMessage {
+  id String  @id @unique
+  en String?
+  ru String?
+
+  @@map("messages")
+}
+
 enum DeviceOS {
   Android
   iOS
