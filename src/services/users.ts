@@ -5,13 +5,14 @@ import bot from "./bot";
 import { PORT, TOKEN, VPN_SERVER_IP } from "../env";
 import querystring from "node:querystring";
 import { getDesktopOS, getDeviceOS, sendMessage } from "../utils";
+import logger from "./logger";
 
 type ErrorResponse = {
 	error: string;
 };
 
 export async function getUser(msg: Message, username: string): Promise<VpnUser | undefined> {
-	console.log(`[${new Date().toISOString()}] attempt to get user by username ${username} chat id ${msg.chat.id}`);
+	logger.log(`attempt to get user by username ${username} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
 			username: username,
@@ -20,7 +21,7 @@ export async function getUser(msg: Message, username: string): Promise<VpnUser |
 }
 
 export async function getUserByTelegramUsername(msg: Message, username: string): Promise<VpnUser | undefined> {
-	console.log(`[${new Date().toISOString()}] attempt to get user by telegram username ${username} chat id ${msg.chat.id}`);
+	logger.log(`attempt to get user by telegram username ${username} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
 			telegramUsername: username,
@@ -43,8 +44,8 @@ export async function getUnpaid(): Promise<VpnUser[]> {
 	return prisma.vpnUser.findMany({
 		where: {
 			paidMonthsCount: {
-				lt: 1
-			}
+				lt: 1,
+			},
 		},
 	});
 }
@@ -99,7 +100,7 @@ export async function updatedPaidMonths(): Promise<void> {
 }
 
 export async function updateExistingUser(msg: Message, user: VpnUser): Promise<VpnUser> {
-	console.log(`[${new Date().toISOString()}] attempt to update user telegram id by telegram username chat id ${msg.chat.id}`);
+	logger.log(`attempt to update user telegram id by telegram username chat id ${msg.chat.id}`);
 	return prisma.vpnUser.update({
 		where: { username: user.username },
 		data: {
@@ -111,7 +112,7 @@ export async function updateExistingUser(msg: Message, user: VpnUser): Promise<V
 }
 
 export async function getUserByTelegramId(msg: Message, id: number): Promise<VpnUser | undefined> {
-	console.log(`[${new Date().toISOString()}] attempt to get user by telegram id ${id} chat id ${msg.chat.id}`);
+	logger.log(`attempt to get user by telegram id ${id} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
 			telegramId: id,
@@ -120,7 +121,7 @@ export async function getUserByTelegramId(msg: Message, id: number): Promise<Vpn
 }
 
 export async function getUserById(msg: Message, userId: number): Promise<VpnUser | undefined> {
-	console.log(`[${new Date().toISOString()}] attempt to get user by id ${userId} chat id ${msg.chat.id}`);
+	logger.log(`attempt to get user by id ${userId} chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findFirst({
 		where: {
 			id: userId,
@@ -129,7 +130,7 @@ export async function getUserById(msg: Message, userId: number): Promise<VpnUser
 }
 
 export async function getAllUsers(msg: Message): Promise<VpnUser[]> {
-	console.log(`[${new Date().toISOString()}] attempt to get all users chat id ${msg.chat.id}`);
+	logger.log(`attempt to get all users chat id ${msg.chat.id}`);
 	return prisma.vpnUser.findMany();
 }
 
@@ -147,7 +148,9 @@ export async function showIkeClients(msg: Message): Promise<void> {
 			msg.chat.id,
 			`❌Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`,
 		);
-		console.log(`[${new Date().toISOString()}] ❌Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`)
+		logger.error(
+			`Error occurred while getting users list from server \n${result.status} ${result.statusText} \n${error.error}`,
+		);
 	}
 }
 
@@ -167,16 +170,18 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 			});
 			await bot.sendMessage(msg.chat.id, `${result.status} ${result.statusText} \n${await result.text()}`);
 			await bot.sendMessage(msg.chat.id, "✅User has been successfully created");
-			console.log(`[${new Date().toISOString()}] ✅User with username ${user.username} has been successfully created`)
+			logger.success(`User with username ${user.username} has been successfully created`);
 		} else {
-			console.log(`[${new Date().toISOString()}] ❌Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`);
+			logger.error(
+				`Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`,
+			);
 			await bot.sendMessage(
 				msg.chat.id,
 				`❌Error occurred while creating user\n${result.status} ${result.statusText} \n${await result.text()}`,
 			);
 		}
 	} catch (error) {
-		console.log(`[${new Date().toISOString()}] ❌Error occurred while creating user\n${error.stack}`);
+		logger.error(`Error occurred while creating user\n${error.stack}`);
 		await bot.sendMessage(msg.chat.id, `❌Error occurred while creating user\n${error.stack}`);
 	}
 }
@@ -207,10 +212,10 @@ export async function updateUser(msg: Message, username: string, updated: querys
 			},
 			data: user,
 		});
-		console.log(`[${new Date().toISOString()}] ✅User with username ${username} has been successfully updated`);
+		logger.success(`User with username ${username} has been successfully updated`);
 		await bot.sendMessage(msg.chat.id, "✅User has been successfully updated");
 	} catch (error) {
-		console.log(`[${new Date().toISOString()}] ❌Error occurred while updating user ${username} \n${error.stack}`);
+		logger.error(`Error occurred while updating user ${username} \n${error.stack}`);
 		await bot.sendMessage(msg.chat.id, `❌Error occurred while updating user ${username} \n${error.stack}`);
 	}
 }
@@ -238,11 +243,14 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 			);
 		} else {
 			const error = <ErrorResponse>await result.json();
-			console.log(`❌Error occurred while receiving file for ${username} \n${error.error}`)
-			await bot.sendMessage(msg.chat.id, `❌Error occurred while receiving file for ${username} \n${error.error}`);
+			logger.error(`Error occurred while receiving file for ${username} \n${error.error}`);
+			await bot.sendMessage(
+				msg.chat.id,
+				`❌Error occurred while receiving file for ${username} \n${error.error}`,
+			);
 		}
 	} catch (error) {
-		console.log(`❌Error occurred while receiving file for ${username} \n${error.stack}`)
+		logger.error(`Error occurred while receiving file for ${username} \n${error.stack}`);
 		await bot.sendMessage(msg.chat.id, `❌Error occurred while receiving file for ${username} \n${error.stack}`);
 	}
 }

@@ -7,6 +7,7 @@ import http from "node:http";
 import { homedir } from "node:os";
 import { access, constants } from "node:fs/promises";
 import { createReadStream } from "fs";
+import logger from "./logger";
 
 const exec = util.promisify(require("node:child_process").exec);
 let url: URL;
@@ -26,9 +27,11 @@ const server = http.createServer(async (request: IncomingMessage, res: ServerRes
 		const { stdout, stderr } = await exec(`ikev2.sh --listclients`);
 		if (!!stderr) {
 			res.writeHead(500, "Server error", { "Content-Type": "application/json" });
-			res.end(JSON.stringify({
-				error: `Error occurred while loading users list: ${stderr}`
-			}));
+			res.end(
+				JSON.stringify({
+					error: `Error occurred while loading users list: ${stderr}`,
+				}),
+			);
 			return;
 		}
 		res.writeHead(200, "OK", { "Content-Type": "text/plain" });
@@ -51,9 +54,11 @@ const handleUsers = async (request: IncomingMessage, res: ServerResponse) => {
 	const { username } = querystring.decode(url.search.replace("?", ""));
 	if (!username) {
 		res.writeHead(400, "Client error", { "Content-Type": "application/json" });
-		res.end(JSON.stringify({
-			error: "No username described"
-		}));
+		res.end(
+			JSON.stringify({
+				error: "No username described",
+			}),
+		);
 		return;
 	}
 	if (url.pathname === "/user/create") {
@@ -69,9 +74,11 @@ const createUser = async (request: IncomingMessage, res: ServerResponse, usernam
 	console.log(stdout.toString());
 	if (!!stderr) {
 		res.writeHead(500, "Server error", { "Content-Type": "application/json" });
-		res.end(JSON.stringify({
-			error: `Error occurred while creating vpn user: ${stderr}`
-		}));
+		res.end(
+			JSON.stringify({
+				error: `Error occurred while creating vpn user: ${stderr}`,
+			}),
+		);
 		return;
 	}
 	res.writeHead(200, "OK", { "Content-Type": "text/plain" });
@@ -81,7 +88,7 @@ const createUser = async (request: IncomingMessage, res: ServerResponse, usernam
 
 const getUserArchive = async (request: IncomingMessage, res: ServerResponse, username: string) => {
 	const filePath = path.resolve(homedir(), process.env.IKE_HOME, `${username}/`, `${username}.zip`);
-	console.log(`[${new Date().toISOString()}] generated file path: ${filePath}`);
+	logger.log(`generated file path: ${filePath}`);
 	const mimeType: string = "application/octet-stream";
 	try {
 		await access(filePath, constants.F_OK);
@@ -89,10 +96,11 @@ const getUserArchive = async (request: IncomingMessage, res: ServerResponse, use
 		createReadStream(filePath).pipe(res);
 	} catch (error) {
 		res.writeHead(500, "Server error", { "Content-Type": "application/json" });
-		res.end(JSON.stringify({
-			error: `Error occurred while getting file: cannot access file ${filePath}. Stack: ${error.stack}`
-		}));
-		console.error(`Cannot access file ${filePath}. ${error.stack}`);
+		res.end(
+			JSON.stringify({
+				error: `Error occurred while getting file: cannot access file ${filePath}. Stack: ${error.stack}`,
+			}),
+		);
+		logger.error(`Cannot access file ${filePath}. ${error.stack}`);
 	}
 };
-
