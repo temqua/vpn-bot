@@ -270,7 +270,8 @@ payment_day: ${user.paymentDay}
 desktop_os: ${user.desktopOS}
 device_os: ${user.deviceOS}
 createDate: ${user.createDate}
-autoPay: ${user.autoPay}
+paid_months: ${user.paidMonthsCount}
+auto_pay: ${user.autoPay}
 	\`\`\``;
 };
 
