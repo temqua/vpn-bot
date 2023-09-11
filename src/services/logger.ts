@@ -4,12 +4,12 @@ export default {
         console.warn(`[${getDate()}] ${message}`)
     },
     error: (message: string) => {
-        console.error(`[${getDate()}] ❌${message}`)
+        console.error(`[${getDate()}] ❌ ${message}`)
     },
     log: (message: string) => {
         console.log(`[${getDate()}] ${message}`)
     },
     success: (message: string) => {
-        console.log(`[${getDate()}] ✅${message}`)
+        console.log(`[${getDate()}] ✅ ${message}`)
     }
 }

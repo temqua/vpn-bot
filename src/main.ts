@@ -116,13 +116,15 @@ bot.onText(/\/user\s+unpaid/, async (msg: Message) => {
 	logger.log(`Attempt to get unpaid users`);
 	const unpaid = await getUnpaid();
 	if (unpaid.length) {
-		const users = unpaid.map(user => formatUser(user));
-		await sendMessage(msg.chat.id, msg.from.language_code, "found", `${users}`, {
-			parse_mode: "MarkdownV2",
-		});
+		for (const user of unpaid) {
+			await sendMessage(msg.chat.id, msg.from.language_code, "found", formatUser(user), {
+				parse_mode: "MarkdownV2",
+			});
+		}
 	} else {
 		await sendMessage(msg.chat.id, msg.from.language_code, "not_found");
 	}
+	logger.success("Successfully provided users who didn't pay for this month");
 });
 
 bot.onText(/\/remind/, async (msg: Message) => {
