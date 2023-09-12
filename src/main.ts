@@ -4,6 +4,7 @@ import querystring from "node:querystring";
 import {
 	createUser,
 	formatUser,
+	formatUserMin,
 	getAllUsers,
 	getUnpaid,
 	getUser,
@@ -117,7 +118,7 @@ bot.onText(/\/user\s+unpaid/, async (msg: Message) => {
 	const unpaid = await getUnpaid();
 	if (unpaid.length) {
 		for (const user of unpaid) {
-			await sendMessage(msg.chat.id, msg.from.language_code, "found", formatUser(user), {
+			await sendMessage(msg.chat.id, msg.from.language_code, "found", formatUserMin(user), {
 				parse_mode: "MarkdownV2",
 			});
 		}

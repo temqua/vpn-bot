@@ -255,6 +255,17 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 	}
 }
 
+export const formatUserMin = (user: VpnUser): string => {
+	return `\`\`\`
+	username: ${user.username}
+	telegram_username: ${user.telegramUsername}
+	first_name: ${user.firstName}
+	payment_count: ${user.paymentCount}
+	payment_day: ${user.paymentDay}
+	paid_months: ${user.paidMonthsCount}
+		\`\`\``;
+};
+
 export const formatUser = (user: VpnUser): string => {
 	return `\`\`\`
 id: ${user.id}
@@ -269,7 +280,6 @@ payment_count: ${user.paymentCount}
 payment_day: ${user.paymentDay}
 desktop_os: ${user.desktopOS}
 device_os: ${user.deviceOS}
-createDate: ${user.createDate}
 paid_months: ${user.paidMonthsCount}
 auto_pay: ${user.autoPay}
 	\`\`\``;
