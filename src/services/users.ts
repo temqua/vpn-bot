@@ -1,11 +1,11 @@
-import { VpnUser } from "@prisma/client";
-import { Message } from "node-telegram-bot-api";
-import prisma from "./prisma";
-import bot from "./bot";
-import { PORT, TOKEN, VPN_SERVER_IP } from "../env";
-import querystring from "node:querystring";
-import { getDesktopOS, getDeviceOS, sendMessage } from "../utils";
-import logger from "./logger";
+import type { VpnUser } from '@prisma/client';
+import type { Message } from 'node-telegram-bot-api';
+import prisma from './prisma';
+import bot from './bot';
+import { PORT, TOKEN, VPN_SERVER_IP } from '../env';
+import querystring from 'node:querystring';
+import { getDesktopOS, getDeviceOS, sendMessage } from '../utils';
+import logger from './logger';
 
 type ErrorResponse = {
 	error: string;
@@ -27,76 +27,6 @@ export async function getUserByTelegramUsername(msg: Message, username: string):
 			telegramUsername: username,
 		},
 	});
-}
-
-export async function getUsersBeforePaying(): Promise<VpnUser[]> {
-	const today = new Date();
-	const day = today.getDate();
-	return prisma.vpnUser.findMany({
-		where: {
-			paymentDay: day + 1,
-			autoPay: false,
-		},
-	});
-}
-
-export async function getUnpaid(): Promise<VpnUser[]> {
-	return prisma.vpnUser.findMany({
-		where: {
-			paidMonthsCount: {
-				lt: 1,
-			},
-		},
-	});
-}
-
-export async function payUser(msg: Message, count: number) {
-	const user = await getUserByTelegramUsername(msg, msg.chat.username);
-	if (user) {
-		user.paidMonthsCount = count;
-		await prisma.vpnUser.update({
-			where: {
-				id: user.id,
-			},
-			data: user,
-		});
-		await sendMessage(msg.chat.id, msg.from.language_code, "paid");
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, "unregistered");
-	}
-}
-
-export async function payUserByUsername(msg: Message, username: string, count: number) {
-	const user = await getUserByTelegramUsername(msg, msg.chat.username);
-	if (user) {
-		user.paidMonthsCount = count;
-		await prisma.vpnUser.update({
-			where: {
-				id: user.id,
-			},
-			data: user,
-		});
-		await sendMessage(msg.chat.id, msg.from.language_code, "paid");
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, "unregistered");
-	}
-}
-
-export async function updatedPaidMonths(): Promise<void> {
-	const today = new Date();
-	const day = today.getDate();
-	const users = await prisma.vpnUser.findMany({
-		where: {
-			paymentDay: day,
-		},
-	});
-	for (const user of users) {
-		user.paidMonthsCount = user.paidMonthsCount - 1;
-		await prisma.vpnUser.update({
-			where: { id: user.id },
-			data: user,
-		});
-	}
 }
 
 export async function updateExistingUser(msg: Message, user: VpnUser): Promise<VpnUser> {
@@ -137,7 +67,7 @@ export async function getAllUsers(msg: Message): Promise<VpnUser[]> {
 export async function showIkeClients(msg: Message): Promise<void> {
 	const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/users`, {
 		headers: {
-			"Authorization": `Bearer ${TOKEN}`,
+			'Authorization': `Bearer ${TOKEN}`,
 		},
 	});
 	if (result.ok) {
@@ -161,7 +91,7 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 		});
 		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/create?${qs}`, {
 			headers: {
-				"Authorization": `Bearer ${TOKEN}`,
+				'Authorization': `Bearer ${TOKEN}`,
 			},
 		});
 		if (result.ok) {
@@ -169,7 +99,7 @@ export async function createUser(msg: Message, user: NewUser): Promise<void> {
 				data: user,
 			});
 			await bot.sendMessage(msg.chat.id, `${result.status} ${result.statusText} \n${await result.text()}`);
-			await bot.sendMessage(msg.chat.id, "✅User has been successfully created");
+			await bot.sendMessage(msg.chat.id, '✅User has been successfully created');
 			logger.success(`User with username ${user.username} has been successfully created`);
 		} else {
 			logger.error(
@@ -203,7 +133,7 @@ export async function updateUser(msg: Message, username: string, updated: querys
 		paymentCount: Number(updated?.payment_count ?? currentUser.paymentCount),
 		paymentDay: Number(updated?.payment_day ?? currentUser.paymentDay),
 		paidMonthsCount: Number(updated.paid_months_count ?? currentUser.paidMonthsCount),
-		autoPay: updated?.auto_pay === "true" ? true : false,
+		autoPay: updated?.auto_pay === 'true' ? true : false,
 	};
 	try {
 		await prisma.vpnUser.update({
@@ -213,7 +143,7 @@ export async function updateUser(msg: Message, username: string, updated: querys
 			data: user,
 		});
 		logger.success(`User with username ${username} has been successfully updated`);
-		await bot.sendMessage(msg.chat.id, "✅User has been successfully updated");
+		await bot.sendMessage(msg.chat.id, '✅User has been successfully updated');
 	} catch (error) {
 		logger.error(`Error occurred while updating user ${username} \n${error.stack}`);
 		await bot.sendMessage(msg.chat.id, `❌Error occurred while updating user ${username} \n${error.stack}`);
@@ -227,7 +157,7 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 	try {
 		const result = await fetch(`http://${VPN_SERVER_IP}:${PORT}/user/file?${qs}`, {
 			headers: {
-				"Authorization": `Bearer ${TOKEN}`,
+				'Authorization': `Bearer ${TOKEN}`,
 			},
 		});
 		if (result.ok) {
@@ -238,7 +168,7 @@ export async function getUserFile(msg: Message, username: string): Promise<void>
 				{},
 				{
 					filename: `${username}.zip`,
-					contentType: "application/octet-stream",
+					contentType: 'application/octet-stream',
 				},
 			);
 		} else {
@@ -285,4 +215,4 @@ auto_pay: ${user.autoPay}
 	\`\`\``;
 };
 
-export type NewUser = Omit<VpnUser, "id">;
+export type NewUser = Omit<VpnUser, 'id'>;

@@ -1,10 +1,11 @@
 {
-  "useTabs": true,
-  "printWidth": 120,
-  "tabWidth": 4,
-  "semi": true, 
-  "quoteProps": "preserve",
-  "bracketSpacing": true,
-  "arrowParens": "avoid",
-  "endOfLine": "lf"
+	"useTabs": true,
+	"printWidth": 120,
+	"tabWidth": 4,
+	"semi": true,
+	"quoteProps": "preserve",
+	"bracketSpacing": true,
+	"arrowParens": "avoid",
+	"endOfLine": "lf",
+	"singleQuote": true
 }

@@ -1,1 +1,1 @@
-npm install && npm run build && npm prune --omit=dev && pm2 restart dist/main.js
+bun install && bun run build && pm2 restart --interpreter ~/.bun/bin/bun src/main.ts
