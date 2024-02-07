@@ -5,7 +5,7 @@
   "main": "src/main.ts",
   "scripts": {
     "build": "bun run prisma:build",
-    "prisma:build": "prisma migrate deploy && prisma generate && bun run seeds:up",
+    "prisma:build": "prisma migrate deploy && prisma generate && npx prisma db seed",
     "prisma:migrate": "prisma migrate dev",
     "prestart": "bun run build",
     "start": "bun src/main.ts",
