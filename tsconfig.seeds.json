@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"lib": ["ESNext"],
+		"target": "ESNext",
+		"module": "CommonJS",
+		"esModuleInterop": true,
+		"sourceMap": true,
+		"allowJs": true,
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+		"skipLibCheck": true,
+		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true
+	}
+}
