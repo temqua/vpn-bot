@@ -6,21 +6,16 @@ import querystring from 'node:querystring';
 import { isAdmin } from './auth';
 import './env';
 import bot from './services/bot';
-import logger from './services/logger';
 import { getBotMessage } from './services/messages';
 import {
 	createUser,
 	formatUser,
-	formatUserMin,
 	getAllUsers,
-	getUnpaid,
 	getUser,
 	getUserById,
 	getUserByTelegramId,
 	getUserByTelegramUsername,
 	getUserFile,
-	payUser,
-	payUserByUsername,
 	showIkeClients,
 	updateExistingUser,
 	updateUser,
