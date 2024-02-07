@@ -1,1 +1,2 @@
-npm install && npm run build:receiver && npm prune --omit=dev && pm2 restart dist/services/receiver.js
+
+bun install && pm2 restart --interpreter ~/.bun/bin/bun src/services/receiver.ts

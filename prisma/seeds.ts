@@ -1,15 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 async function main() {
 	await prisma.botMessage.upsert({
 		where: {
-			id: "start-message",
+			id: 'start-message',
 		},
 		update: {},
 		create: {
-			id: "start-message",
-			en: "Hello! The bot is for Dagon VPN https://t.me/dagonvpn. It can remind when you have to pay and show information we store about you.",
-			ru: "Здравствуйте! Это бот для работы с Dagon VPN https://t.me/dagonvpn. Бот напомнит, когда нужно платить за VPN, а также подскажет, какая информация хранится о вас в базе.",
+			id: 'start-message',
+			en: 'Hello! The bot is for Dagon VPN https://t.me/dagonvpn. It can remind when you have to pay and show information we store about you.',
+			ru: 'Здравствуйте! Это бот для работы с Dagon VPN https://t.me/dagonvpn. Бот напомнит, когда нужно платить за VPN, а также подскажет, какая информация хранится о вас в базе.',
 		},
 	});
 	const helpMessage = `
@@ -27,15 +27,15 @@ async function main() {
 
 	await prisma.botMessage.upsert({
 		where: {
-			id: "users-help",
+			id: 'users-help',
 		},
 		create: {
-			id: "users-help",
+			id: 'users-help',
 			en: helpMessage,
 			ru: helpMessage,
 		},
 		update: {
-			id: "users-help",
+			id: 'users-help',
 			en: helpMessage,
 			ru: helpMessage,
 		},
