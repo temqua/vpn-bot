@@ -1,5 +1,5 @@
 import type { VpnUser } from '@prisma/client';
-import { sendMessage } from './utils';
+import { sendMessage } from './services/utils';
 import prisma from './services/prisma';
 import { ADMIN_USER_ID } from './env';
 

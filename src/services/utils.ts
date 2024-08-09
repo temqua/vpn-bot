@@ -1,20 +1,8 @@
 import type { SendMessageOptions } from 'node-telegram-bot-api';
 import { DesktopOS, DeviceOS } from '@prisma/client';
-import bot from './services/bot';
-import prisma from './services/prisma';
-import logger from './services/logger';
-
-export const healthCheck = async (chatId: number) => {
-	logger.log(`Requested database healthcheck`);
-	try {
-		await prisma.$queryRaw`SELECT 1`;
-		await bot.sendMessage(chatId, '👋pong from database');
-		logger.success(`Database is ready`);
-	} catch (error) {
-		await bot.sendMessage(chatId, `❌ Error while connecting to database: ${error.stack}`);
-		logger.error(`Error while connecting to database: ${error.stack}`);
-	}
-};
+import bot from './bot';
+import prisma from './prisma';
+import logger from './logger';
 
 export async function sendMessage(
 	chatId: number,
