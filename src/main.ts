@@ -1,240 +1,63 @@
-import { format } from 'date-fns';
-import enUS from 'date-fns/locale/en-US';
-import ru from 'date-fns/locale/ru';
+import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
-import querystring from 'node:querystring';
-import { isAdmin } from './auth';
-import './env';
 import bot from './services/bot';
-import { getBotMessage } from './services/messages';
-import {
-	createUser,
-	formatUser,
-	getAllUsers,
-	getUser,
-	getUserById,
-	getUserByTelegramId,
-	getUserByTelegramUsername,
-	getUserFile,
-	showIkeClients,
-	updateExistingUser,
-	updateUser,
-} from './services/users';
-import { dictionary, getDesktopOS, getDeviceOS, healthCheck, sendMessage } from './utils';
+import logger from './services/logger';
+import { ADMIN_USER_ID } from './env';
+
+const availableCommands = [
+	/\/start/,
+	/\/user\s+create\s+(.*)/,
+	/\/user\s+delete\s+(.*)/,
+	/\/user\s+delete\s+(.*)/,
+	/\/user\s+file\s+(.*)/,
+];
+
+const isAdmin = (msg: Message): boolean => {
+	return msg.from.id === ADMIN_USER_ID;
+};
 
 bot.onText(/\/start/, async (msg: Message) => {
-	const startMessageEntry = await getBotMessage('start-message');
-	let startMessage: string = startMessageEntry[msg.from.language_code ?? 'en'];
-	if (!startMessage) {
-		startMessage = dictionary.start[msg.from.language_code ?? 'en'];
+	if (!isAdmin(msg)) {
+		return;
 	}
-	await bot.sendMessage(msg.chat.id, startMessage);
-	const user = await getUserByTelegramUsername(msg, msg.chat.username);
-	if (user) {
-		await updateExistingUser(msg, user);
+	logger.success('Ready');
+	bot.sendMessage(msg.chat.id, '✅ Ready');
+});
+
+bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
+	logger.log(`${msg.from.id} (${msg.from.first_name}) — ${msg.text}`);
+    if (msg.from.id !== ADMIN_USER_ID) {
+		await bot.sendMessage(msg.chat.id, 'Forbidden');
+        return;
+	}
+	const match = availableCommands.filter(regexp => regexp.test(msg.text));
+	if (!match.length) {
+		bot.sendMessage(msg.chat.id, 'Wrong command');
 	}
 });
 
-bot.onText(/\/me/, async (msg: Message) => {
-	if (!msg.from.username) {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'enter_username', '``` /me artem ```', {
-			parse_mode: 'MarkdownV2',
-		});
+bot.onText(/\/user\s+create\s+(.*)/, async (msg: Message, match: RegExpMatchArray) => {
+	if (!isAdmin(msg)) {
 		return;
 	}
-	const user = await getUserByTelegramUsername(msg, msg.from.username);
-	if (user) {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'found', `${formatUser(user)}`, {
-			parse_mode: 'MarkdownV2',
-		});
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'enter_username', '``` /me artem ```', {
-			parse_mode: 'MarkdownV2',
-		});
-		return;
-	}
-});
-
-bot.onText(/\/me\s+(.+)/, async (msg: Message, match: RegExpMatchArray) => {
 	const vpnUsername = match[1];
-	const user = await getUser(msg, vpnUsername);
-	await updateExistingUser(msg, user);
+	await bot.sendMessage(msg.chat.id, `You trying to create user ${vpnUsername}`);
 });
 
-bot.onText(/\/user\s+help/, async (msg: Message) => {
-	if (!(await isAdmin(msg))) {
+bot.onText(/\/user\s+delete\s+(.*)/, async (msg: Message, match: RegExpMatchArray) => {
+	if (!isAdmin(msg)) {
 		return;
 	}
-	const userHelp = await getBotMessage('users-help');
-	await bot.sendMessage(msg.chat.id, userHelp[msg.from.language_code ?? 'en']);
+	logger.log(`/user delete ${match[1]}`);
+	const vpnUsername = match[1];
+	await bot.sendMessage(msg.chat.id, `You trying to delete user ${vpnUsername}`);
 });
 
-bot.onText(/\/remind/, async (msg: Message) => {
-	let user = await getUserByTelegramId(msg, msg.from.id);
-	if (!user) {
-		user = await getUserByTelegramUsername(msg, msg.from.username);
-		if (!user) {
-			await sendMessage(msg.chat.id, msg.from.language_code, 'unregistered');
-			return;
-		}
-	}
-	const paymentDate = new Date();
-	if (user.paymentDay < paymentDate.getDate()) {
-		paymentDate.setMonth(paymentDate.getMonth() + 1);
-	}
-	paymentDate.setDate(user.paymentDay);
-	paymentDate.setHours(0, 0, 0, 0);
-	await sendMessage(
-		msg.chat.id,
-		msg.from.language_code,
-		'payment_date',
-		format(paymentDate, 'do MMMM', {
-			locale: msg.from.language_code === 'ru' ? ru : enUS,
-		}),
-	);
-	await sendMessage(msg.chat.id, msg.from.language_code, 'payment_count', user.paymentCount.toString());
-});
-
-bot.onText(/\/ping$/, async (msg: Message) => {
-	const chatId = msg.chat.id;
-	await bot.sendMessage(chatId, '👋pong');
-	await healthCheck(chatId);
-});
-
-bot.onText(/[Hh]ello|[Пп]ривет/, async (msg: Message, match: RegExpMatchArray) => {
-	const chatId: number = msg.chat.id;
-	await bot.sendMessage(
-		chatId,
-		`${dictionary.hello[msg.from.language_code]}, ${msg.from.first_name} ${msg.from.last_name}!`,
-	);
-});
-
-bot.onText(/\/user\s+username=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!(await isAdmin(msg))) {
+bot.onText(/\/user\s+file\s+(.*)/, async (msg: Message, match: RegExpMatchArray) => {
+	if (!isAdmin(msg)) {
 		return;
 	}
-	const username = match[1];
-	const user = await getUser(msg, username);
-	if (user) {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'found', `${formatUser(user)}`, {
-			parse_mode: 'MarkdownV2',
-		});
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'not_found');
-	}
-});
-
-bot.onText(/\/user\s+tg=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!(await isAdmin(msg))) {
-		return;
-	}
-	const username = match[1];
-	const user = await getUserByTelegramUsername(msg, username);
-	if (user) {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'found', `${formatUser(user)}`, {
-			parse_mode: 'MarkdownV2',
-		});
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'not_found');
-	}
-});
-
-bot.onText(/(\/user\s+all|\/users)/, async (msg: Message) => {
-	if (!(await isAdmin(msg))) {
-		return;
-	}
-	const users = await getAllUsers(msg);
-	if (users.length) {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'found');
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'not_found');
-	}
-	for (const user of users) {
-		await bot.sendMessage(msg.chat.id, `${formatUser(user)}`, {
-			parse_mode: 'MarkdownV2',
-		});
-	}
-	await showIkeClients(msg);
-});
-
-bot.onText(/\/user\s+id=(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!(await isAdmin(msg))) {
-		return;
-	}
-	const userId = +match[1];
-	const user = await getUserById(msg, userId);
-	if (user) {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'found', `${formatUser(user)}`, {
-			parse_mode: 'MarkdownV2',
-		});
-	} else {
-		await sendMessage(msg.chat.id, msg.from.language_code, 'not_found');
-	}
-});
-
-bot.onText(/\/user\s+create\s+(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!(await isAdmin(msg))) {
-		return;
-	}
-	const queryString = match[1];
-	if (queryString === 'help') {
-		await bot.sendMessage(
-			msg.chat.id,
-			`
-/user create <querystring>— Send data about new user in query string format like this:
-username=testuser&telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234&payment_count=100&payment_day=1&paid_months_count=1&auto_pay=true`,
-		);
-		return;
-	}
-	const userData = querystring.decode(queryString);
-	if (!userData.username) {
-		await bot.sendMessage(msg.chat.id, 'Please provide username! It is required');
-		return;
-	}
-	await createUser(msg, {
-		desktopOS: getDesktopOS(userData.desktop_os?.toString()),
-		deviceOS: getDeviceOS(userData.device_os?.toString()),
-		firstName: userData.first_name?.toString(),
-		lastName: userData.last_name?.toString(),
-		languageCode: null,
-		phone: userData.phone?.toString(),
-		telegramId: null,
-		telegramUsername: userData.telegram_username?.toString(),
-		createDate: new Date(),
-		paymentCount: Number(userData?.payment_count ?? 100),
-		username: userData.username.toString(),
-		paymentDay: Number(userData.payment_day ?? 1),
-		paidMonthsCount: Number(userData.paid_months_count ?? 0),
-		autoPay: userData?.auto_pay === 'true' ? true : false,
-	});
-});
-
-bot.onText(/\/user\s+update\s+(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!(await isAdmin(msg))) {
-		return;
-	}
-	const queryString = match[1];
-	if (queryString === 'help') {
-		await bot.sendMessage(
-			msg.chat.id,
-			`
-/user update <querystring>— Send data about new user in query string format like this:
-telegram_username=tttt&desktop_os=Windows&device_os=Android&first_name=Artem&last_name=N&phone=1234456&payment_count=100&payment_day=1&paid_months_count=1&auto_pay=true`,
-		);
-		return;
-	}
-	const userData = querystring.decode(queryString);
-	if (!userData.username) {
-		await bot.sendMessage(msg.chat.id, 'Please provide username which user we updating!');
-		return;
-	}
-	await updateUser(msg, userData.username as string, userData);
-});
-
-bot.onText(/\/user\s+file\s+(.+)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!(await isAdmin(msg))) {
-		return;
-	}
-	const username = match[1];
-	await getUserFile(msg, username);
+	logger.log(`/user file ${match[1]}`);
+	const vpnUsername = match[1];
+	await bot.sendMessage(msg.chat.id, `You trying to get file for user ${vpnUsername}`);
 });
