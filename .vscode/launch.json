@@ -12,7 +12,7 @@
 			"env": {
 				"BOT_TOKEN": "6360232926:AAEJUs4Zh-y9RgTPpilPV5T4f9OzAuV8Ql4",
 				"SERVICE_TOKEN": "17fFGT3wimqjZWk1zmC5nUAiBVC2GyP2",
-				"IKE_HOME": "ikeclients",
+				"IKE_HOME": "ikeclients"
 			}
 		}
 	]
