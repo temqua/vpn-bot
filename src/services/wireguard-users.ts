@@ -7,6 +7,7 @@ import util from 'node:util';
 import bot from './bot';
 import logger from './logger';
 import type { IProtocolService } from '../core';
+import { CREATE_WG_PATH, DELETE_WG_PATH } from '../env';
 
 const exec = util.promisify(require('node:child_process').exec);
 
@@ -37,7 +38,22 @@ export class WireguardUsersService implements IProtocolService {
 	}
 
 	async create(message: Message, username: string) {
-		const { stdout, stderr } = await exec(`cd ~ && ./create-client.sh ${username.toString()}`);
+		const { stdout, stderr } = await exec(`bash ${CREATE_WG_PATH} ${username.toString()}`);
+		if (!!stderr) {
+			const errorMsg = `Error while creating wireguard client ${username}: ${stderr}`;
+			logger.error(errorMsg);
+			await bot.sendMessage(message.chat.id, errorMsg);
+			return;
+		}
 	}
-	async delete(message: Message, username: string) {}
+	async delete(message: Message, username: string) {
+		const { stdout, stderr } = await exec(`./${DELETE_WG_PATH} ${username.toString()}`);
+
+		if (!!stderr) {
+			const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;
+			logger.error(errorMsg);
+			await bot.sendMessage(message.chat.id, errorMsg);
+			return;
+		}
+	}
 }

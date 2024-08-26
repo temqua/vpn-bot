@@ -7,6 +7,7 @@ import util from 'node:util';
 import bot from './bot';
 import logger from './logger';
 import type { IProtocolService } from '../core';
+import { CREATE_IKE2_PATH, DELETE_IKE2_PATH } from '../env';
 
 const exec = util.promisify(require('node:child_process').exec);
 
@@ -25,7 +26,7 @@ export class IKEv2UsersService implements IProtocolService {
 		);
 	}
 	async getAll(message: Message) {
-		const { stdout, stderr } = await exec(`cd ~ && bash ikev2.sh --listclients`);
+		const { stdout, stderr } = await exec(`cd ~ && ikev2.sh --listclients`);
 		if (!!stderr) {
 			const errorMsg = `Error while getting IKEv2 clients: ${stderr}`;
 			logger.error(errorMsg);
@@ -35,8 +36,23 @@ export class IKEv2UsersService implements IProtocolService {
 		await bot.sendMessage(message.chat.id, stdout);
 	}
 	async create(message: Message, username: string) {
-		const { stdout, stderr } = await exec(`cd ~ && ./create-client.sh ${username.toString()}`);
+		const { stdout, stderr } = await exec(`bash ${CREATE_IKE2_PATH} ${username.toString()}`);
+		if (!!stderr) {
+			const errorMsg = `Error while creating IKEv2 client ${username}: ${stderr}`;
+			logger.error(errorMsg);
+			await bot.sendMessage(message.chat.id, errorMsg);
+			return;
+		}
 	}
 
-	async delete(message: Message, username: string) {}
+	async delete(message: Message, username: string) {
+		const { stdout, stderr } = await exec(`bash ${DELETE_IKE2_PATH} ${username.toString()}`);
+
+		if (!!stderr) {
+			const errorMsg = `Error while deleting IKEv2 client ${username}: ${stderr}`;
+			logger.error(errorMsg);
+			await bot.sendMessage(message.chat.id, errorMsg);
+			return;
+		}
+	}
 }
