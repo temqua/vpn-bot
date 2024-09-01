@@ -5,28 +5,13 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch Bot",
-			"skipFiles": ["<node_internals>/**"],
-			"envFile": "${workspaceFolder}/.env",
-			"program": "${workspaceFolder}/src/main.ts",
-			"preLaunchTask": "tsc: build - tsconfig.json",
-			"console": "integratedTerminal",
-			"outFiles": ["${workspaceFolder}/**/*.js"]
-		},
-		{
 			"type": "bun",
 			"request": "launch",
 			"name": "Launch Bot Bun",
 			"program": "${workspaceFolder}/src/main.ts",
 			"env": {
 				"BOT_TOKEN": "6360232926:AAEJUs4Zh-y9RgTPpilPV5T4f9OzAuV8Ql4",
-				"DATABASE_URL": "postgresql://vpnuser:T396Ju3mD34@0.0.0.0:5432/vpn?schema=public",
-				"VPN_SERVER_IP": "45.10.40.32",
-				"SERVICE_TOKEN": "17fFGT3wimqjZWk1zmC5nUAiBVC2GyP2",
-				"IKE_HOME": "ikeclients",
-				"RECEIVER_PORT": 5010
+				"SERVICE_TOKEN": "17fFGT3wimqjZWk1zmC5nUAiBVC2GyP2"
 			}
 		}
 	]
