@@ -33,15 +33,21 @@ export class WireguardUsersService implements IProtocolService {
 	}
 
 	async getAll(message: Message) {
-		const { stdout, stderr } = await exec(`cd ~ && wireguard.sh --listclients`);
-		if (!!stderr) {
-			const errorMsg = `Error while getting WireGuard clients: ${stderr}`;
+		try {
+			const { stdout, stderr } = await exec(`cd ~ && wireguard.sh --listclients`);
+			if (!!stderr) {
+				const errorMsg = `Error while getting WireGuard clients: ${stderr}`;
+				logger.error(errorMsg);
+				await bot.sendMessage(message.chat.id, errorMsg);
+				return;
+			}
+			await bot.sendMessage(message.chat.id, stdout);
+			logger.success('WireGuard user list was handled');
+		} catch (error) {
+			const errorMsg = `Error while getting WireGuard clients: ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(message.chat.id, errorMsg);
-			return;
 		}
-		await bot.sendMessage(message.chat.id, stdout);
-		logger.success('WireGuard user list was handled');
 	}
 
 	async create(message: Message, username: string) {
