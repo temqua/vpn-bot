@@ -129,6 +129,13 @@ bot.onText(/\/users\s+wg/, async (msg: Message, match: RegExpMatchArray) => {
 	await userService.getAll(msg, VPNProtocol.WG);
 });
 
+bot.onText(/\/users\s+(?!ikev2|wg)(.*)/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await bot.sendMessage(msg.chat.id, 'Wrong command');
+});
+
 bot.onText(/\/ping$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
