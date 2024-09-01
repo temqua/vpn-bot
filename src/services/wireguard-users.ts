@@ -75,7 +75,7 @@ export class WireguardUsersService implements IProtocolService {
 	}
 	async delete(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`cd ~ bash ${DELETE_WG_PATH} ${username.toString()}`);
+			const { stdout, stderr } = await exec(`cd ~ && bash ${DELETE_WG_PATH} ${username.toString()}`);
 
 			if (!!stderr) {
 				const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;
