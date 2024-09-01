@@ -1,1 +1,1 @@
-bun install && pm2 restart --interpreter ~/.bun/bin/bun src/main.ts
+bun install && pm2 restart --update-env --interpreter ~/.bun/bin/bun src/main.ts
