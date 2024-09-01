@@ -8,6 +8,7 @@ import { userService } from './services/user';
 
 const availableCommands = [
 	/\/start/,
+	/\/ping/,
 	/\/user/,
 	/\/user\s+create\s+wg\s+(.*)/,
 	/\/user\s+create\s+ikev2\s+(.*)/,
@@ -76,6 +77,13 @@ bot.onText(/\/user\s+create\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpM
 	await userService.create(msg, username, VPNProtocol.IKE2);
 });
 
+bot.onText(/\/user\s+create\s+(?!ikev2|wg)(.*)/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await bot.sendMessage(msg.chat.id, 'Wrong command');
+});
+
 bot.onText(/\/user\s+delete\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatchArray) => {
 	if (!isAdmin(msg)) {
 		return;
@@ -119,4 +127,12 @@ bot.onText(/\/users\s+wg/, async (msg: Message, match: RegExpMatchArray) => {
 		return;
 	}
 	await userService.getAll(msg, VPNProtocol.WG);
+});
+
+bot.onText(/\/ping$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	logger.success('PONG');
+	await bot.sendMessage(msg.chat.id, '✅ PONG');
 });
