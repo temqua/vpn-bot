@@ -62,7 +62,9 @@ export class IKEv2UsersService implements IProtocolService {
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			await bot.sendMessage(message.chat.id, `IKEv2 user ${username} was successfully created`);
+			if (!stdout) {
+				await bot.sendMessage(message.chat.id, `IKEv2 user ${username} creation was successfully applied`);
+			}
 			logger.success(`IKEv2 user ${username} creation was handled`);
 			await this.getFile(message, username);
 		} catch (error) {
@@ -85,8 +87,10 @@ export class IKEv2UsersService implements IProtocolService {
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			await bot.sendMessage(message.chat.id, `IKEv2 user ${username} was successfully deleted`);
-			logger.success(`IKEv2 user delete ${username} was handled`);
+			if (!stdout) {
+				await bot.sendMessage(message.chat.id, `IKEv2 user delete ${username} was successfully applied`);
+			}
+			logger.success(`IKEv2 user ${username} deletion was handled`);
 		} catch (error) {
 			const errorMsg = `Error while deleting IKEv2 client ${username}: ${error}`;
 			logger.error(errorMsg);

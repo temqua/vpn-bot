@@ -62,7 +62,9 @@ export class WireguardUsersService implements IProtocolService {
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			await bot.sendMessage(message.chat.id, `WireGuard user ${username} was successfully created`);
+			if (!stdout) {
+				await bot.sendMessage(message.chat.id, `WireGuard user ${username} creation was successfully applied`);
+			}
 			logger.success(`WireGuard user ${username} creation was handled`);
 			await this.getFile(message, username);
 		} catch (error) {
@@ -84,8 +86,10 @@ export class WireguardUsersService implements IProtocolService {
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			await bot.sendMessage(message.chat.id, `WireGuard user ${username} was successfully deleted`);
-			logger.success(`IKEv2 user delete ${username} was handled`);
+			if (!stdout) {
+				await bot.sendMessage(message.chat.id, `WireGuard user delete ${username} was successfully applied`);
+			}
+			logger.success(`WireGuard user ${username} deletion was handled`);
 		} catch (error) {
 			const errorMsg = `Error while deleting wireguard client ${username}: ${error}`;
 			logger.error(errorMsg);
