@@ -86,9 +86,7 @@ export class WireguardUsersService implements IProtocolService {
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			if (!stdout) {
-				await bot.sendMessage(message.chat.id, `WireGuard user delete ${username} was successfully applied`);
-			}
+			await bot.sendMessage(message.chat.id, `WireGuard user ${username} deletion was successfully applied`);
 			logger.success(`WireGuard user ${username} deletion was handled`);
 		} catch (error) {
 			const errorMsg = `Error while deleting wireguard client ${username}: ${error}`;
