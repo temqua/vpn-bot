@@ -4,11 +4,13 @@ import { VPNProtocol } from './core/enums';
 import { ADMIN_USER_ID } from './env';
 import bot from './services/bot';
 import logger from './services/logger';
+import { logsService } from './services/logs';
 import { userService } from './services/user';
 
 const availableCommands = [
 	/\/start/,
 	/\/ping/,
+	/\/logs/,
 	/\/user/,
 	/\/user\s+create\s+wg\s+(.*)/,
 	/\/user\s+create\s+ikev2\s+(.*)/,
@@ -142,4 +144,11 @@ bot.onText(/\/ping$/, async (msg: Message) => {
 	}
 	logger.success('PONG');
 	await bot.sendMessage(msg.chat.id, '✅ PONG');
+});
+
+bot.onText(/\/logs/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await logsService.get(msg);
 });
