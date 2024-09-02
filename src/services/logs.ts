@@ -9,7 +9,6 @@ export class LogsService {
 			const pm2Logs = spawn('pm2', ['--no-color', 'logs']);
 
 			pm2Logs.stdout.on('data', async data => {
-				logger.success('Handled pm2 logs');
 				await bot.sendMessage(msg.chat.id, data.toString());
 			});
 
@@ -20,9 +19,9 @@ export class LogsService {
 			});
 
 			pm2Logs.on('close', async code => {
-				const errorMsg = `pm2 logs process exited with code ${code}`;
-				logger.error(errorMsg);
-				await bot.sendMessage(msg.chat.id, errorMsg);
+				const message = `pm2 logs process exited with code ${code}`;
+				logger.log(message);
+				await bot.sendMessage(msg.chat.id, message);
 			});
 		} catch (error) {
 			const errorMsg = `Error while getting pm2 logs: ${error}`;
