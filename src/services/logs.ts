@@ -6,7 +6,7 @@ import logger from './logger';
 export class LogsService {
 	async get(msg: Message) {
 		try {
-			const pm2Logs = spawn('pm2', ['--no-color', 'logs']);
+			const pm2Logs = spawn('pm2', ['logs', '--no-color', '--nostream']);
 
 			pm2Logs.stdout.on('data', async data => {
 				await bot.sendMessage(msg.chat.id, data.toString());
