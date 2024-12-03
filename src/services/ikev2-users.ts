@@ -52,7 +52,9 @@ export class IKEv2UsersService implements IProtocolService {
 	}
 	async create(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`cd ~ && bash ${CREATE_IKE2_PATH} ${username.toString()}`);
+			const command = `cd ~ && bash ${CREATE_IKE2_PATH} ${username.toString()}`;
+			logger.log(command);
+			const { stdout, stderr } = await exec(command);
 			if (!!stderr) {
 				const errorMsg = `Error while creating IKEv2 client ${username}: ${stderr}`;
 				logger.error(errorMsg);

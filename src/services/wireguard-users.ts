@@ -51,8 +51,10 @@ export class WireguardUsersService implements IProtocolService {
 	}
 
 	async create(message: Message, username: string) {
-		const { stdout, stderr } = await exec(`cd ~ && bash ${CREATE_WG_PATH} ${username.toString()}`);
 		try {
+			const command = `cd ~ && bash ${CREATE_WG_PATH} ${username.toString()}`;
+			logger.log(command);
+			const { stdout, stderr } = await exec(command);
 			if (!!stderr) {
 				const errorMsg = `Error while creating wireguard client ${username}: ${stderr}`;
 				logger.error(errorMsg);
