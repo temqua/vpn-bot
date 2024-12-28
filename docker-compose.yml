@@ -1,0 +1,12 @@
+services:
+    app:
+        image: vpn-bot
+        network_mode: host
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        env_file: .env
+        volumes:
+            - ./scripts:/app/scripts:rwx
+            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh
+            - /root/wireguard.sh:/usr/bin/wireguard.sh

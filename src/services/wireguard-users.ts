@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import util from 'node:util';
 import type { IProtocolService } from '../core';
-import { CREATE_WG_PATH, DELETE_WG_PATH, WG_HOME } from '../env';
+import { CREATE_PATH, DELETE_PATH, WG_HOME } from '../env';
 import bot from './bot';
 import logger from './logger';
 
@@ -52,7 +52,7 @@ export class WireguardUsersService implements IProtocolService {
 
 	async create(message: Message, username: string) {
 		try {
-			const command = `cd ~ && bash ${CREATE_WG_PATH} ${username.toString()}`;
+			const command = `cd ~ && bash ${CREATE_PATH} ${username.toString()} wg`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
 			if (!!stderr) {
@@ -74,7 +74,7 @@ export class WireguardUsersService implements IProtocolService {
 	}
 	async delete(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`cd ~ && bash ${DELETE_WG_PATH} ${username.toString()}`);
+			const { stdout, stderr } = await exec(`cd ~ && bash ${DELETE_PATH} ${username.toString()} wg`);
 
 			if (!!stderr) {
 				const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;

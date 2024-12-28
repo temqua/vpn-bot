@@ -7,7 +7,7 @@ import util from 'node:util';
 import bot from './bot';
 import logger from './logger';
 import type { IProtocolService } from '../core';
-import { CREATE_IKE2_PATH, DELETE_IKE2_PATH, IKE_HOME } from '../env';
+import { CREATE_PATH, DELETE_PATH, IKE_HOME } from '../env';
 
 const exec = util.promisify(require('node:child_process').exec);
 
@@ -52,7 +52,7 @@ export class IKEv2UsersService implements IProtocolService {
 	}
 	async create(message: Message, username: string) {
 		try {
-			const command = `cd ~ && bash ${CREATE_IKE2_PATH} ${username.toString()}`;
+			const command = `cd ~ && bash ${CREATE_PATH} ${username.toString()} ikev2`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
 			if (!!stderr) {
@@ -75,7 +75,7 @@ export class IKEv2UsersService implements IProtocolService {
 
 	async delete(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`cd ~ && bash ${DELETE_IKE2_PATH} ${username.toString()}`);
+			const { stdout, stderr } = await exec(`cd ~ && bash ${DELETE_PATH} ${username.toString()} ikev2`);
 
 			if (!!stderr) {
 				const errorMsg = `Error while deleting IKEv2 client ${username}: ${stderr}`;
