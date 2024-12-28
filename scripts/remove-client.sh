@@ -5,5 +5,5 @@ if [[ protocol == ikev2 ]]; then
     ikev2.sh --revokeclient $client
     ikev2.sh --deleteclient $client
 else
-    cd ~ && bash wireguard.sh -y --removeclient $client
+    wireguard.sh -y --removeclient $client
 fi

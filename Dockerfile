@@ -1,4 +1,4 @@
-FROM oven/bun:1 AS base
+FROM oven/bun:debian AS base
 WORKDIR /app
 COPY package.json bun.lockb .env tsconfig.json /app/
 COPY src/ ./src

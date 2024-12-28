@@ -10,7 +10,6 @@ import { userService } from './services/user';
 const availableCommands = [
 	/\/start/,
 	/\/ping/,
-	/\/logs/,
 	/\/vnstat(.*)/,
 	/\/user/,
 	/\/user\s+create\s+wg\s+(.*)/,
@@ -145,13 +144,6 @@ bot.onText(/\/ping$/, async (msg: Message) => {
 	}
 	logger.success('PONG');
 	await bot.sendMessage(msg.chat.id, '✅ PONG');
-});
-
-bot.onText(/\/logs/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	await logsService.get(msg);
 });
 
 bot.onText(/\/vnstat(.*)/, async (msg: Message, match: RegExpMatchArray) => {

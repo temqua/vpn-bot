@@ -13,7 +13,7 @@ if [[ $protocol == ikev2 ]]; then
 	mv $client.zip $client
 else
 	directory=wg-clients
-	bash wireguard.sh --addclient $client
+	wireguard.sh --addclient $client
 	mv $client.conf $directory
 fi
 echo $directory
