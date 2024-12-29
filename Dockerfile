@@ -3,7 +3,7 @@ WORKDIR /app
 
 RUN apt -yqq update \
     && DEBIAN_FRONTEND=noninteractive \
-    apt -yqq install \
+    apt-get install -y --no-install-recommends apt-utils \
     wget dnsutils openssl ca-certificates iproute2 unzip zip curl \
     net-tools iptables libnss3-tools \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy \
