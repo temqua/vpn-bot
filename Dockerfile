@@ -1,9 +1,9 @@
 FROM debian:12
 WORKDIR /app
 
-RUN apt-get -yqq update \
+RUN apt -yqq update \
     && DEBIAN_FRONTEND=noninteractive \
-    apt-get -yqq --no-install-recommends install \
+    apt -yqq install \
     wget dnsutils openssl ca-certificates iproute2 unzip zip curl \
     net-tools iptables libnss3-tools \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy \
