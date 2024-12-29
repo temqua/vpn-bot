@@ -5,7 +5,7 @@ RUN apt-get -yqq update \
     && DEBIAN_FRONTEND=noninteractive \
     apt-get -yqq --no-install-recommends install \
     wget dnsutils openssl ca-certificates kmod iproute2 unzip curl \
-    net-tools iptables libnss3-tools \
+    net-tools iptables libnss3-tools bsdmainutils gawk \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy \
     && curl -fsSL https://bun.sh/install | bash \
     && export PATH="/root/.bun/bin:$PATH" \
