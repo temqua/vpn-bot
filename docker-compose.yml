@@ -16,5 +16,6 @@ services:
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
-            - /etc/sysctl.conf:/etc/sysctl.conf
-            - /etc/sysctl.d:/etc/sysctl.d
+            - /etc/sysctl.conf:/etc/sysctl.conf:ro
+            - /etc/sysctl.d:/etc/sysctl.d:ro
+            - /etc/ipsec.conf:/etc/ipsec.conf:ro
