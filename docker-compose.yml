@@ -11,15 +11,10 @@ services:
               source: ${HOST_SOURCE:-/root}
               target: ${HOST_TARGET:-/app/hostfs}
             - ./scripts:/app/scripts
-            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh
+            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh
             - /etc/ipsec.d:/etc/ipsec.d
-            - /etc/ipsec.conf:/etc/ipsec.conf
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
-            - /usr/local/sbin:/usr/local/sbin
             - /etc/sysctl.conf:/etc/sysctl.conf
             - /etc/sysctl.d:/etc/sysctl.d
-            - /usr/bin/certutil:/usr/bin/certutil
-            - /usr/bin/crlutil:/usr/bin/crlutil
-            - /usr/bin/pk12util:/usr/bin/pk12util
