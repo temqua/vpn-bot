@@ -20,3 +20,4 @@ services:
             - /etc/sysctl.d:/etc/sysctl.d:ro
             - /etc/ipsec.conf:/etc/ipsec.conf:ro
             - /opt/src:/opt/src:ro
+            - /usr/local/sbin:/usr/local/sbin:ro
