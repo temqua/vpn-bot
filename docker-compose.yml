@@ -17,3 +17,4 @@ services:
             - /etc/ipsec.conf:/etc/ipsec.conf
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
+            - /usr/local/sbin:/usr/local/sbin
