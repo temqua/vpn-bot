@@ -14,5 +14,6 @@ services:
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh
             - /etc/ipsec.d:/etc/ipsec.d
+            - /etc/ipsec.conf:/etc/ipsec.conf
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
