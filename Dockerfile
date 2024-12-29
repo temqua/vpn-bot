@@ -4,7 +4,7 @@ WORKDIR /app
 RUN apt-get -yqq update \
     && DEBIAN_FRONTEND=noninteractive \
     apt-get -yqq --no-install-recommends install \
-    wget dnsutils openssl ca-certificates kmod iproute2 unzip curl \
+    wget dnsutils openssl ca-certificates kmod iproute2 zip curl \
     net-tools iptables libnss3-tools bsdmainutils gawk \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy \
     && curl -fsSL https://bun.sh/install | bash \
