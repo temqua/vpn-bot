@@ -2,7 +2,7 @@
 client=$1
 protocol=$2
 if [[ $protocol == ikev2 ]]; then
-	directory=$IKE_CONTAINER_DIR
+	directory=$IKE_CLIENTS_DIR
 	mkdir -p $client
 	ikev2.sh --addclient $client
 	mv $client.* $client
@@ -11,7 +11,7 @@ if [[ $protocol == ikev2 ]]; then
 	zip -r $client.zip $client
 	mv $client.zip $client
 else
-	directory=$WG_CONTAINER_DIR
+	directory=$WG_CLIENTS_DIR
 	wireguard.sh --addclient $client
 	mv $client.conf $directory
 fi
