@@ -4,7 +4,7 @@ import { access, constants } from 'node:fs/promises';
 import path from 'node:path';
 import util from 'node:util';
 import type { IProtocolService } from '../core';
-import { CREATE_PATH, DELETE_PATH, IKE_CLIENTS_DIR } from '../env';
+import { CREATE_PATH, DELETE_PATH, IKE_CONTAINER_DIR } from '../env';
 import bot from './bot';
 import logger from './logger';
 
@@ -12,7 +12,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class IKEv2UsersService implements IProtocolService {
 	async getFile(message: Message, username: string) {
-		const filePath = path.resolve(IKE_CLIENTS_DIR, `${username}/`, `${username}.zip`);
+		const filePath = path.resolve(IKE_CONTAINER_DIR, `${username}/`, `${username}.zip`);
 		try {
 			await access(filePath, constants.F_OK);
 			await bot.sendDocument(

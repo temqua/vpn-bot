@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import util from 'node:util';
 import type { IProtocolService } from '../core';
-import { CREATE_PATH, DELETE_PATH, WG_CLIENTS_DIR } from '../env';
+import { CREATE_PATH, DELETE_PATH, WG_CONTAINER_DIR } from '../env';
 import bot from './bot';
 import logger from './logger';
 
@@ -13,7 +13,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class WireguardUsersService implements IProtocolService {
 	async getFile(message: Message, username: string) {
-		const filePath = path.resolve(homedir(), WG_CLIENTS_DIR, `${username}.conf`);
+		const filePath = path.resolve(homedir(), WG_CONTAINER_DIR, `${username}.conf`);
 		try {
 			await access(filePath, constants.F_OK);
 			await bot.sendDocument(

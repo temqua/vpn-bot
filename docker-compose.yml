@@ -7,9 +7,8 @@ services:
             dockerfile: ./Dockerfile
         env_file: .env
         volumes:
-            - type: bind
-              source: ${HOST_SOURCE:-/root}
-              target: ${HOST_TARGET:-/app/hostfs}
+            - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
+            - ${WG_CLIENTS_DIR}:${WG_CONTAINER_DIR:-/app/wg-clients}
             - ./scripts:/app/scripts
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh

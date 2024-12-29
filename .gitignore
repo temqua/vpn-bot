@@ -303,4 +303,5 @@ nbdist/
 !.vscode/extensions.json
 
 build/
-hostfs/
+ikev2-clients/
+wg-clients/
