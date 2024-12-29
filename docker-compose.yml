@@ -18,3 +18,5 @@ services:
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
             - /usr/local/sbin:/usr/local/sbin
+            - /etc/sysctl.conf:/etc/sysctl.conf
+            - /etc/sysctl.d:/etc/sysctl.d
