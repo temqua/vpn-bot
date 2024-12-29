@@ -21,3 +21,5 @@ services:
             - /etc/sysctl.conf:/etc/sysctl.conf
             - /etc/sysctl.d:/etc/sysctl.d
             - /usr/bin/certutil:/usr/bin/certutil
+            - /usr/bin/crlutil:/usr/bin/crlutil
+            - /usr/bin/pk12util:/usr/bin/pk12util
