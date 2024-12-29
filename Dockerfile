@@ -3,5 +3,5 @@ WORKDIR /app
 COPY package.json bun.lockb .env tsconfig.json /app/
 COPY src/ ./src
 COPY scripts/ ./scripts
-RUN bun install
+RUN bun install --production
 CMD [ "bun", "src/main.ts" ]
