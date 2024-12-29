@@ -19,3 +19,4 @@ services:
             - /etc/sysctl.conf:/etc/sysctl.conf:ro
             - /etc/sysctl.d:/etc/sysctl.d:ro
             - /etc/ipsec.conf:/etc/ipsec.conf:ro
+            - /opt/src:/opt/src:ro
