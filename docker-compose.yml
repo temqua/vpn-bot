@@ -20,3 +20,4 @@ services:
             - /usr/local/sbin:/usr/local/sbin
             - /etc/sysctl.conf:/etc/sysctl.conf
             - /etc/sysctl.d:/etc/sysctl.d
+            - /usr/bin/certutil:/usr/bin/certutil
