@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import util from 'node:util';
 import type { IProtocolService } from '../core';
-import { CREATE_WG_PATH, DELETE_WG_PATH, WG_HOME } from '../env';
+import { CREATE_PATH, DELETE_PATH, WG_CLIENTS_DIR } from '../env';
 import bot from './bot';
 import logger from './logger';
 
@@ -13,7 +13,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class WireguardUsersService implements IProtocolService {
 	async getFile(message: Message, username: string) {
-		const filePath = path.resolve(homedir(), WG_HOME, `${username}.conf`);
+		const filePath = path.resolve(homedir(), WG_CLIENTS_DIR, `${username}.conf`);
 		try {
 			await access(filePath, constants.F_OK);
 			await bot.sendDocument(
@@ -34,7 +34,7 @@ export class WireguardUsersService implements IProtocolService {
 
 	async getAll(message: Message) {
 		try {
-			const { stdout, stderr } = await exec(`cd ~ && bash wireguard.sh --listclients`);
+			const { stdout, stderr } = await exec(`bash wireguard.sh --listclients`);
 			if (!!stderr) {
 				const errorMsg = `Error while getting WireGuard clients: ${stderr}`;
 				logger.error(errorMsg);
@@ -52,7 +52,7 @@ export class WireguardUsersService implements IProtocolService {
 
 	async create(message: Message, username: string) {
 		try {
-			const command = `cd ~ && bash ${CREATE_WG_PATH} ${username.toString()}`;
+			const command = `bash ${CREATE_PATH} ${username.toString()} wg`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
 			if (!!stderr) {
@@ -74,7 +74,7 @@ export class WireguardUsersService implements IProtocolService {
 	}
 	async delete(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`cd ~ && bash ${DELETE_WG_PATH} ${username.toString()}`);
+			const { stdout, stderr } = await exec(`bash ${DELETE_PATH} ${username.toString()} wg`);
 
 			if (!!stderr) {
 				const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;

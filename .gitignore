@@ -303,3 +303,4 @@ nbdist/
 !.vscode/extensions.json
 
 build/
+hostfs/
