@@ -8,8 +8,8 @@ services:
         env_file: .env
         volumes:
             - type: bind
-              source: /root
-              target: /app/host-fs
+              source: ${HOST_SOURCE:-/root}
+              target: ${HOST_TARGET:-/app/hostfs}
             - ./scripts:/app/scripts
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh
