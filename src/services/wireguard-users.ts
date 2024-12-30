@@ -62,7 +62,6 @@ export class WireguardUsersService implements IProtocolService {
 				const errorMsg = `Error while creating wireguard client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
-				return;
 			}
 			logger.success(`WireGuard user ${username} creation was handled`);
 			await this.getFile(message, username);
