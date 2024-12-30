@@ -5,12 +5,17 @@ services:
             context: .
             dockerfile: ./Dockerfile
         env_file: .env
+        cap_add:
+            - NET_ADMIN
+        devices:
+            - /dev/net/tun
+        privileged: true
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
             - ${WG_CLIENTS_DIR}:${WG_CONTAINER_DIR:-/app/wg-clients}
-            - ./scripts:/app/scripts
-            - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh
-            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh
+            - ./scripts:/app/scripts:ro
+            - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh:ro
+            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
@@ -20,7 +25,8 @@ services:
             - /opt/src:/opt/src:ro
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
-            - /usr/bin/wg:/usr/bin/wg
+            - /usr/bin/wg:/usr/bin/wg:ro
+            - /usr/bin/wg-quick:/usr/bin/wg-quick:ro
             - /usr/bin/qrencode:/usr/bin/qrencode:ro
             - /usr/lib/x86_64-linux-gnu/libqrencode.so.4:/usr/lib/x86_64-linux-gnu/libqrencode.so.4:ro
             - /usr/lib/x86_64-linux-gnu/libqrencode.so.4.1.1:/usr/lib/x86_64-linux-gnu/libqrencode.so.4.1.1:ro
