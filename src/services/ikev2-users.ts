@@ -33,14 +33,14 @@ export class IKEv2UsersService implements IProtocolService {
 	async getAll(message: Message) {
 		try {
 			const { stdout, stderr } = await exec(`ikev2.sh --listclients`);
+			if (!!stdout) {
+				await bot.sendMessage(message.chat.id, stdout.toString());
+			}
 			if (!!stderr) {
 				const errorMsg = `Error while getting IKEv2 clients: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
-			}
-			if (!!stdout) {
-				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			logger.success('IKEv2 user list was handled');
 		} catch (error) {
@@ -54,14 +54,14 @@ export class IKEv2UsersService implements IProtocolService {
 			const command = `bash ${CREATE_PATH} ${username.toString()} ikev2`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
+			if (!!stdout) {
+				await bot.sendMessage(message.chat.id, stdout.toString());
+			}
 			if (!!stderr) {
 				const errorMsg = `Error while creating IKEv2 client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
-			}
-			if (!!stdout) {
-				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			logger.success(`IKEv2 user ${username} creation was handled`);
 			await this.getFile(message, username);
@@ -75,15 +75,14 @@ export class IKEv2UsersService implements IProtocolService {
 	async delete(message: Message, username: string) {
 		try {
 			const { stdout, stderr } = await exec(`bash ${DELETE_PATH} ${username.toString()} ikev2`);
-
+			if (!!stdout) {
+				await bot.sendMessage(message.chat.id, stdout.toString());
+			}
 			if (!!stderr) {
 				const errorMsg = `Error while deleting IKEv2 client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
-			}
-			if (!!stdout) {
-				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			logger.success(`IKEv2 user ${username} deletion was handled`);
 		} catch (error) {

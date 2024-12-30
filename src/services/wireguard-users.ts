@@ -55,14 +55,14 @@ export class WireguardUsersService implements IProtocolService {
 			const command = `bash ${CREATE_PATH} ${username.toString()} wg`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
+			if (!!stdout) {
+				await bot.sendMessage(message.chat.id, stdout.toString());
+			}
 			if (!!stderr) {
 				const errorMsg = `Error while creating wireguard client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
-			}
-			if (!!stdout) {
-				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			logger.success(`WireGuard user ${username} creation was handled`);
 			await this.getFile(message, username);
@@ -75,15 +75,14 @@ export class WireguardUsersService implements IProtocolService {
 	async delete(message: Message, username: string) {
 		try {
 			const { stdout, stderr } = await exec(`bash ${DELETE_PATH} ${username.toString()} wg`);
-
+			if (!!stdout) {
+				await bot.sendMessage(message.chat.id, stdout.toString());
+			}
 			if (!!stderr) {
 				const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
-			}
-			if (!!stdout) {
-				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			logger.success(`WireGuard user ${username} deletion was handled`);
 		} catch (error) {
