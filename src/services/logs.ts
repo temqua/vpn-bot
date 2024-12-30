@@ -2,6 +2,9 @@ import type { Message } from 'node-telegram-bot-api';
 import { spawn } from 'node:child_process';
 import bot from './bot';
 import logger from './logger';
+import util from 'node:util';
+
+const exec = util.promisify(require('node:child_process').exec);
 
 export class LogsService {
 	async vnstat(msg: Message, flags: string[] = []) {
@@ -24,6 +27,25 @@ export class LogsService {
 			});
 		} catch (error) {
 			const errorMsg = `Error while getting vnstat logs: ${error}`;
+			logger.error(errorMsg);
+			await bot.sendMessage(msg.chat.id, errorMsg);
+		}
+	}
+
+	async wg(msg: Message) {
+		try {
+			const { stdout, stderr } = await exec('wg');
+			if (!!stderr) {
+				const errorMsg = `Error while executing wg command: ${stderr}`;
+				logger.error(errorMsg);
+				await bot.sendMessage(msg.chat.id, errorMsg);
+				return;
+			}
+			if (!!stdout) {
+				await bot.sendMessage(msg.chat.id, stdout.toString());
+			}
+		} catch (error) {
+			const errorMsg = `Error while getting wg output: ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(msg.chat.id, errorMsg);
 		}

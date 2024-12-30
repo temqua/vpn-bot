@@ -20,4 +20,5 @@ services:
             - /etc/ipsec.conf:/etc/ipsec.conf:ro
             - /opt/src:/opt/src:ro
             - /usr/local/sbin:/usr/local/sbin:ro
-            - /usr/local/libexec:/usr/local/libexec:ro            
+            - /usr/local/libexec:/usr/local/libexec:ro
+            - /usr/bin/wg

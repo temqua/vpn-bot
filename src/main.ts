@@ -11,6 +11,7 @@ const availableCommands = [
 	/\/start/,
 	/\/ping/,
 	/\/vnstat(.*)/,
+	/\/wg/,
 	/\/user/,
 	/\/user\s+create\s+wg\s+(.*)/,
 	/\/user\s+create\s+ikev2\s+(.*)/,
@@ -151,4 +152,11 @@ bot.onText(/\/vnstat(.*)/, async (msg: Message, match: RegExpMatchArray) => {
 		return;
 	}
 	await logsService.vnstat(msg, [match[1].trim()]);
+});
+
+bot.onText(/\/wg/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await logsService.wg(msg);
 });
