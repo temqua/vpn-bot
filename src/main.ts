@@ -61,6 +61,18 @@ bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
+	const inlineKeyboard = {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{ text: 'WireGuard Users', callback_data: 'wg_list' },
+					{ text: 'IKEv2 Users', callback_data: 'ikev2_list' },
+				],
+			],
+		},
+	};
+
+	await bot.sendMessage(msg.chat.id, 'Choose an option:', inlineKeyboard);
 	await bot.sendMessage(msg.chat.id, userHelpMessage);
 });
 
@@ -159,4 +171,14 @@ bot.onText(/\/wg/, async (msg: Message) => {
 		return;
 	}
 	await logsService.wg(msg);
+});
+
+bot.on('callback_query', async query => {
+	const action = query.data;
+
+	if (action === 'wg_list') {
+		await userService.getAll(query.message, VPNProtocol.WG);
+	} else if (action === 'ikev2_list') {
+		await userService.getAll(query.message, VPNProtocol.IKE2);
+	}
 });
