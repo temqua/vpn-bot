@@ -21,4 +21,4 @@ services:
             - /opt/src:/opt/src:ro
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
-            - /usr/bin/wg:/usr/bin/wg:ro
+            - /usr/bin/wg:/usr/bin/wg
