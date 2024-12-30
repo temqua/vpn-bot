@@ -9,6 +9,7 @@ services:
             - NET_ADMIN
         devices:
             - /dev/net/tun
+        network_mode: host
         privileged: true
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
