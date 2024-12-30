@@ -22,3 +22,4 @@ services:
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
             - /usr/bin/wg:/usr/bin/wg
+            - /usr/bin/qrencode:/usr/bin/qrencode:ro
