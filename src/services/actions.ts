@@ -17,6 +17,7 @@ class BotActions {
 
 	async list(message: Message) {
 		await userService.getAll(message, this.#action.protocol);
+		this.#action = null;
 	}
 
 	async create(message: Message) {
@@ -27,6 +28,7 @@ class BotActions {
 			this.#state.params.set('username', message.text);
 			await userService.create(message, this.#state.params.get('username'), this.#action.protocol);
 			this.#state.params.clear();
+			this.#action = null;
 		}
 	}
 
@@ -38,7 +40,12 @@ class BotActions {
 			this.#state.params.set('username', message.text);
 			await userService.delete(message, this.#state.params.get('username'), this.#action.protocol);
 			this.#state.params.clear();
+			this.#action = null;
 		}
+	}
+
+	hasAction() {
+		return Boolean(this.#action);
 	}
 
 	async handleMessage(message: Message) {

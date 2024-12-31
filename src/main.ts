@@ -53,9 +53,11 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		return;
 	}
 	actions.handleMessage(msg);
-	const match = availableCommands.filter(regexp => regexp.test(msg.text));
-	if (!match.length) {
-		bot.sendMessage(msg.chat.id, 'Wrong command');
+	if (!actions.hasAction()) {
+		const match = availableCommands.filter(regexp => regexp.test(msg.text));
+		if (!match.length) {
+			bot.sendMessage(msg.chat.id, 'Wrong command');
+		}
 	}
 });
 
