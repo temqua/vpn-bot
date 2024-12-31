@@ -1,11 +1,12 @@
 import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
-import { VPNProtocol } from './core/enums';
+import { VPNCommand, VPNProtocol } from './core/enums';
 import { ADMIN_USER_ID } from './env';
 import bot from './services/bot';
 import logger from './services/logger';
 import { logsService } from './services/logs';
 import { userService } from './services/user';
+import { actions } from './services/actions';
 
 const availableCommands = [
 	/\/start/,
@@ -51,6 +52,7 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		await bot.sendMessage(msg.chat.id, 'Forbidden');
 		return;
 	}
+	actions.handleMessage(msg);
 	const match = availableCommands.filter(regexp => regexp.test(msg.text));
 	if (!match.length) {
 		bot.sendMessage(msg.chat.id, 'Wrong command');
@@ -65,14 +67,56 @@ bot.onText(/\/user$/, async (msg: Message) => {
 		reply_markup: {
 			inline_keyboard: [
 				[
-					{ text: 'WireGuard Users', callback_data: 'wg_list' },
-					{ text: 'IKEv2 Users', callback_data: 'ikev2_list' },
+					{
+						text: 'Create IKEv2 User',
+						callback_data: JSON.stringify({
+							command: 'create',
+							protocol: 'ikev2',
+						}),
+					},
+					{
+						text: 'Show IKEv2 Users',
+						callback_data: JSON.stringify({
+							command: 'list',
+							protocol: 'ikev2',
+						}),
+					},
+					{
+						text: 'Delete IKEv2 User',
+						callback_data: JSON.stringify({
+							command: 'delete',
+							protocol: 'ikev2',
+						}),
+					},
+				],
+				[
+					{
+						text: 'Create WG User',
+						callback_data: JSON.stringify({
+							command: 'create',
+							protocol: 'wg',
+						}),
+					},
+					{
+						text: 'Show WG Users',
+						callback_data: JSON.stringify({
+							command: 'list',
+							protocol: 'wg',
+						}),
+					},
+					{
+						text: 'Delete WG User',
+						callback_data: JSON.stringify({
+							command: 'delete',
+							protocol: 'wg',
+						}),
+					},
 				],
 			],
 		},
 	};
 
-	await bot.sendMessage(msg.chat.id, 'Choose an option:', inlineKeyboard);
+	await bot.sendMessage(msg.chat.id, 'Select command:', inlineKeyboard);
 	await bot.sendMessage(msg.chat.id, userHelpMessage);
 });
 
@@ -159,13 +203,6 @@ bot.onText(/\/ping$/, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, '✅ PONG');
 });
 
-bot.onText(/\/vnstat(.*)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	await logsService.vnstat(msg, [match[1].trim()]);
-});
-
 bot.onText(/\/wg/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
@@ -174,11 +211,6 @@ bot.onText(/\/wg/, async (msg: Message) => {
 });
 
 bot.on('callback_query', async query => {
-	const action = query.data;
-
-	if (action === 'wg_list') {
-		await userService.getAll(query.message, VPNProtocol.WG);
-	} else if (action === 'ikev2_list') {
-		await userService.getAll(query.message, VPNProtocol.IKE2);
-	}
+	const data = query.data;
+	actions.execute(JSON.parse(data), query.message);
 });

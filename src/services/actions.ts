@@ -1,0 +1,69 @@
+import type { Message } from 'node-telegram-bot-api';
+import { VPNCommand, type VPNProtocol } from '../core/enums';
+import { userService } from './user';
+import bot from './bot';
+
+export type ActionInfo = {
+	command: VPNCommand;
+	protocol: VPNProtocol;
+} | null;
+
+class BotActions {
+	#action: ActionInfo = null;
+	#state = {
+		params: new Map(),
+		start: false,
+	};
+
+	async list(message: Message) {
+		await userService.getAll(message, this.#action.protocol);
+	}
+
+	async create(message: Message) {
+		if (this.#state.start) {
+			await bot.sendMessage(message.chat.id, 'Enter new username');
+			this.#state.start = false;
+		} else if (!this.#state.params.has('username')) {
+			this.#state.params.set('username', message.text);
+			await userService.create(message, this.#state.params.get('username'), this.#action.protocol);
+			this.#state.params.clear();
+		}
+	}
+
+	async delete(message: Message) {
+		if (this.#state.start) {
+			await bot.sendMessage(message.chat.id, 'Enter username to delete');
+			this.#state.start = false;
+		} else if (!this.#state.params.has('username')) {
+			this.#state.params.set('username', message.text);
+			await userService.delete(message, this.#state.params.get('username'), this.#action.protocol);
+			this.#state.params.clear();
+		}
+	}
+
+	async handleMessage(message: Message) {
+		if (!this.#action) {
+			return;
+		}
+		if (this.#action.command === VPNCommand.Create) {
+			await this.create(message);
+		}
+		if (this.#action.command === VPNCommand.Delete) {
+			await this.delete(message);
+		}
+	}
+
+	async execute(action: ActionInfo, message: Message) {
+		this.#action = action;
+		this.#state.start = true;
+		if (action.command === VPNCommand.Create) {
+			await this.create(message);
+		} else if (action.command === VPNCommand.Delete) {
+			await this.delete(message);
+		} else {
+			await this.list(message);
+		}
+	}
+}
+
+export const actions = new BotActions();

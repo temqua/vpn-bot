@@ -5,12 +5,7 @@ services:
             context: .
             dockerfile: ./Dockerfile
         env_file: .env
-        cap_add:
-            - NET_ADMIN
-        devices:
-            - /dev/net/tun
         network_mode: host
-        privileged: true
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
             - ${WG_CLIENTS_DIR}:${WG_CONTAINER_DIR:-/app/wg-clients}
