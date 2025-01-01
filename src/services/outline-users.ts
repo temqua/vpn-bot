@@ -22,21 +22,15 @@ const httpsAgent = new https.Agent({
 	rejectUnauthorized: false, // Ignore self-signed certificates
 });
 
-// const originalFetch = fetch;/
-// global.fetch = (input, init = {}) => {
-// 	if (typeof input === 'string' && input.startsWith('https:')) {
-// 		init.dispatcher = httpsAgent;
-// 	}
-// 	return originalFetch(input, init);
-// };
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export class OutlineUsersService implements IProtocolService {
 	private formatUserInfo(key: OutlineKey) {
-		return `\`\`\`
+		return `
 id: ${key.id}
-username: ${key.name}
-accessUrl: ${key.accessUrl}
-            \`\`\``;
+username: \`${key.name}\`
+accessUrl: \`${key.accessUrl}\`
+`;
 	}
 
 	async getAll(message: Message) {
@@ -88,14 +82,13 @@ accessUrl: ${key.accessUrl}
 			if (key?.id) {
 				await bot.sendMessage(
 					message.chat.id,
-					`\`\`\`
-            id: ${key.id}
-            username: ${key.name}
-            password: ${key.password}
-            port: ${key.port}
-            method: ${key.method}
-            accessUrl: ${key.accessUrl}
-                                \`\`\``,
+					`
+id: ${key.id}
+username: \`${key.name}\`
+password: \`${key.password}\`
+port: ${key.port}
+method: \`${key.method}\`
+accessUrl: \`${key.accessUrl}\``,
 					{
 						parse_mode: 'MarkdownV2',
 					},
