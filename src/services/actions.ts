@@ -52,10 +52,10 @@ class BotActions {
 		if (!this.#action) {
 			return;
 		}
-		if (this.#action.command === VPNCommand.Create) {
+		if (this.#action?.command === VPNCommand.Create) {
 			await this.create(message);
 		}
-		if (this.#action.command === VPNCommand.Delete) {
+		if (this.#action?.command === VPNCommand.Delete) {
 			await this.delete(message);
 		}
 	}
