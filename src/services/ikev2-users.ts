@@ -30,6 +30,7 @@ export class IKEv2UsersService implements IProtocolService {
 			await bot.sendMessage(message.chat.id, errorMsg);
 		}
 	}
+
 	async getAll(message: Message) {
 		try {
 			const { stdout, stderr } = await exec(`ikev2.sh --listclients`);
@@ -49,6 +50,7 @@ export class IKEv2UsersService implements IProtocolService {
 			await bot.sendMessage(message.chat.id, errorMsg);
 		}
 	}
+
 	async create(message: Message, username: string) {
 		try {
 			const command = `bash ${CREATE_PATH} ${username.toString()} ikev2`;

@@ -35,14 +35,14 @@ export class LogsService {
 	async wg(msg: Message) {
 		try {
 			const { stdout, stderr } = await exec('wg');
+			if (!!stdout) {
+				await bot.sendMessage(msg.chat.id, stdout.toString());
+			}
 			if (!!stderr) {
 				const errorMsg = `Error while executing wg command: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(msg.chat.id, errorMsg);
 				return;
-			}
-			if (!!stdout) {
-				await bot.sendMessage(msg.chat.id, stdout.toString());
 			}
 		} catch (error) {
 			const errorMsg = `Error while getting wg output: ${error}`;

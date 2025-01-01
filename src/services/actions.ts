@@ -1,5 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
-import { VPNCommand, type VPNProtocol } from '../core/enums';
+import { VPNCommand, VPNProtocol } from '../core/enums';
 import { userService } from './user';
 import bot from './bot';
 
@@ -33,12 +33,28 @@ class BotActions {
 	}
 
 	async delete(message: Message) {
+		if (this.#action?.protocol === VPNProtocol.Outline) {
+			this.deleteOutline(message);
+			return;
+		}
 		if (this.#state.start) {
 			await bot.sendMessage(message.chat.id, 'Enter username to delete');
 			this.#state.start = false;
 		} else if (!this.#state.params.has('username')) {
 			this.#state.params.set('username', message.text);
 			await userService.delete(message, this.#state.params.get('username'), this.#action.protocol);
+			this.#state.params.clear();
+			this.#action = null;
+		}
+	}
+
+	async deleteOutline(message: Message) {
+		if (this.#state.start) {
+			await bot.sendMessage(message.chat.id, 'Enter user id to delete');
+			this.#state.start = false;
+		} else if (!this.#state.params.has('id')) {
+			this.#state.params.set('id', message.text);
+			await userService.delete(message, this.#state.params.get('id'), this.#action.protocol);
 			this.#state.params.clear();
 			this.#action = null;
 		}
