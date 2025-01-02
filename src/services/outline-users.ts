@@ -69,6 +69,9 @@ accessUrl: \`${key.accessUrl}\`
 				body: JSON.stringify({
 					name: username,
 				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
 				dispatcher: httpsAgent,
 			});
 			if (!response.ok) {
@@ -84,7 +87,7 @@ accessUrl: \`${key.accessUrl}\`
 					message.chat.id,
 					`
 id: ${key.id}
-username: \`${key.name}\`
+name: \`${key.name}\`
 password: \`${key.password}\`
 port: ${key.port}
 method: \`${key.method}\`
@@ -100,10 +103,9 @@ accessUrl: \`${key.accessUrl}\``,
 				await bot.sendMessage(message.chat.id, errorMessage);
 			}
 		} catch (error) {
-			logger.error('Outline user was not created correctly');
+			logger.error(`Outline user was not created correctly`);
 			logger.error(error);
-			await bot.sendMessage(message.chat.id, 'Outline user was not created correctly');
-			await bot.sendMessage(message.chat.id, error);
+			await bot.sendMessage(message.chat.id, `Outline user was not created correctly ${error}`);
 		}
 	}
 
@@ -120,11 +122,12 @@ accessUrl: \`${key.accessUrl}\``,
 				);
 				return;
 			}
+			const successMessage = 'Outline user was successfully deleted';
+			logger.success(successMessage);
+			await bot.sendMessage(message.chat.id, successMessage);
 		} catch (error) {
-			logger.error('Outline user was not deleted correctly');
-			logger.error(error);
-			await bot.sendMessage(message.chat.id, 'Outline user was not deleted correctly');
-			await bot.sendMessage(message.chat.id, error);
+			logger.error(`Outline user was not deleted correctly: ${error}`);
+			await bot.sendMessage(message.chat.id, `Outline user was not deleted correctly ${error}`);
 		}
 	}
 }
