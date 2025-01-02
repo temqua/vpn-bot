@@ -103,7 +103,7 @@ bot.onText(/\/users\s+outline/, async (msg: Message, match: RegExpMatchArray) =>
 	await getClients(msg, match, VPNProtocol.Outline);
 });
 
-bot.onText(/\/users/, async (msg: Message) => {
+bot.onText(/\/users$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
