@@ -7,7 +7,7 @@ import http from 'node:http';
 import { homedir } from 'node:os';
 import { access, constants } from 'node:fs/promises';
 import { createReadStream } from 'fs';
-import logger from './logger';
+import logger from '../core/logger';
 
 const exec = util.promisify(require('node:child_process').exec);
 let url: URL;

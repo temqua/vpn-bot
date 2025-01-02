@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import bot from '../services/bot';
 import { VPNProtocol } from '../core/enums';
 import { ADMIN_USER_ID } from '../env';
-import { inlineButtons, showButtons } from '../buttons';
+import { inlineButtons, showButtons } from '../core/buttons';
 import { userService } from '../services/user';
 
 const isAdmin = (msg: Message): boolean => {

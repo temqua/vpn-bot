@@ -6,7 +6,7 @@ import util from 'node:util';
 import type { IProtocolService } from '../core';
 import { CREATE_PATH, DELETE_PATH, IKE_CONTAINER_DIR } from '../env';
 import bot from './bot';
-import logger from './logger';
+import logger from '../core/logger';
 
 const exec = util.promisify(require('node:child_process').exec);
 

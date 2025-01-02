@@ -28,6 +28,7 @@ services:
             - /usr/local/libexec:/usr/local/libexec:ro
             - /usr/bin/wg:/usr/bin/wg:ro
             - /usr/bin/wg-quick:/usr/bin/wg-quick:ro
+            - /usr/bin/vnstat:/usr/bin/vnstat:ro
             - /usr/bin/qrencode:/usr/bin/qrencode:ro
             - /usr/lib/x86_64-linux-gnu/libqrencode.so.4:/usr/lib/x86_64-linux-gnu/libqrencode.so.4:ro
             - /usr/lib/x86_64-linux-gnu/libqrencode.so.4.1.1:/usr/lib/x86_64-linux-gnu/libqrencode.so.4.1.1:ro

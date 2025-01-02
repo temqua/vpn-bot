@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import { OUTLINE_API_ROOT } from '../env';
 import bot from './bot';
-import logger from './logger';
+import logger from '../core/logger';
 import type { IProtocolService } from '../core';
 import https from 'https';
 

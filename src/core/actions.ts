@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import { VPNCommand, VPNProtocol } from '../core/enums';
-import { userService } from './user';
-import bot from './bot';
+import { userService } from '../services/user';
+import bot from '../services/bot';
 
 export type ActionInfo = {
 	command: VPNCommand;

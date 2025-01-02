@@ -1,4 +1,4 @@
-import { VPNCommand, VPNProtocol } from './core/enums';
+import { VPNCommand, VPNProtocol } from './enums';
 
 export const inlineButtons = [
 	[

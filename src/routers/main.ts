@@ -2,9 +2,9 @@ import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
 import { VPNProtocol } from '../core/enums';
-import { actions } from '../services/actions';
+import { actions } from '../core/actions';
 import bot from '../services/bot';
-import logger from '../services/logger';
+import logger from '../core/logger';
 import { logsService } from '../services/logs';
 
 const availableCommands = [
