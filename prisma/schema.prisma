@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model VpnUser {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  tgId         Int?      @map(name: "telegram_id")
+  tgLink       String?   @unique @map(name: "telegram_link")
+  createDate   DateTime  @default(now()) @map("create_date")
+  firstName    String?   @map(name: "first_name")
+  lastName     String?   @map(name: "last_name")
+  languageCode String?   @default("ru") @map(name: "language_code")
+  paymentCount Int       @default(80) @map(name: "payment_count")
+  deviceOS     String[]  @map(name: "device_os")
+  payments     Payment[]
+
+  @@map("users")
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  user        VpnUser  @relation(fields: [userId], references: [id])
+  userId      Int
+  paymentDate DateTime @default(now())
+  amount      Int
+}
