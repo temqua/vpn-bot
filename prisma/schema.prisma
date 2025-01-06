@@ -13,26 +13,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model VpnUser {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  tgId         Int?      @map(name: "telegram_id")
-  tgLink       String?   @unique @map(name: "telegram_link")
-  createDate   DateTime  @default(now()) @map("create_date")
-  firstName    String?   @map(name: "first_name")
-  lastName     String?   @map(name: "last_name")
-  languageCode String?   @default("ru") @map(name: "language_code")
-  paymentCount Int       @default(80) @map(name: "payment_count")
-  deviceOS     String[]  @map(name: "device_os")
+model User {
+  id           Int            @id @default(autoincrement())
+  username     String         @unique
+  telegramId   Int?           @map(name: "telegram_id")
+  telegramLink String?        @unique @map(name: "telegram_link")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  firstName    String?        @map(name: "first_name")
+  lastName     String?        @map(name: "last_name")
+  languageCode String?        @default("ru") @map(name: "language_code")
+  price        Int            @default(150) @map(name: "price")
+  peopleCount  Int            @default(1) @map(name: "people_count")
+  free         Boolean        @default(false) @map(name: "is_free")
   payments     Payment[]
+  devices      UserDevice[]
+  protocols    UserProtocol[]
 
   @@map("users")
 }
 
+model UserDevice {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  user   User   @relation(fields: [userId], references: [id])
+  device Device @map(name: "device")
+
+  @@map("user_devices")
+}
+
+model UserProtocol {
+  id       Int         @id @default(autoincrement())
+  userId   Int
+  user     User        @relation(fields: [userId], references: [id])
+  protocol VPNProtocol @map(name: "protocol")
+
+  @@map("user_protocols")
+}
+
 model Payment {
   id          Int      @id @default(autoincrement())
-  user        VpnUser  @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
   userId      Int
   paymentDate DateTime @default(now())
   amount      Int
+
+  @@map("payments")
+}
+
+model Plan {
+  id          Int      @id @default(autoincrement())
+  name        String
+  amount      Int
+  duration    Int
+  peopleCount Int      @default(1) @map(name: "people_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("plans")
+}
+
+enum Device {
+  Android
+  iOS
+  macOS
+  Linux
+  Windows
+  Android_TV
+  Google_TV
+}
+
+enum VPNProtocol {
+  WireGuard
+  IKEv2
+  Outline
+  VLess
 }
