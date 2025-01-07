@@ -2,6 +2,8 @@ import type { Message } from 'node-telegram-bot-api';
 import { VPNCommand, VPNProtocol } from '../core/enums';
 import { userService } from '../services/user';
 import bot from '../services/bot';
+import { paymentsService } from '../services/payments';
+import logger from './logger';
 
 export type ActionInfo = {
 	command: VPNCommand;
@@ -57,6 +59,14 @@ class BotActions {
 			await userService.delete(message, this.#state.params.get('id'), this.#action.protocol);
 			this.#state.params.clear();
 			this.#action = null;
+		}
+	}
+
+	async pay(msg: Message) {
+		if (msg.user_shared) {
+			await paymentsService.pay(msg);
+			logger.log(`Request ID: ${msg.user_shared.request_id}, ${msg.user_shared.user_id}`);
+			await bot.sendMessage(msg.chat.id, `Request ID: ${msg.user_shared.request_id}, ${msg.user_shared.user_id}`);
 		}
 	}
 

@@ -1,8 +1,8 @@
-import type { Message } from 'node-telegram-bot-api';
-import bot from '../services/bot';
+import type { Message, ReplyKeyboardMarkup } from 'node-telegram-bot-api';
+import { inlineButtons, showButtons } from '../core/buttons';
 import { VPNProtocol } from '../core/enums';
 import { ADMIN_USER_ID } from '../env';
-import { inlineButtons, showButtons } from '../core/buttons';
+import bot from '../services/bot';
 import { userService } from '../services/user';
 
 const isAdmin = (msg: Message): boolean => {
@@ -95,6 +95,7 @@ bot.onText(/\/user\s+file\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpMat
 bot.onText(/\/users\s+ikev2/, async (msg: Message, match: RegExpMatchArray) => {
 	await getClients(msg, match, VPNProtocol.IKE2);
 });
+
 bot.onText(/\/users\s+wg/, async (msg: Message, match: RegExpMatchArray) => {
 	await getClients(msg, match, VPNProtocol.WG);
 });
@@ -113,6 +114,30 @@ bot.onText(/\/users$/, async (msg: Message) => {
 		},
 	};
 	await bot.sendMessage(msg.chat.id, 'Select command:', inlineKeyboard);
+});
+
+bot.onText(/\/user\s+pay/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const replyMarkup: ReplyKeyboardMarkup = {
+		keyboard: [
+			[
+				{
+					text: 'Share contacts 📞',
+					request_user: {
+						request_id: 1,
+					},
+				},
+			],
+		],
+		one_time_keyboard: true, // The keyboard will hide after one use
+		resize_keyboard: true, // Fit the keyboard to the screen size
+	};
+
+	bot.sendMessage(msg.chat.id, 'Please share your contacts:', {
+		reply_markup: replyMarkup,
+	});
 });
 
 bot.onText(/\/users\s+(?!ikev2|wg|outline)(.*)/, async (msg: Message) => {

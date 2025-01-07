@@ -3,7 +3,7 @@ services:
         image: postgres:17.2-bookworm
         container_name: vpn-db
         ports:
-            - "54333:5432"
+            - '54333:5432'
         restart: unless-stopped
         env_file:
             - .env
