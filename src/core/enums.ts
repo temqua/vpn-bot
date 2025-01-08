@@ -8,4 +8,5 @@ export enum VPNCommand {
 	Create = 'create',
 	List = 'list',
 	Delete = 'delete',
+	GetFile = 'get-file',
 }

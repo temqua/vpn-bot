@@ -14,7 +14,6 @@ export class PaymentsService {
 			data: {
 				user,
 				userId: user.id,
-                
 			},
 		});
 	}

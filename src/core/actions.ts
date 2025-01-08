@@ -50,6 +50,21 @@ class BotActions {
 		}
 	}
 
+	async getFile(message: Message) {
+		if (this.#action?.protocol === VPNProtocol.Outline) {
+			return;
+		}
+		if (this.#state.start) {
+			await bot.sendMessage(message.chat.id, 'Enter username');
+			this.#state.start = false;
+		} else if (!this.#state.params.has('username')) {
+			this.#state.params.set('username', message.text);
+			await userService.getFile(message, this.#state.params.get('username'), this.#action.protocol);
+			this.#state.params.clear();
+			this.#action = null;
+		}
+	}
+
 	async deleteOutline(message: Message) {
 		if (this.#state.start) {
 			await bot.sendMessage(message.chat.id, 'Enter user id to delete');
