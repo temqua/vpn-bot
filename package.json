@@ -18,12 +18,12 @@
 	},
 	"homepage": "https://github.com/temqua/vpn-bot#readme",
 	"dependencies": {
-		"@prisma/client": "6.1.0",
+		"@prisma/client": "^6.2.1",
 		"date-fns": "3.3.1",
 		"dotenv": "^16.4.1",
 		"ms": "^2.1.3",
 		"node-telegram-bot-api": "^0.66.0",
-		"prisma": "^6.1.0"
+		"prisma": "^6.2.1"
 	},
 	"devDependencies": {
 		"@types/ms": "^0.7.34",

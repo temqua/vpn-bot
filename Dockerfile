@@ -18,7 +18,7 @@ ENV PATH="/root/.bun/bin:$PATH"
 COPY package.json bun.lockb .env tsconfig.json /app/
 COPY src/ ./src
 COPY scripts/ ./scripts
-# Install production dependencies
-RUN bun install --production
+COPY prisma/ ./prisma
+RUN bun install && bunx prisma generate && bun install --production
 EXPOSE 500/udp 4500/udp 51820/udp
 CMD [ "bun", "src/main.ts" ]
