@@ -99,6 +99,9 @@ class BotActions {
 		if (this.#action?.command === VPNCommand.Delete) {
 			await this.delete(message);
 		}
+		if (this.#action?.command === VPNCommand.GetFile) {
+			await this.getFile(message);
+		}
 	}
 
 	async execute(action: ActionInfo, message: Message) {
@@ -108,6 +111,8 @@ class BotActions {
 			await this.create(message);
 		} else if (action.command === VPNCommand.Delete) {
 			await this.delete(message);
+		} else if (action.command === VPNCommand.GetFile) {
+			await this.getFile(message);
 		} else {
 			await this.list(message);
 		}

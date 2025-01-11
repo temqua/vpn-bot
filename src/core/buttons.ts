@@ -17,6 +17,13 @@ export const inlineButtons = [
 			}),
 		},
 		{
+			text: 'Show IKEv2 File',
+			callback_data: JSON.stringify({
+				command: VPNCommand.GetFile,
+				protocol: VPNProtocol.IKE2,
+			}),
+		},
+		{
 			text: 'Delete IKEv2 User',
 			callback_data: JSON.stringify({
 				command: VPNCommand.Delete,
@@ -36,6 +43,13 @@ export const inlineButtons = [
 			text: 'Show WG Users',
 			callback_data: JSON.stringify({
 				command: VPNCommand.List,
+				protocol: VPNProtocol.WG,
+			}),
+		},
+		{
+			text: 'Show WG File',
+			callback_data: JSON.stringify({
+				command: VPNCommand.GetFile,
 				protocol: VPNProtocol.WG,
 			}),
 		},
