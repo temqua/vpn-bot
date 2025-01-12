@@ -4,7 +4,7 @@ import { access, constants } from 'node:fs/promises';
 import path from 'node:path';
 import util from 'node:util';
 import type { IProtocolService } from '../core';
-import { CREATE_PATH, DELETE_PATH, IKE_CONTAINER_DIR } from '../env';
+import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
 
@@ -12,7 +12,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class IKEv2UsersService implements IProtocolService {
 	async getFile(message: Message, username: string) {
-		const filePath = path.resolve(IKE_CONTAINER_DIR, `${username}/`, `${username}.zip`);
+		const filePath = path.resolve(env.IKE_CONTAINER_DIR, `${username}/`, `${username}.zip`);
 		try {
 			await access(filePath, constants.F_OK);
 			await bot.sendDocument(
@@ -53,7 +53,7 @@ export class IKEv2UsersService implements IProtocolService {
 
 	async create(message: Message, username: string) {
 		try {
-			const command = `bash ${CREATE_PATH} ${username.toString()} ikev2`;
+			const command = `bash ${env.CREATE_PATH} ${username.toString()} ikev2`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
 			if (!!stdout) {
@@ -76,7 +76,7 @@ export class IKEv2UsersService implements IProtocolService {
 
 	async delete(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`bash ${DELETE_PATH} ${username.toString()} ikev2`);
+			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} ikev2`);
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}

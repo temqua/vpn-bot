@@ -1,8 +1,15 @@
-const dotenv = require('dotenv');
-dotenv.config();
-export const ADMIN_USER_ID = 190349851;
-export const IKE_CONTAINER_DIR = process.env.IKE_CONTAINER_DIR;
-export const WG_CONTAINER_DIR = process.env.WG_CONTAINER_DIR;
-export const CREATE_PATH = process.env.CREATE_PATH;
-export const DELETE_PATH = process.env.DELETE_PATH;
-export const OUTLINE_API_ROOT = process.env.OUTLINE_API_ROOT;
+import { cleanEnv, str, num } from 'envalid';
+
+const env = cleanEnv(process.env, {
+	CREATE_PATH: str({ default: '/app/scripts/create-client.sh' }),
+	DELETE_PATH: str({ default: '/app/scripts/remove-client.sh' }),
+	IKE_CONTAINER_DIR: str({ default: '/app/ikev2-clients' }),
+	WG_CONTAINER_DIR: str({ default: '/app/wg-clients' }),
+	IKE_CLIENTS_DIR: str({ default: '/root/ikev2-clients' }),
+	WG_CLIENTS_DIR: str({ default: '/root/wg-clients' }),
+	ADMIN_USER_ID: num({ default: 190349851 }),
+	OUTLINE_API_ROOT: str({ default: '' }),
+	BOT_TOKEN: str({ default: '' }),
+});
+
+export default env;

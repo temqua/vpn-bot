@@ -24,6 +24,7 @@ const availableCommands = [
 	/\/users\s+ikev2/,
 	/\/users\s+wg/,
 	/\/users\s+outline/,
+	/\/wg/,
 ];
 
 const userHelpMessage = [VPNProtocol.IKE2, VPNProtocol.WG, VPNProtocol.Outline].reduce((acc, curr) => {
@@ -59,10 +60,13 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		actions.handleMessage(msg);
 		return;
 	}
-	const match = availableCommands.filter(regexp => regexp.test(msg.text));
-	if (!match.length) {
-		await bot.sendMessage(msg.chat.id, 'Wrong command');
+	if (msg.user_shared) {
+		await bot.sendMessage(msg.chat.id, 'User ID: ' + msg.user_shared.user_id);
 	}
+	// const match = availableCommands.filter(regexp => regexp.test(msg.text));
+	// if (!match.length) {
+	// 	await bot.sendMessage(msg.chat.id, 'Wrong command');
+	// }
 });
 
 bot.onText(/\/ping$/, async (msg: Message) => {

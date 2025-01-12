@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import util from 'node:util';
 import type { IProtocolService } from '../core';
-import { CREATE_PATH, DELETE_PATH, WG_CONTAINER_DIR } from '../env';
+import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
 
@@ -13,7 +13,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class WireguardUsersService implements IProtocolService {
 	async getFile(message: Message, username: string) {
-		const filePath = path.resolve(homedir(), WG_CONTAINER_DIR, `${username}.conf`);
+		const filePath = path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.conf`);
 		try {
 			await access(filePath, constants.F_OK);
 			await bot.sendDocument(
@@ -52,7 +52,7 @@ export class WireguardUsersService implements IProtocolService {
 
 	async create(message: Message, username: string) {
 		try {
-			const command = `bash ${CREATE_PATH} ${username.toString()} wg`;
+			const command = `bash ${env.CREATE_PATH} ${username.toString()} wg`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
 			if (!!stdout) {
@@ -73,7 +73,7 @@ export class WireguardUsersService implements IProtocolService {
 	}
 	async delete(message: Message, username: string) {
 		try {
-			const { stdout, stderr } = await exec(`bash ${DELETE_PATH} ${username.toString()} wg`);
+			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} wg`);
 			if (!!stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}

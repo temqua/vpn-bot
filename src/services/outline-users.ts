@@ -1,5 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
-import { OUTLINE_API_ROOT } from '../env';
+import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
 import type { IProtocolService } from '../core';
@@ -35,7 +35,7 @@ accessUrl: \`${key.accessUrl}\`
 
 	async getAll(message: Message) {
 		try {
-			const response = await fetch(`${OUTLINE_API_ROOT}/access-keys`, {
+			const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys`, {
 				dispatcher: httpsAgent,
 			});
 			if (!response.ok) {
@@ -64,7 +64,7 @@ accessUrl: \`${key.accessUrl}\`
 
 	async create(message: Message, username: string) {
 		try {
-			const response = await fetch(`${OUTLINE_API_ROOT}/access-keys`, {
+			const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys`, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: username,
@@ -111,7 +111,7 @@ accessUrl: \`${key.accessUrl}\``,
 
 	async delete(message: Message, id: string) {
 		try {
-			const response = await fetch(`${OUTLINE_API_ROOT}/access-keys/${id}`, {
+			const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys/${id}`, {
 				method: 'DELETE',
 				dispatcher: httpsAgent,
 			});

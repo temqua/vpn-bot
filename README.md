@@ -1,11 +1,17 @@
-### Необходимые переменные для запуска проекта:
+# vpn-bot
 
--   `BOT_TOKEN` — токен телеграм-бота
--   `IKE_CLIENTS_DIR` — директория на хосте где лежат IKEv2-клиенты
--   `WG_CLIENTS_DIR` — директория на хосте где лежат wireguard-клиенты
--   `IKE_CONTAINER_DIR` — директория в контейнере где лежат IKEv2-клиенты
--   `WG_CONTAINER_DIR` — директория в контейнере где лежат wireguard-клиенты
--   `CREATE_IKE2_PATH` — путь до скрипта создания IKEv2-клиента
--   `DELETE_IKE2_PATH` — путь до скрипта удаления WireGuard-клиента
--   `CREATE_WG_PATH` — путь до скрипта создания WireGuard-клиента
--   `DELETE_WG_PATH` — путь до скрипта удаления WireGuard-клиента
+Telegram Bot for VPN management
+
+### Variables used in project:
+
+| Env Variable        | Description                                | Valid Values | Required | Default value                                    |
+| ------------------- | ------------------------------------------ | ------------ | -------- | ------------------------------------------------ |
+| `BOT_TOKEN`         | telegram bot token                         | token string | false    | "7735973144:AAG4aojhaBjVIQSo4G3BapDkc-snBt1fm1U" |
+| `ADMIN_USER_ID`     | VPN admin chat id                          | ""           | true     |                                                  |
+| `IKE_CLIENTS_DIR`   | Host directory with IKEv2 clients          | path string  | false    | "/root/ikev2-clients"                            |
+| `WG_CLIENTS_DIR`    | Host directory with WireGuard clients      | path string  | false    | "/root/wg-clients"                               |
+| `IKE_CONTAINER_DIR` | Container directory with IKEv2 clients     | path string  | false    | "/app/ikev2-clients"                             |
+| `WG_CONTAINER_DIR`  | Container directory with WireGuard clients | path string  | false    | "/app/wg-clients"                                |
+| `CREATE_PATH`       | Path to client creation script             | path string  | false    | "/app/scripts/create-client.sh"                  |
+| `DELETE_PATH`       | Path to client deletion script             | path string  | false    | "/app/scripts/remove-client.sh"                  |
+| `DATABASE_URL`      | PostrgreSQL DSL                            | DSL string   | true     |                                                  |

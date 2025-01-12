@@ -1,5 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
-import { ADMIN_USER_ID } from '../env';
+import env from '../env';
 
 export interface IProtocolService {
 	create(message: Message, username: string);
@@ -8,5 +8,5 @@ export interface IProtocolService {
 }
 
 export const isAdmin = (msg: Message): boolean => {
-	return msg.from.id === ADMIN_USER_ID;
+	return msg.from.id === env.ADMIN_USER_ID;
 };

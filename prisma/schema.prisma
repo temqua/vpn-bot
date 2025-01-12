@@ -16,15 +16,15 @@ datasource db {
 model User {
   id           Int            @id @default(autoincrement())
   username     String         @unique
-  telegramId   Int?           @map(name: "telegram_id")
+  telegramId   String?        @map(name: "telegram_id")
   telegramLink String?        @unique @map(name: "telegram_link")
   createdAt    DateTime       @default(now()) @map("created_at")
   firstName    String?        @map(name: "first_name")
   lastName     String?        @map(name: "last_name")
   languageCode String?        @default("ru") @map(name: "language_code")
   price        Int            @default(150) @map(name: "price")
-  peopleCount  Int            @default(1) @map(name: "people_count")
   free         Boolean        @default(false) @map(name: "is_free")
+  parentId     Int?           @map(name: "parent_id")
   payments     Payment[]
   devices      UserDevice[]
   protocols    UserProtocol[]
@@ -56,6 +56,7 @@ model Payment {
   userId      Int
   paymentDate DateTime @default(now())
   amount      Int
+  currency    String   @default("RUB")
 
   @@map("payments")
 }

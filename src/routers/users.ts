@@ -1,13 +1,10 @@
 import type { Message, ReplyKeyboardMarkup } from 'node-telegram-bot-api';
 import { inlineButtons, showButtons } from '../core/buttons';
 import { VPNProtocol } from '../core/enums';
-import { ADMIN_USER_ID } from '../env';
+import env from '../env';
 import bot from '../services/bot';
 import { userService } from '../services/user';
-
-const isAdmin = (msg: Message): boolean => {
-	return msg.from.id === ADMIN_USER_ID;
-};
+import { isAdmin } from '../core';
 
 bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
