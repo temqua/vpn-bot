@@ -1,13 +1,13 @@
 import type { Message } from 'node-telegram-bot-api';
 import { VPNProtocol } from '../core/enums';
-import { IKEv2UsersService } from './ikev2-users';
-import { WireguardUsersService } from './wireguard-users';
-import { OutlineUsersService } from './outline-users';
+import { IKEv2KeysService } from './ikev2-users';
+import { WireguardKeysService } from './wireguard-users';
+import { OutlineKeysService } from './outline-users';
 
-class UserService {
-	private ikev2Service = new IKEv2UsersService();
-	private wgService = new WireguardUsersService();
-	private outlineService = new OutlineUsersService();
+class KeysService {
+	private ikev2Service = new IKEv2KeysService();
+	private wgService = new WireguardKeysService();
+	private outlineService = new OutlineKeysService();
 	async create(message: Message, username: string, protocol: VPNProtocol) {
 		if (protocol === VPNProtocol.Outline) {
 			await this.outlineService.create(message, username);
@@ -44,4 +44,4 @@ class UserService {
 	}
 }
 
-export const userService = new UserService();
+export const keysService = new KeysService();

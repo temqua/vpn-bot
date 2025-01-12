@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import env from '../env';
 
-export interface IProtocolService {
+export interface IKeysService {
 	create(message: Message, username: string);
 	delete(message: Message, username: string);
 	getAll(message: Message);

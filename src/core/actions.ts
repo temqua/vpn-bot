@@ -1,6 +1,6 @@
 import type { Message } from 'node-telegram-bot-api';
 import { VPNCommand, VPNProtocol } from '../core/enums';
-import { userService } from '../services/user';
+import { keysService } from '../services/keys';
 import bot from '../services/bot';
 import { paymentsService } from '../services/payments';
 import logger from './logger';
@@ -18,7 +18,7 @@ class BotActions {
 	};
 
 	async list(message: Message) {
-		await userService.getAll(message, this.#action.protocol);
+		await keysService.getAll(message, this.#action.protocol);
 		this.#action = null;
 	}
 
@@ -28,7 +28,7 @@ class BotActions {
 			this.#state.start = false;
 		} else if (!this.#state.params.has('username')) {
 			this.#state.params.set('username', message.text);
-			await userService.create(message, this.#state.params.get('username'), this.#action.protocol);
+			await keysService.create(message, this.#state.params.get('username'), this.#action.protocol);
 			this.#state.params.clear();
 			this.#action = null;
 		}
@@ -44,7 +44,7 @@ class BotActions {
 			this.#state.start = false;
 		} else if (!this.#state.params.has('username')) {
 			this.#state.params.set('username', message.text);
-			await userService.delete(message, this.#state.params.get('username'), this.#action.protocol);
+			await keysService.delete(message, this.#state.params.get('username'), this.#action.protocol);
 			this.#state.params.clear();
 			this.#action = null;
 		}
@@ -59,7 +59,7 @@ class BotActions {
 			this.#state.start = false;
 		} else if (!this.#state.params.has('username')) {
 			this.#state.params.set('username', message.text);
-			await userService.getFile(message, this.#state.params.get('username'), this.#action.protocol);
+			await keysService.getFile(message, this.#state.params.get('username'), this.#action.protocol);
 			this.#state.params.clear();
 			this.#action = null;
 		}
@@ -71,7 +71,7 @@ class BotActions {
 			this.#state.start = false;
 		} else if (!this.#state.params.has('id')) {
 			this.#state.params.set('id', message.text);
-			await userService.delete(message, this.#state.params.get('id'), this.#action.protocol);
+			await keysService.delete(message, this.#state.params.get('id'), this.#action.protocol);
 			this.#state.params.clear();
 			this.#action = null;
 		}

@@ -11,6 +11,7 @@ services:
         devices:
             - /dev/net/tun
         privileged: true
+        restart: always
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
             - ${WG_CLIENTS_DIR}:${WG_CONTAINER_DIR:-/app/wg-clients}

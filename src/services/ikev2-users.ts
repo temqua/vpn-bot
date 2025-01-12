@@ -3,14 +3,14 @@ import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
 import path from 'node:path';
 import util from 'node:util';
-import type { IProtocolService } from '../core';
+import type { IKeysService } from '../core';
 import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
 
 const exec = util.promisify(require('node:child_process').exec);
 
-export class IKEv2UsersService implements IProtocolService {
+export class IKEv2KeysService implements IKeysService {
 	async getFile(message: Message, username: string) {
 		const filePath = path.resolve(env.IKE_CONTAINER_DIR, `${username}/`, `${username}.zip`);
 		try {

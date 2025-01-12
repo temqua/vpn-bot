@@ -24,10 +24,12 @@ model User {
   languageCode String?        @default("ru") @map(name: "language_code")
   price        Int            @default(150) @map(name: "price")
   free         Boolean        @default(false) @map(name: "is_free")
-  parentId     Int?           @map(name: "parent_id")
+  payerId      Int?           @map(name: "payer_id")
   payments     Payment[]
   devices      UserDevice[]
   protocols    UserProtocol[]
+  payer        User?          @relation("UserToPayer", fields: [payerId], references: [id])
+  dependants   User[]         @relation("UserToPayer")
 
   @@map("users")
 }

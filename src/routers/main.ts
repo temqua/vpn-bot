@@ -7,11 +7,11 @@ import logger from '../core/logger';
 import bot from '../services/bot';
 import { logsService } from '../services/logs';
 import { paymentsService } from '../services/payments';
-
 const availableCommands = [
 	/\/start/,
 	/\/ping/,
 	/\/user/,
+	/\/user\s+create/,
 	/\/user\s+create\s+wg\s+(.*)/,
 	/\/user\s+create\s+ikev2\s+(.*)/,
 	/\/user\s+create\s+outline\s+(.*)/,
@@ -43,6 +43,7 @@ bot.onText(/\/start/, async (msg: Message) => {
 	logger.success('Ready');
 	const helpMessage = `
 /users
+/user create
 ${userHelpMessage}
 `;
 	await bot.sendMessage(msg.chat.id, '✅ Ready');

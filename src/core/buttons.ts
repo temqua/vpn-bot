@@ -111,3 +111,29 @@ export const showButtons = [
 		},
 	],
 ];
+
+export const createButtons = [
+	[
+		{
+			text: 'IKEv2',
+			callback_data: JSON.stringify({
+				command: VPNCommand.Create,
+				protocol: VPNProtocol.IKE2,
+			}),
+		},
+		{
+			text: 'WG',
+			callback_data: JSON.stringify({
+				command: VPNCommand.Create,
+				protocol: VPNProtocol.WG,
+			}),
+		},
+		{
+			text: 'Outline',
+			callback_data: JSON.stringify({
+				command: VPNCommand.Create,
+				protocol: VPNProtocol.Outline,
+			}),
+		},
+	],
+];

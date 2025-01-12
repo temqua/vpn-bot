@@ -4,6 +4,7 @@
 	"description": "Simple Telegram bot for Dagon VPN management",
 	"main": "src/main.ts",
 	"scripts": {
+		"prestart": "bunx prisma generate",
 		"start": "bun src/main.ts",
 		"format": "prettier --write .",
 		"seed": "bunx prisma/seed.ts"

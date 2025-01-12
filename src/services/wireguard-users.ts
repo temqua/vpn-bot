@@ -4,14 +4,14 @@ import { access, constants } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import util from 'node:util';
-import type { IProtocolService } from '../core';
+import type { IKeysService } from '../core';
 import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
 
 const exec = util.promisify(require('node:child_process').exec);
 
-export class WireguardUsersService implements IProtocolService {
+export class WireguardKeysService implements IKeysService {
 	async getFile(message: Message, username: string) {
 		const filePath = path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.conf`);
 		try {

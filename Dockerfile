@@ -19,6 +19,6 @@ COPY package.json bun.lockb .env tsconfig.json /app/
 COPY src/ ./src
 COPY scripts/ ./scripts
 COPY prisma/ ./prisma
-RUN bun install && bunx prisma generate && bun install --production
+RUN bun install --production
 EXPOSE 500/udp 4500/udp 51820/udp
 CMD [ "bun", "src/main.ts" ]

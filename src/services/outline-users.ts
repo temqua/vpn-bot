@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
-import type { IProtocolService } from '../core';
+import type { IKeysService } from '../core';
 import https from 'https';
 
 type OutlineResponse = {
@@ -24,7 +24,7 @@ const httpsAgent = new https.Agent({
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-export class OutlineUsersService implements IProtocolService {
+export class OutlineKeysService implements IKeysService {
 	private formatUserInfo(key: OutlineKey) {
 		return `
 id: ${key.id}
