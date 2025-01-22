@@ -36,7 +36,7 @@ model User {
 
 model UserDevice {
   id     Int    @id @default(autoincrement())
-  userId Int
+  userId Int    @map(name: "user_id")
   user   User   @relation(fields: [userId], references: [id])
   device Device @map(name: "device")
 
@@ -45,7 +45,7 @@ model UserDevice {
 
 model UserProtocol {
   id       Int         @id @default(autoincrement())
-  userId   Int
+  userId   Int         @map(name: "user_id")
   user     User        @relation(fields: [userId], references: [id])
   protocol VPNProtocol @map(name: "protocol")
 
@@ -55,7 +55,7 @@ model UserProtocol {
 model Payment {
   id          Int      @id @default(autoincrement())
   user        User     @relation(fields: [userId], references: [id])
-  userId      Int
+  userId      Int      @map(name: "user_id")
   paymentDate DateTime @default(now())
   amount      Int
   currency    String   @default("RUB")
