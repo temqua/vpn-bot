@@ -1,12 +1,23 @@
 export enum VPNProtocol {
 	WG = 'wg',
-	IKE2 = 'ikev2',
+	IKEv2 = 'ikev2',
 	Outline = 'outline',
 }
 
-export enum VPNCommand {
-	Create = 'create',
-	List = 'list',
-	Delete = 'delete',
-	GetFile = 'get-file',
+export enum VPNKeyCommand {
+	Create = 'c',
+	List = 'l',
+	Delete = 'd',
+	GetFile = 'f',
+}
+
+export enum VPNUserCommand {
+	Create = 'c',
+	List = 'l',
+	Delete = 'd',
+}
+
+export enum CommandScope {
+	Keys = 'k',
+	Users = 'u',
 }

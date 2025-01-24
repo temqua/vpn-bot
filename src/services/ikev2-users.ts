@@ -3,10 +3,10 @@ import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
 import path from 'node:path';
 import util from 'node:util';
-import type { IKeysService } from '../core';
 import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
+import type { IKeysService } from '../core/contracts';
 
 const exec = util.promisify(require('node:child_process').exec);
 

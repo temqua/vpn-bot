@@ -14,7 +14,6 @@ bot.onText(/\/user$/, async (msg: Message) => {
 			inline_keyboard: inlineButtons,
 		},
 	};
-
 	await bot.sendMessage(msg.chat.id, 'Select command:', inlineKeyboard);
 });
 
@@ -65,7 +64,7 @@ bot.onText(/\/user\s+create\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatc
 });
 
 bot.onText(/\/user\s+create\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await createClient(msg, match, VPNProtocol.IKE2);
+	await createClient(msg, match, VPNProtocol.IKEv2);
 });
 
 bot.onText(/\/user\s+create\s+outline\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
@@ -84,7 +83,7 @@ bot.onText(/\/user\s+delete\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatc
 });
 
 bot.onText(/\/user\s+delete\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await deleteClient(msg, match, VPNProtocol.IKE2);
+	await deleteClient(msg, match, VPNProtocol.IKEv2);
 });
 
 bot.onText(/\/user\s+delete\s+outline\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
@@ -96,11 +95,11 @@ bot.onText(/\/user\s+file\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatchA
 });
 
 bot.onText(/\/user\s+file\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await getFile(msg, match, VPNProtocol.IKE2);
+	await getFile(msg, match, VPNProtocol.IKEv2);
 });
 
 bot.onText(/\/users\s+ikev2/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await getClients(msg, match, VPNProtocol.IKE2);
+	await getClients(msg, match, VPNProtocol.IKEv2);
 });
 
 bot.onText(/\/users\s+wg/, async (msg: Message, match: RegExpMatchArray | null) => {
@@ -112,7 +111,7 @@ bot.onText(/\/users\s+outline/, async (msg: Message, match: RegExpMatchArray | n
 });
 
 bot.onText(/\/user\s+create/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await createClient(msg, match, VPNProtocol.IKE2);
+	await createClient(msg, match, VPNProtocol.IKEv2);
 });
 
 bot.onText(/\/users\s+new/, async (msg: Message, match) => {

@@ -1,12 +1,11 @@
 import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
-import { actions } from '../core/actions';
 import { VPNProtocol } from '../core/enums';
+import { globalHandler, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
 import bot from '../services/bot';
 import { logsService } from '../services/logs';
-import { paymentsService } from '../services/payments';
 const availableCommands = [
 	/\/start/,
 	/\/ping/,
@@ -27,7 +26,7 @@ const availableCommands = [
 	/\/wg/,
 ];
 
-const userHelpMessage = [VPNProtocol.IKE2, VPNProtocol.WG, VPNProtocol.Outline].reduce((acc, curr) => {
+const userHelpMessage = Object.values(VPNProtocol).reduce((acc, curr) => {
 	const current = `
 /user create ${curr} <username>
 /user delete ${curr} <username> ${curr !== VPNProtocol.Outline ? '\n/user file ' + curr + ' <username>' : ''}
@@ -57,8 +56,8 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		return;
 	}
 
-	if (actions.hasAction()) {
-		actions.handleMessage(msg);
+	if (globalHandler.hasActiveCommand()) {
+		globalHandler.handleNewMessage(msg);
 		return;
 	}
 	if (msg.user_shared) {
@@ -86,6 +85,11 @@ bot.onText(/\/wg$/, async (msg: Message) => {
 });
 
 bot.on('callback_query', async query => {
-	const data = query.data;
-	actions.execute(JSON.parse(data), query.message);
+	const callbackDataString = query.data;
+	const parsed = JSON.parse(callbackDataString);
+	const data: CommandDetails = {
+		scope: parsed.s,
+		context: parsed.c,
+	};
+	globalHandler.execute(data, query.message);
 });

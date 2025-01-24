@@ -1,8 +1,8 @@
 import type { Message } from 'node-telegram-bot-api';
 import { VPNProtocol } from '../core/enums';
 import { IKEv2KeysService } from './ikev2-users';
-import { WireguardKeysService } from './wireguard-users';
 import { OutlineKeysService } from './outline-users';
+import { WireguardKeysService } from './wireguard-users';
 
 class KeysService {
 	private ikev2Service = new IKEv2KeysService();
@@ -11,14 +11,14 @@ class KeysService {
 	async create(message: Message, username: string, protocol: VPNProtocol) {
 		if (protocol === VPNProtocol.Outline) {
 			await this.outlineService.create(message, username);
-		} else if (protocol === VPNProtocol.IKE2) {
+		} else if (protocol === VPNProtocol.IKEv2) {
 			await this.ikev2Service.create(message, username);
 		} else {
 			await this.wgService.create(message, username);
 		}
 	}
 	async getFile(message: Message, username: string, protocol: VPNProtocol) {
-		if (protocol === VPNProtocol.IKE2) {
+		if (protocol === VPNProtocol.IKEv2) {
 			await this.ikev2Service.getFile(message, username);
 		} else {
 			await this.wgService.getFile(message, username);
@@ -27,7 +27,7 @@ class KeysService {
 	async getAll(message: Message, protocol: VPNProtocol) {
 		if (protocol === VPNProtocol.Outline) {
 			await this.outlineService.getAll(message);
-		} else if (protocol === VPNProtocol.IKE2) {
+		} else if (protocol === VPNProtocol.IKEv2) {
 			await this.ikev2Service.getAll(message);
 		} else {
 			await this.wgService.getAll(message);
@@ -36,7 +36,7 @@ class KeysService {
 	async delete(message: Message, username: string, protocol: VPNProtocol) {
 		if (protocol === VPNProtocol.Outline) {
 			await this.outlineService.delete(message, username);
-		} else if (protocol === VPNProtocol.IKE2) {
+		} else if (protocol === VPNProtocol.IKEv2) {
 			await this.ikev2Service.delete(message, username);
 		} else {
 			await this.wgService.delete(message, username);

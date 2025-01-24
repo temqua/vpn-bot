@@ -1,139 +1,48 @@
-import { VPNCommand, VPNProtocol } from './enums';
+import { CommandScope, VPNKeyCommand, VPNProtocol } from './enums';
 
-export const inlineButtons = [
-	[
-		{
-			text: 'Create IKEv2 User',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Create,
-				protocol: VPNProtocol.IKE2,
-			}),
-		},
-		{
-			text: 'Show IKEv2 Users',
-			callback_data: JSON.stringify({
-				command: VPNCommand.List,
-				protocol: VPNProtocol.IKE2,
-			}),
-		},
-		{
-			text: 'Show IKEv2 File',
-			callback_data: JSON.stringify({
-				command: VPNCommand.GetFile,
-				protocol: VPNProtocol.IKE2,
-			}),
-		},
-		{
-			text: 'Delete IKEv2 User',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Delete,
-				protocol: VPNProtocol.IKE2,
-			}),
-		},
-	],
-	[
-		{
-			text: 'Create WG User',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Create,
-				protocol: VPNProtocol.WG,
-			}),
-		},
-		{
-			text: 'Show WG Users',
-			callback_data: JSON.stringify({
-				command: VPNCommand.List,
-				protocol: VPNProtocol.WG,
-			}),
-		},
-		{
-			text: 'Show WG File',
-			callback_data: JSON.stringify({
-				command: VPNCommand.GetFile,
-				protocol: VPNProtocol.WG,
-			}),
-		},
-		{
-			text: 'Delete WG User',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Delete,
-				protocol: VPNProtocol.WG,
-			}),
-		},
-	],
-	[
-		{
-			text: 'Create Outline User',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Create,
-				protocol: VPNProtocol.Outline,
-			}),
-		},
-		{
-			text: 'Show Outline Users',
-			callback_data: JSON.stringify({
-				command: VPNCommand.List,
-				protocol: VPNProtocol.Outline,
-			}),
-		},
-		{
-			text: 'Delete Outline User',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Delete,
-				protocol: VPNProtocol.Outline,
-			}),
-		},
-	],
-];
+const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol]) => {
+	return {
+		text: label,
+		callback_data: JSON.stringify({
+			s: CommandScope.Keys,
+			c: {
+				command: VPNKeyCommand.Create,
+				protocol,
+			},
+		}),
+	};
+});
 
-export const showButtons = [
-	[
-		{
-			text: 'IKEv2 Users',
-			callback_data: JSON.stringify({
-				command: VPNCommand.List,
-				protocol: VPNProtocol.IKE2,
-			}),
+const listKeysButtonParams = Object.entries(VPNProtocol).map(([label, protocol]) => ({
+	text: `${label} Users`,
+	callback_data: JSON.stringify({
+		s: CommandScope.Keys,
+		c: {
+			command: VPNKeyCommand.List,
+			protocol,
 		},
-		{
-			text: 'WG Users',
-			callback_data: JSON.stringify({
-				command: VPNCommand.List,
-				protocol: VPNProtocol.WG,
-			}),
-		},
-		{
-			text: 'Outline Users',
-			callback_data: JSON.stringify({
-				command: VPNCommand.List,
-				protocol: VPNProtocol.Outline,
-			}),
-		},
-	],
-];
+	}),
+}));
 
-export const createButtons = [
-	[
-		{
-			text: 'IKEv2',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Create,
-				protocol: VPNProtocol.IKE2,
-			}),
-		},
-		{
-			text: 'WG',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Create,
-				protocol: VPNProtocol.WG,
-			}),
-		},
-		{
-			text: 'Outline',
-			callback_data: JSON.stringify({
-				command: VPNCommand.Create,
-				protocol: VPNProtocol.Outline,
-			}),
-		},
-	],
-];
+export const inlineButtons = Object.entries(VPNProtocol).map(([protocolLabel, protocol]) =>
+	Object.entries(VPNKeyCommand)
+		.filter(([l, c]) => {
+			return !(protocol === VPNProtocol.Outline && c === VPNKeyCommand.GetFile);
+		})
+		.map(([commandLabel, command]) => {
+			return {
+				text: `${commandLabel} ${protocolLabel}`,
+				callback_data: JSON.stringify({
+					s: CommandScope.Keys,
+					c: {
+						command,
+						protocol,
+					},
+				}),
+			};
+		}),
+);
+
+export const showButtons = [listKeysButtonParams];
+
+export const createButtons = [createKeyButtonsParams];

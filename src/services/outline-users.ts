@@ -2,8 +2,8 @@ import type { Message } from 'node-telegram-bot-api';
 import env from '../env';
 import bot from './bot';
 import logger from '../core/logger';
-import type { IKeysService } from '../core';
 import https from 'https';
+import type { IKeysService } from '../core/contracts';
 
 type OutlineResponse = {
 	accessKeys: OutlineKey[];
