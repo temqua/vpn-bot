@@ -1,5 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
-import type { CommandContext } from '../interactions';
+import type { CommandContext } from '../interaction-handlers';
 
 export interface IKeysService {
 	create(message: Message, username: string);

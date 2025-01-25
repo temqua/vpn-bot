@@ -61,7 +61,7 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		return;
 	}
 	if (msg.user_shared) {
-		await bot.sendMessage(msg.chat.id, 'User ID: ' + msg.user_shared.user_id);
+		globalHandler.handleNewMessage(msg);
 	}
 	// const match = availableCommands.filter(regexp => regexp.test(msg.text));
 	// if (!match.length) {
@@ -90,6 +90,7 @@ bot.on('callback_query', async query => {
 	const data: CommandDetails = {
 		scope: parsed.s,
 		context: parsed.c,
+		processing: Boolean(parsed.p),
 	};
 	globalHandler.execute(data, query.message);
 });

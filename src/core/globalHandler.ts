@@ -1,13 +1,18 @@
 import type { Message } from 'node-telegram-bot-api';
+import type { CommandContext } from '../interaction-handlers';
+import * as allHandlers from '../interaction-handlers';
 import { CommandScope } from './enums';
-import type { CommandContext } from '../interactions';
-import { keysCommandsHandler, type KeysContext } from '../interactions/keys';
-import { userCommandsHandler, type UsersContext } from '../interactions/user';
+import logger from './logger';
 
 export type CommandDetails = {
+	processing: boolean;
 	scope: CommandScope;
 	context: CommandContext;
 } | null;
+
+const handlers = {
+	...allHandlers.default,
+};
 
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
@@ -24,21 +29,21 @@ class GlobalHandler {
 		if (!this.activeCommand) {
 			return;
 		}
-		if (this.activeCommand.scope === CommandScope.Users) {
-			userCommandsHandler.handle(this.activeCommand.context as UsersContext, message);
-		}
-		if (this.activeCommand.scope === CommandScope.Keys) {
-			keysCommandsHandler.handle(this.activeCommand.context as KeysContext, message);
+		const handler = handlers[this.activeCommand.scope];
+		if (handler) {
+			handler.handle(this.activeCommand.context, message);
+		} else {
+			logger.error(`handler for scope ${this.activeCommand.scope} is undefined`);
 		}
 	}
 
 	async execute(command: CommandDetails, message: Message) {
 		this.activeCommand = command;
-		if (command.scope === CommandScope.Users) {
-			userCommandsHandler.handle(command.context as UsersContext, message, true);
-		}
-		if (this.activeCommand.scope === CommandScope.Keys) {
-			keysCommandsHandler.handle(command.context as KeysContext, message, true);
+		const handler = handlers[this.activeCommand.scope];
+		if (handler) {
+			handler.handle(this.activeCommand.context, message, !command.processing);
+		} else {
+			logger.error(`handler for scope ${this.activeCommand.scope} is undefined`);
 		}
 	}
 }

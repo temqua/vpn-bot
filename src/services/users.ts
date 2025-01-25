@@ -1,14 +1,19 @@
-import type { Device } from '@prisma/client';
+import type { Device, User } from '@prisma/client';
 import { prisma } from './prisma';
+import { UsersRepository } from '../repositories/users';
 
 class UsersService {
-	async create(username: string, telegramId: string) {
-		await prisma.user.create({
-			data: {
-				username,
-				telegramId,
-			},
-		});
+	constructor(private repository: UsersRepository) {}
+	async create(username: string, firstName: string, telegramId: string | null, telegramLink: string | null) {
+		return await this.repository.create(username, firstName, telegramLink, telegramId);
+	}
+
+	async list(): Promise<User[]> {
+		return await this.repository.list();
+	}
+
+	async delete(id: number) {
+		return await this.repository.delete(id);
 	}
 
 	async addDevice(telegramId: string, device: Device) {
@@ -26,4 +31,4 @@ class UsersService {
 	}
 }
 
-export const usersService = new UsersService();
+export const usersService = new UsersService(new UsersRepository());
