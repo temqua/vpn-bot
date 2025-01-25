@@ -1,14 +1,14 @@
 import type { Message, ReplyKeyboardMarkup } from 'node-telegram-bot-api';
-import type { ICommandHandler } from '../core/contracts';
-import { CommandScope, VPNUserCommand } from '../core/enums';
-import { paymentsService } from '../services/payments';
-import bot from '../services/bot';
-import logger from '../core/logger';
-import { globalHandler } from '../core/globalHandler';
-import { usersService } from '../services/users';
+import type { ICommandHandler } from '../../core/contracts';
+import { CommandScope, VPNUserCommand } from '../../core/enums';
+import { paymentsService } from './payments';
+import bot from '../../core/bot';
+import logger from '../../core/logger';
+import { globalHandler } from '../../core/globalHandler';
+import { usersService } from './users.service';
 
 export type UsersContext = {
-	command: VPNUserCommand;
+	cmd: VPNUserCommand;
 	id?: string;
 };
 
@@ -20,9 +20,9 @@ class UsersCommandsHandler implements ICommandHandler {
 
 	async handle(context: UsersContext, message: Message, start = false) {
 		this.state.firstStep = start;
-		if (context.command === VPNUserCommand.Create) {
+		if (context.cmd === VPNUserCommand.Create) {
 			await this.create(message);
-		} else if (context.command === VPNUserCommand.Delete) {
+		} else if (context.cmd === VPNUserCommand.Delete) {
 			await this.delete(context, message);
 		} else {
 			await this.list(message);
@@ -73,10 +73,27 @@ class UsersCommandsHandler implements ICommandHandler {
 	}
 
 	async list(message: Message) {
+		
 		const users = await usersService.list();
-		for (const user of users) {
-			await bot.sendMessage(message.chat.id, JSON.stringify(user.username));
-		}
+		const buttons = users.map(({ id, username }) => [
+			{
+				text: username,
+				callback_data: JSON.stringify({
+					s: CommandScope.Users,
+					c: {
+						cmd: VPNUserCommand.GetUser,
+						id,
+					},
+					p: 1,
+				}),
+			},
+		]);
+		const inlineKeyboard = {
+			reply_markup: {
+				inline_keyboard: [...buttons],
+			},
+		};
+		await bot.sendMessage(message.chat.id, 'Select user:', inlineKeyboard);
 		globalHandler.finishCommand();
 	}
 
@@ -90,14 +107,13 @@ class UsersCommandsHandler implements ICommandHandler {
 					callback_data: JSON.stringify({
 						s: CommandScope.Users,
 						c: {
-							command: VPNUserCommand.Delete,
+							cmd: VPNUserCommand.Delete,
 							id,
 						},
 						p: 1,
 					}),
 				},
 			]);
-			console.dir(buttons);
 			const inlineKeyboard = {
 				reply_markup: {
 					inline_keyboard: [...buttons],

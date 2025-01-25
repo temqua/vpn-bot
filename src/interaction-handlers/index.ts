@@ -1,5 +1,5 @@
-import { keysCommandsHandler } from './keys';
-import { userCommandsHandler } from './users';
+import { keysCommandsHandler } from '../entities/keys/keys.commands-handler';
+import { userCommandsHandler } from '../entities/users/users.commands-handler';
 
 export type CommandContext = object;
 export default {

@@ -1,9 +1,9 @@
 import type { Message, ReplyKeyboardMarkup } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
+import bot from '../core/bot';
 import { createButtons, inlineButtons, showButtons } from '../core/buttons';
 import { VPNProtocol } from '../core/enums';
-import bot from '../services/bot';
-import { keysService } from '../services/keys';
+import { CertificatesService } from '../entities/keys/certificates.service';
 
 bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
@@ -26,7 +26,7 @@ async function createClient(msg: Message, match: RegExpMatchArray | null, protoc
 		return;
 	}
 	const username = match[1];
-	await keysService.create(msg, username, protocol);
+	await new CertificatesService(protocol).create(msg, username);
 }
 
 async function deleteClient(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
@@ -38,14 +38,14 @@ async function deleteClient(msg: Message, match: RegExpMatchArray | null, protoc
 		return;
 	}
 	const username = match[1];
-	await keysService.delete(msg, username, protocol);
+	await new CertificatesService(protocol).delete(msg, username);
 }
 
 async function getClients(msg: Message, match: RegExpMatchArray, protocol: VPNProtocol) {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	await keysService.getAll(msg, VPNProtocol.Outline);
+	await new CertificatesService(protocol).getAll(msg);
 }
 
 async function getFile(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
@@ -56,7 +56,7 @@ async function getFile(msg: Message, match: RegExpMatchArray | null, protocol: V
 		await bot.sendMessage(msg.chat.id, 'Unexpected error happened with regexp match value');
 		return;
 	}
-	await keysService.getFile(msg, match[1], protocol);
+	await new CertificatesService(protocol).getFile(msg, match[1]);
 }
 
 bot.onText(/\/user\s+create\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
@@ -67,11 +67,7 @@ bot.onText(/\/user\s+create\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpM
 	await createClient(msg, match, VPNProtocol.IKEv2);
 });
 
-bot.onText(/\/user\s+create\s+outline\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await createClient(msg, match, VPNProtocol.Outline);
-});
-
-bot.onText(/\/user\s+create\s+(ikev2|wg|outline)$/, async (msg: Message) => {
+bot.onText(/\/user\s+create\s+(ikev2|wg)$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -84,10 +80,6 @@ bot.onText(/\/user\s+delete\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatc
 
 bot.onText(/\/user\s+delete\s+ikev2\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
 	await deleteClient(msg, match, VPNProtocol.IKEv2);
-});
-
-bot.onText(/\/user\s+delete\s+outline\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await deleteClient(msg, match, VPNProtocol.Outline);
 });
 
 bot.onText(/\/user\s+file\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
@@ -104,14 +96,6 @@ bot.onText(/\/users\s+ikev2/, async (msg: Message, match: RegExpMatchArray | nul
 
 bot.onText(/\/users\s+wg/, async (msg: Message, match: RegExpMatchArray | null) => {
 	await getClients(msg, match, VPNProtocol.WG);
-});
-
-bot.onText(/\/users\s+outline/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await getClients(msg, match, VPNProtocol.Outline);
-});
-
-bot.onText(/\/user\s+create/, async (msg: Message, match: RegExpMatchArray | null) => {
-	await createClient(msg, match, VPNProtocol.IKEv2);
 });
 
 bot.onText(/\/users\s+new/, async (msg: Message, match) => {
@@ -162,7 +146,7 @@ bot.onText(/\/user\s+pay/, async (msg: Message) => {
 	});
 });
 
-bot.onText(/\/users\s+(?!ikev2|wg|outline)(.*)/, async (msg: Message) => {
+bot.onText(/\/users\s+(?!ikev2|wg)(.*)/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}

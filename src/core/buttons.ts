@@ -6,8 +6,8 @@ const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol
 		callback_data: JSON.stringify({
 			s: CommandScope.Keys,
 			c: {
-				command: VPNKeyCommand.Create,
-				protocol,
+				cmd: VPNKeyCommand.Create,
+				pr: protocol,
 			},
 		}),
 	};
@@ -18,8 +18,8 @@ const listKeysButtonParams = Object.entries(VPNProtocol).map(([label, protocol])
 	callback_data: JSON.stringify({
 		s: CommandScope.Keys,
 		c: {
-			command: VPNKeyCommand.List,
-			protocol,
+			cmd: VPNKeyCommand.List,
+			pr: protocol,
 		},
 	}),
 }));
@@ -31,7 +31,7 @@ export const userButtons = [
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
-					command: VPNUserCommand.Create,
+					cmd: VPNUserCommand.Create,
 				},
 			}),
 		},
@@ -40,7 +40,7 @@ export const userButtons = [
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
-					command: VPNUserCommand.List,
+					cmd: VPNUserCommand.List,
 				},
 			}),
 		},
@@ -49,31 +49,74 @@ export const userButtons = [
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
-					command: VPNUserCommand.Delete,
+					cmd: VPNUserCommand.Delete,
 				},
 			}),
 		},
 	],
 ];
 
-export const keyButtons = Object.entries(VPNProtocol).map(([protocolLabel, protocol]) =>
-	Object.entries(VPNKeyCommand)
-		.filter(([l, c]) => {
-			return !(protocol === VPNProtocol.Outline && c === VPNKeyCommand.GetFile);
-		})
-		.map(([commandLabel, command]) => {
-			return {
-				text: `${commandLabel} ${protocolLabel}`,
+export const keyButtons = [
+	...Object.entries(VPNProtocol).map(([protocolLabel, protocol]) => {
+		return [
+			{
+				text: `Create ${protocolLabel}`,
 				callback_data: JSON.stringify({
 					s: CommandScope.Keys,
 					c: {
-						command,
-						protocol,
+						cmd: VPNKeyCommand.Create,
+						pr: protocol,
 					},
 				}),
-			};
-		}),
-);
+			},
+			{
+				text: `Show ${protocolLabel}`,
+				callback_data: JSON.stringify({
+					s: CommandScope.Keys,
+					c: {
+						cmd: VPNKeyCommand.List,
+						pr: protocol,
+					},
+				}),
+			},
+			{
+				text: `Delete ${protocolLabel}`,
+				callback_data: JSON.stringify({
+					s: CommandScope.Keys,
+					c: {
+						cmd: VPNKeyCommand.Delete,
+						pr: protocol,
+					},
+				}),
+			},
+		];
+	}),
+	[
+		{
+			text: 'Get File IKEv2',
+			callback_data: JSON.stringify({
+				s: CommandScope.Keys,
+				c: {
+					cmd: VPNKeyCommand.GetFile,
+					pr: VPNProtocol.IKEv2,
+				},
+			}),
+		},
+		{
+			text: 'Get File WireGuard',
+			callback_data: JSON.stringify({
+				s: CommandScope.Keys,
+				c: {
+					cmd: VPNKeyCommand.GetFile,
+					pr: VPNProtocol.WG,
+				},
+			}),
+		},
+	],
+];
+
+console.dir(keyButtons);
+
 export const inlineButtons = [...keyButtons, ...userButtons];
 
 export const showButtons = [listKeysButtonParams];

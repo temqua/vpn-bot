@@ -4,36 +4,20 @@ import { isAdmin } from '../core';
 import { VPNProtocol } from '../core/enums';
 import { globalHandler, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
-import bot from '../services/bot';
-import { logsService } from '../services/logs';
-const availableCommands = [
-	/\/start/,
-	/\/ping/,
-	/\/user/,
-	/\/user\s+create/,
-	/\/user\s+create\s+wg\s+(.*)/,
-	/\/user\s+create\s+ikev2\s+(.*)/,
-	/\/user\s+create\s+outline\s+(.*)/,
-	/\/user\s+delete\s+wg\s+(.*)/,
-	/\/user\s+delete\s+ikev2\s+(.*)/,
-	/\/user\s+delete\s+outline\s+(.*)/,
-	/\/user\s+file\s+wg\s+(.*)/,
-	/\/user\s+file\s+ikev2\s+(.*)/,
-	/\/users/,
-	/\/users\s+ikev2/,
-	/\/users\s+wg/,
-	/\/users\s+outline/,
-	/\/wg/,
-];
+import bot from '../core/bot';
+import { logsService } from '../core/logs';
 
-const userHelpMessage = Object.values(VPNProtocol).reduce((acc, curr) => {
-	const current = `
+const userHelpMessage = Object.values(VPNProtocol)
+	.filter(p => p !== VPNProtocol.Outline)
+	.reduce((acc, curr) => {
+		const current = `
 /user create ${curr} <username>
-/user delete ${curr} <username> ${curr !== VPNProtocol.Outline ? '\n/user file ' + curr + ' <username>' : ''}
+/user delete ${curr} <username> 
+/user file ${curr} <username>
 /users ${curr}
 	`;
-	return acc + current;
-}, '');
+		return acc + current;
+	}, '');
 
 bot.onText(/\/start/, async (msg: Message) => {
 	if (!isAdmin(msg)) {

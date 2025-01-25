@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import { spawn } from 'node:child_process';
 import bot from './bot';
-import logger from '../core/logger';
+import logger from './logger';
 import util from 'node:util';
 
 const exec = util.promisify(require('node:child_process').exec);

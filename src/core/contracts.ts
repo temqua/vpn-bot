@@ -7,6 +7,10 @@ export interface IKeysService {
 	getAll(message: Message);
 }
 
+export interface ICertificatesService extends IKeysService {
+	getFile(message: Message, username: string);
+}
+
 export interface ICommandHandler {
 	handle(context: CommandContext, message: Message);
 }

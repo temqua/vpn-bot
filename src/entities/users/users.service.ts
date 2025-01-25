@@ -1,6 +1,6 @@
 import type { Device, User } from '@prisma/client';
-import { prisma } from './prisma';
-import { UsersRepository } from '../repositories/users';
+import { prisma } from '../../core/prisma';
+import { UsersRepository } from './users.repository';
 
 class UsersService {
 	constructor(private repository: UsersRepository) {}

@@ -4,14 +4,14 @@ import { access, constants } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import util from 'node:util';
-import env from '../env';
-import bot from './bot';
-import logger from '../core/logger';
-import type { IKeysService } from '../core/contracts';
+import bot from '../../core/bot';
+import type { ICertificatesService } from '../../core/contracts';
+import logger from '../../core/logger';
+import env from '../../env';
 
 const exec = util.promisify(require('node:child_process').exec);
 
-export class WireguardKeysService implements IKeysService {
+export class WireguardKeysService implements ICertificatesService {
 	async getFile(message: Message, username: string) {
 		const filePath = path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.conf`);
 		try {

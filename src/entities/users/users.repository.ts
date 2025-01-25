@@ -1,5 +1,5 @@
 import type { User } from '@prisma/client';
-import { prisma } from '../services/prisma';
+import { prisma } from '../../core/prisma';
 
 export class UsersRepository {
 	async create(username: string, firstName: string, telegramLink: string | null, telegramId: string | null) {
