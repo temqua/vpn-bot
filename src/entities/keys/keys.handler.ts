@@ -3,7 +3,7 @@ import type { ICommandHandler } from '../../core/contracts';
 import { VPNKeyCommand, VPNProtocol } from '../../core/enums';
 import bot from '../../core/bot';
 import { globalHandler } from '../../core/globalHandler';
-import { outlineCommandsHandler } from './outline.commands-handler';
+import { outlineCommandsHandler } from './outline.handler';
 import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
 

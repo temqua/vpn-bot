@@ -3,7 +3,7 @@ import type { OutlineApiService } from './outline.api-service';
 import { CommandScope, VPNKeyCommand, VPNProtocol } from '../../core/enums';
 import bot from '../../core/bot';
 import logger from '../../core/logger';
-import type { KeysContext } from './keys.commands-handler';
+import type { KeysContext } from './keys.handler';
 import { globalHandler } from '../../core/globalHandler';
 
 export class OutlineService {

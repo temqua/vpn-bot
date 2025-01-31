@@ -3,25 +3,25 @@ import bot from '../../core/bot';
 import type { ICommandHandler } from '../../core/contracts';
 import { VPNKeyCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
-import type { KeysContext } from './keys.commands-handler';
+import type { KeysContext } from './keys.handler';
 import { OutlineApiService } from './outline.api-service';
 import { OutlineService } from './outline.service';
 
 class OutlineCommandsHandler implements ICommandHandler {
 	constructor(private service: OutlineService) {}
 	private state = {
-		firstStep: false,
+		init: false,
 	};
 	async handle(context: KeysContext, message: Message, start = false) {
-		this.state.firstStep = start;
+		this.state.init = start;
 		if (context.cmd === VPNKeyCommand.Create && start) {
 			await bot.sendMessage(message.chat.id, 'Enter username');
-			this.state.firstStep = false;
+			this.state.init = false;
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.Delete) {
-			await this.service.delete(context, message, this.state.firstStep);
-			this.state.firstStep = false;
+			await this.service.delete(context, message, this.state.init);
+			this.state.init = false;
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.List) {

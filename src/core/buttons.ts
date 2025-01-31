@@ -1,3 +1,4 @@
+import type { ReplyKeyboardMarkup } from 'node-telegram-bot-api';
 import { CommandScope, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
 
 const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol]) => {
@@ -120,3 +121,35 @@ export const inlineButtons = [...keyButtons, ...userButtons];
 export const showButtons = [listKeysButtonParams];
 
 export const createButtons = [createKeyButtonsParams];
+export const createUserReply: ReplyKeyboardMarkup = {
+	keyboard: [
+		[
+			{
+				text: 'Share user contact',
+				request_user: {
+					request_id: 1,
+				},
+			},
+		],
+	],
+	one_time_keyboard: true, // The keyboard will hide after one use
+	resize_keyboard: true, // Fit the keyboard to the screen size
+};
+
+const skipButton = {
+	text: 'Skip',
+	callback_data: JSON.stringify({
+		s: CommandScope.Users,
+		c: {
+			cmd: VPNUserCommand.Create,
+			skip: 1,
+		},
+		p: 1,
+	}),
+};
+
+export const skipKeyboard = {
+	reply_markup: {
+		inline_keyboard: [[skipButton]],
+	},
+};
