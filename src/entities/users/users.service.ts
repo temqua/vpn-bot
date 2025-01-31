@@ -4,8 +4,14 @@ import { UsersRepository } from './users.repository';
 
 class UsersService {
 	constructor(private repository: UsersRepository) {}
-	async create(username: string, firstName: string, telegramId: string | null, telegramLink: string | null) {
-		return await this.repository.create(username, firstName, telegramId, telegramLink);
+	async create(
+		username: string,
+		firstName: string,
+		telegramId: string | null,
+		telegramLink: string | null,
+		lastName: string | null,
+	) {
+		return await this.repository.create(username, firstName, telegramId, telegramLink, lastName);
 	}
 
 	async list(): Promise<User[]> {

@@ -68,6 +68,28 @@ bot.onText(/\/wg$/, async (msg: Message) => {
 	await logsService.wg(msg);
 });
 
+bot.onText(/\/poll-device$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await bot.sendPoll(msg.chat.id, 'Desktop OS', ['Windows', 'Linux', 'macOS'], {
+		allows_multiple_answers: true,
+	});
+});
+
+bot.onText(/\/poll-protocol$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await bot.sendPoll(msg.chat.id, 'VPN Protocol', ['IKEv2', 'WireGuard', 'Outline'], {
+		allows_multiple_answers: true,
+	});
+});
+
+bot.on('poll', p => {
+	console.dir(p);
+});
+
 bot.on('callback_query', async query => {
 	const callbackDataString = query.data;
 	const parsed = JSON.parse(callbackDataString);

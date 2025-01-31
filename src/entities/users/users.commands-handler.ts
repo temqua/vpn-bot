@@ -10,19 +10,7 @@ import { usersService } from './users.service';
 export type UsersContext = {
 	cmd: VPNUserCommand;
 	id?: string;
-	submit?: number;
-};
-
-const submitButton = {
-	text: 'Submit',
-	callback_data: JSON.stringify({
-		s: CommandScope.Users,
-		c: {
-			cmd: VPNUserCommand.Create,
-			submit: 1,
-		},
-		p: 1,
-	}),
+	skip?: number;
 };
 
 const skipButton = {
@@ -31,8 +19,7 @@ const skipButton = {
 		s: CommandScope.Users,
 		c: {
 			cmd: VPNUserCommand.Create,
-			submit: 0,
-			p: 'tid',
+			skip: 1,
 		},
 		p: 1,
 	}),
@@ -40,7 +27,7 @@ const skipButton = {
 
 const inlineKeyboard = {
 	reply_markup: {
-		inline_keyboard: [[submitButton, skipButton]],
+		inline_keyboard: [[skipButton]],
 	},
 };
 
@@ -103,37 +90,39 @@ class UsersCommandsHandler implements ICommandHandler {
 		}
 		if (this.createSteps.firstName) {
 			this.state.params.set('first_name', message.text);
-			await bot.sendMessage(message.chat.id, 'Add last name?', inlineKeyboard);
+			await bot.sendMessage(message.chat.id, 'Enter last name', inlineKeyboard);
 			this.setCreateStep('lastName');
 			return;
 		}
 		if (this.createSteps.lastName) {
-			if (context.submit) {
+			if (!context.skip) {
 				this.state.params.set('last_name', message.text);
 			}
-			await bot.sendMessage(message.chat.id, 'Add telegram link?', inlineKeyboard);
+			await bot.sendMessage(message.chat.id, 'Enter telegram link', inlineKeyboard);
 			this.setCreateStep('telegramLink');
 			return;
 		}
 		if (this.createSteps.telegramLink) {
-			if (context.submit) {
+			if (!context.skip) {
 				this.state.params.set('telegram_link', message.text);
 			}
 		}
 		const params = this.state.params;
 		const username = params.get('username');
 		try {
-			await usersService.create(
+			const result = await usersService.create(
 				username,
 				params.get('first_name'),
 				params.get('telegram_id'),
 				params.get('telegram_link'),
+				params.get('last_name'),
 			);
 			await bot.sendMessage(
 				message.chat.id,
 				`User successfully created 
-Username: ${username} 
-First name: ${params.get('first_name')}`,
+id: ${result.id}				
+Username: ${result.username} 
+First name: ${result.firstName}`,
 				{
 					parse_mode: 'MarkdownV2',
 				},
