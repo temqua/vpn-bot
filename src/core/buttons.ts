@@ -115,8 +115,6 @@ export const keyButtons = [
 	],
 ];
 
-console.dir(keyButtons);
-
 export const inlineButtons = [...keyButtons, ...userButtons];
 
 export const showButtons = [listKeysButtonParams];

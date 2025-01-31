@@ -24,7 +24,7 @@ const httpsAgent = new https.Agent({
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-export class OutlineKeysService implements IKeysService {
+export class OutlineApiService implements IKeysService {
 	private formatUserInfo(key: OutlineKey) {
 		return `
 id: ${key.id}

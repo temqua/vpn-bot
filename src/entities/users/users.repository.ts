@@ -2,7 +2,7 @@ import type { User } from '@prisma/client';
 import { prisma } from '../../core/prisma';
 
 export class UsersRepository {
-	async create(username: string, firstName: string, telegramLink: string | null, telegramId: string | null) {
+	async create(username: string, firstName: string, telegramId: string | null, telegramLink: string | null) {
 		await prisma.user.create({
 			data: {
 				username,

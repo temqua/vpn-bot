@@ -16,7 +16,7 @@ datasource db {
 model User {
   id           Int            @id @default(autoincrement())
   username     String         @unique
-  telegramId   String?        @map(name: "telegram_id")
+  telegramId   String?        @unique @map(name: "telegram_id")
   telegramLink String?        @unique @map(name: "telegram_link")
   createdAt    DateTime       @default(now()) @map("created_at")
   firstName    String?        @map(name: "first_name")

@@ -1,7 +1,9 @@
+import { VPNKeyCommand } from '../../core/enums';
+
 export default {
-	'cr': 'create',
-	'l': 'getAll',
-	'd': 'delete',
-	'f': 'getFile',
-	'u': 'getUser',
+	[VPNKeyCommand.Create]: 'create',
+	[VPNKeyCommand.List]: 'getAll',
+	[VPNKeyCommand.Delete]: 'delete',
+	[VPNKeyCommand.GetFile]: 'getFile',
+	[VPNKeyCommand.GetUser]: 'getUser',
 };
