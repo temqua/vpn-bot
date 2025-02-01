@@ -36,6 +36,7 @@ export class OutlineService {
 				},
 			};
 			await bot.sendMessage(message.chat.id, 'Select user for additional info:', inlineKeyboard);
+			await bot.sendMessage(message.chat.id, `Total count ${users.accessKeys.length}`);
 			logger.success('Outline users list was handled');
 		} catch (error) {
 			logger.error(`Outline users list fetching finished with error: ${error}`);

@@ -123,6 +123,7 @@ export class UsersService {
 			},
 		};
 		await bot.sendMessage(message.chat.id, 'Select user:', inlineKeyboard);
+		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
 	}
 
 	async getById(message: Message, context: UsersContext) {
