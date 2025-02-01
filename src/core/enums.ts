@@ -9,14 +9,15 @@ export enum VPNKeyCommand {
 	List = 'l',
 	Delete = 'd',
 	GetFile = 'f',
-	GetUser = 'u',
+	GetUser = 'g',
 }
 
 export enum VPNUserCommand {
 	Create = 'cr',
 	List = 'l',
 	Delete = 'd',
-	GetUser = 'u',
+	GetUser = 'g',
+	Update = 'u',
 }
 
 export enum CommandScope {

@@ -2,7 +2,7 @@ import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
 import { VPNProtocol } from '../core/enums';
-import { globalHandler, type CommandDetails } from '../core/globalHandler';
+import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
 import bot from '../core/bot';
 import { logsService } from '../core/logs';
@@ -45,6 +45,7 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		return;
 	}
 	if (msg.user_shared) {
+		await bot.sendMessage(msg.chat.id, `User id: ${msg.user_shared.user_id}`);
 		globalHandler.handleNewMessage(msg);
 	}
 	// const match = availableCommands.filter(regexp => regexp.test(msg.text));
@@ -92,7 +93,7 @@ bot.on('poll', p => {
 
 bot.on('callback_query', async query => {
 	const callbackDataString = query.data;
-	const parsed = JSON.parse(callbackDataString);
+	const parsed: CommandDetailCompressed = JSON.parse(callbackDataString);
 	const data: CommandDetails = {
 		scope: parsed.s,
 		context: parsed.c,

@@ -1,5 +1,10 @@
-import type { User } from '@prisma/client';
+import type { User, UserDevice, UserProtocol } from '@prisma/client';
 import { prisma } from '../../core/prisma';
+
+export type FullUserInfo = User & {
+	devices: UserDevice[];
+	protocols: UserProtocol[];
+};
 
 export class UsersRepository {
 	async create(
@@ -20,10 +25,27 @@ export class UsersRepository {
 		});
 	}
 
-	async getById(id: number): Promise<User> {
+	async getById(id: number): Promise<FullUserInfo> {
 		return await prisma.user.findUnique({
 			where: {
 				id,
+			},
+			include: {
+				devices: true,
+				protocols: true,
+			},
+		});
+	}
+
+	async update(id: number, data) {
+		return await prisma.user.update({
+			where: {
+				id,
+			},
+			data,
+			include: {
+				devices: true,
+				protocols: true,
 			},
 		});
 	}
@@ -33,7 +55,7 @@ export class UsersRepository {
 	}
 
 	async delete(id: number) {
-		await prisma.user.delete({
+		return await prisma.user.delete({
 			where: {
 				id,
 			},

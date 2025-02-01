@@ -1,5 +1,10 @@
-import type { ReplyKeyboardMarkup } from 'node-telegram-bot-api';
+import type {
+	InlineKeyboardButton,
+	ReplyKeyboardMarkup,
+	SendBasicOptions
+} from 'node-telegram-bot-api';
 import { CommandScope, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
+import type { CommandDetailCompressed } from './globalHandler';
 
 const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol]) => {
 	return {
@@ -11,21 +16,24 @@ const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol
 				pr: protocol,
 			},
 		}),
-	};
+	} as InlineKeyboardButton;
 });
 
-const listKeysButtonParams = Object.entries(VPNProtocol).map(([label, protocol]) => ({
-	text: `${label} Users`,
-	callback_data: JSON.stringify({
-		s: CommandScope.Keys,
-		c: {
-			cmd: VPNKeyCommand.List,
-			pr: protocol,
-		},
-	}),
-}));
+const listKeysButtonParams = Object.entries(VPNProtocol).map(
+	([label, protocol]) =>
+		({
+			text: `${label} Users`,
+			callback_data: JSON.stringify({
+				s: CommandScope.Keys,
+				c: {
+					cmd: VPNKeyCommand.List,
+					pr: protocol,
+				},
+			}),
+		}) as InlineKeyboardButton,
+);
 
-export const userButtons = [
+export const userButtons: InlineKeyboardButton[][] = [
 	[
 		{
 			text: 'Create User',
@@ -57,7 +65,7 @@ export const userButtons = [
 	],
 ];
 
-export const keyButtons = [
+export const keyButtons: InlineKeyboardButton[][] = [
 	...Object.entries(VPNProtocol).map(([protocolLabel, protocol]) => {
 		return [
 			{
@@ -121,7 +129,7 @@ export const inlineButtons = [...keyButtons, ...userButtons];
 export const showButtons = [listKeysButtonParams];
 
 export const createButtons = [createKeyButtonsParams];
-export const createUserReply: ReplyKeyboardMarkup = {
+export const chooseUserReply: ReplyKeyboardMarkup = {
 	keyboard: [
 		[
 			{
@@ -136,7 +144,7 @@ export const createUserReply: ReplyKeyboardMarkup = {
 	resize_keyboard: true, // Fit the keyboard to the screen size
 };
 
-const skipButton = {
+const skipButton: InlineKeyboardButton = {
 	text: 'Skip',
 	callback_data: JSON.stringify({
 		s: CommandScope.Users,
@@ -145,11 +153,35 @@ const skipButton = {
 			skip: 1,
 		},
 		p: 1,
-	}),
+	} as CommandDetailCompressed),
 };
 
-export const skipKeyboard = {
+export const skipKeyboard: SendBasicOptions = {
 	reply_markup: {
 		inline_keyboard: [[skipButton]],
 	},
+};
+
+const createUserUpdateInlineKeyboard = (id: number) => {
+	return ['telegramId', 'telegramLink', 'firstName', 'lastName', 'devices', 'protocols'].map(prop => [
+		{
+			text: `Set ${prop}`,
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.Update,
+					prop,
+					id,
+				},
+			}),
+		} as InlineKeyboardButton,
+	]);
+};
+
+export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
+	return {
+		reply_markup: {
+			inline_keyboard: createUserUpdateInlineKeyboard(id),
+		},
+	};
 };

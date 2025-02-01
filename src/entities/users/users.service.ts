@@ -1,14 +1,14 @@
-import type { Device, User } from '@prisma/client';
-import type { Message } from 'node-telegram-bot-api';
+import type { Device, User, UserDevice, UserProtocol } from '@prisma/client';
+import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
-import { skipKeyboard } from '../../core/buttons';
+import { skipKeyboard, createUserOperationsKeyboard, chooseUserReply } from '../../core/buttons';
 import { CommandScope, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import { prisma } from '../../core/prisma';
 import { paymentsService } from './payments';
 import type { UsersContext } from './users.handler';
-import { UsersRepository } from './users.repository';
+import { UsersRepository, type FullUserInfo } from './users.repository';
 
 export class UsersService {
 	constructor(private repository: UsersRepository) {}
@@ -99,9 +99,9 @@ export class UsersService {
 					},
 					p: 1,
 				}),
-			},
+			} as InlineKeyboardButton,
 		]);
-		const inlineKeyboard = {
+		const inlineKeyboard: SendBasicOptions = {
 			reply_markup: {
 				inline_keyboard: [...buttons],
 			},
@@ -112,6 +112,44 @@ export class UsersService {
 	async getById(message: Message, context: UsersContext) {
 		const user = await this.repository.getById(Number(context.id));
 		await bot.sendMessage(message.chat.id, this.formatUserInfo(user), {
+			parse_mode: 'MarkdownV2',
+		});
+		await bot.sendMessage(message.chat.id, 'Available operations', createUserOperationsKeyboard(user.id));
+		globalHandler.finishCommand();
+	}
+
+	async update(message: Message, context: UsersContext, state: { init: boolean }) {
+		const textProps = ['telegramLink', 'firstName', 'lastName'];
+		const textProp = textProps.includes(context.prop);
+		if (state.init) {
+			if (textProp) {
+				await bot.sendMessage(message.chat.id, `Enter ${context.prop}`);
+			} else if (context.prop === 'telegramId') {
+				await bot.sendMessage(message.chat.id, 'Share new user:', {
+					reply_markup: chooseUserReply,
+				});
+			} else {
+				await bot.sendMessage(message.chat.id, `Send poll`);
+			}
+			state.init = false;
+			return;
+		}
+		await bot.sendMessage(message.chat.id, `You entered ${message.text}`);
+		if (textProp) {
+			this.applyUpdate(message, context, message.text);
+		} else if (context.prop === 'telegramId') {
+			this.applyUpdate(message, context, message.user_shared.user_id.toString());
+		} else {
+			await bot.sendMessage(message.chat.id, `Get from poll`);
+		}
+		globalHandler.finishCommand();
+	}
+
+	private async applyUpdate(message: Message, context: UsersContext, data) {
+		const updated = await this.repository.update(context.id, {
+			[context.prop]: data,
+		});
+		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated), {
 			parse_mode: 'MarkdownV2',
 		});
 	}
@@ -160,6 +198,10 @@ export class UsersService {
 		});
 	}
 
+	async setFirstName(message: Message) {
+		await bot.sendMessage(message.chat.id, 'Enter first name');
+	}
+
 	async pay(msg: Message) {
 		if (msg.user_shared) {
 			await paymentsService.pay(msg);
@@ -175,7 +217,7 @@ export class UsersService {
 		});
 	}
 
-	private formatUserInfo(user: User) {
+	private formatUserInfo(user: FullUserInfo) {
 		return `
 id: ${user.id}
 username: \`${user.username}\`
@@ -186,6 +228,8 @@ Telegram Link: \`${user.telegramLink}\`
 Telegram Id: \`${user.telegramId}\`
 Price: \`${user.price}\`
 Free: \`${user.free}\`
+Devices: ${user.devices.join(', ')}
+Protocols: ${user.protocols.join(', ')}
 		`;
 	}
 }
