@@ -1,8 +1,4 @@
-import type {
-	InlineKeyboardButton,
-	ReplyKeyboardMarkup,
-	SendBasicOptions
-} from 'node-telegram-bot-api';
+import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
 import { CommandScope, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './globalHandler';
 
@@ -162,26 +158,41 @@ export const skipKeyboard: SendBasicOptions = {
 	},
 };
 
-const createUserUpdateInlineKeyboard = (id: number) => {
-	return ['telegramId', 'telegramLink', 'firstName', 'lastName', 'devices', 'protocols'].map(prop => [
-		{
-			text: `Set ${prop}`,
-			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
-					cmd: VPNUserCommand.Update,
-					prop,
-					id,
-				},
-			}),
-		} as InlineKeyboardButton,
-	]);
+const createUserOperationsInlineKeyboard = (id: number) => {
+	return ['username', 'telegramId', 'telegramLink', 'firstName', 'lastName', 'devices', 'protocols']
+		.map(prop => [
+			{
+				text: `Set ${prop}`,
+				callback_data: JSON.stringify({
+					s: CommandScope.Users,
+					c: {
+						cmd: VPNUserCommand.Update,
+						prop,
+						id,
+					},
+				}),
+			} as InlineKeyboardButton,
+		])
+		.concat([
+			[
+				{
+					text: 'Pay',
+					callback_data: JSON.stringify({
+						s: CommandScope.Users,
+						c: {
+							cmd: VPNUserCommand.Pay,
+							id,
+						},
+					}),
+				} as InlineKeyboardButton,
+			],
+		]);
 };
 
 export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
 	return {
 		reply_markup: {
-			inline_keyboard: createUserUpdateInlineKeyboard(id),
+			inline_keyboard: createUserOperationsInlineKeyboard(id),
 		},
 	};
 };

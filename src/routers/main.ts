@@ -6,6 +6,7 @@ import { globalHandler, type CommandDetailCompressed, type CommandDetails } from
 import logger from '../core/logger';
 import bot from '../core/bot';
 import { logsService } from '../core/logs';
+import { chooseUserReply } from '../core/buttons';
 
 const userHelpMessage = Object.values(VPNProtocol)
 	.filter(p => p !== VPNProtocol.Outline)
@@ -69,26 +70,14 @@ bot.onText(/\/wg$/, async (msg: Message) => {
 	await logsService.wg(msg);
 });
 
-bot.onText(/\/poll-device$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	await bot.sendPoll(msg.chat.id, 'Desktop OS', ['Windows', 'Linux', 'macOS'], {
-		allows_multiple_answers: true,
-	});
-});
-
-bot.onText(/\/poll-protocol$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	await bot.sendPoll(msg.chat.id, 'VPN Protocol', ['IKEv2', 'WireGuard', 'Outline'], {
-		allows_multiple_answers: true,
+bot.onText(/\/lookup/, async (msg: Message) => {
+	await bot.sendMessage(msg.chat.id, 'Share new user:', {
+		reply_markup: chooseUserReply,
 	});
 });
 
 bot.on('poll', p => {
-	console.dir(p);
+	globalHandler.handlePoll(p);
 });
 
 bot.on('callback_query', async query => {

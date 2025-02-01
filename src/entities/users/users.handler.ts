@@ -1,4 +1,4 @@
-import type { Message } from 'node-telegram-bot-api';
+import type { Message, Poll } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
 import { chooseUserReply } from '../../core/buttons';
 import type { ICommandHandler } from '../../core/contracts';
@@ -13,6 +13,7 @@ export type UsersContext = {
 	id?: string;
 	skip?: number;
 	prop?: keyof User;
+	chatId?: number;
 };
 
 class UsersCommandsHandler implements ICommandHandler {
@@ -22,6 +23,7 @@ class UsersCommandsHandler implements ICommandHandler {
 		init: false,
 	};
 	async handle(context: UsersContext, message: Message, start = false) {
+		context.chatId = message.chat.id;
 		this.state.init = start;
 		if (context.cmd === VPNUserCommand.List) {
 			await this.service.list(message);
@@ -48,6 +50,18 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.Delete) {
 			await this.service.delete(message, context, this.state.init);
 			this.state.init = false;
+		}
+		if (context.cmd === VPNUserCommand.Pay) {
+			await this.service.pay(message, context);
+		}
+	}
+
+	async handlePoll(context: UsersContext, poll: Poll) {
+		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text);
+		if (context.cmd === VPNUserCommand.Create) {
+			await this.service.create(null, context, selected);
+		} else {
+			await this.service.update(null, context, this.state, selected);
 		}
 	}
 }

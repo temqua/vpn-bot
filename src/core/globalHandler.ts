@@ -1,4 +1,4 @@
-import type { Message } from 'node-telegram-bot-api';
+import type { Message, Poll } from 'node-telegram-bot-api';
 import { keysCommandsHandler, type KeysContext } from '../entities/keys/keys.handler';
 import { userCommandsHandler, type UsersContext } from '../entities/users/users.handler';
 import type { ICommandHandler } from './contracts';
@@ -26,6 +26,13 @@ class GlobalHandler {
 
 	finishCommand() {
 		this.activeCommand = null;
+	}
+
+	async handlePoll(poll: Poll) {
+		if (!this.activeCommand) {
+			return;
+		}
+		userCommandsHandler.handlePoll(this.activeCommand.context as UsersContext, poll);
 	}
 
 	async handleNewMessage(message: Message) {

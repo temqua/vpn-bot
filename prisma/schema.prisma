@@ -14,42 +14,24 @@ datasource db {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  username     String         @unique
-  telegramId   String?        @unique @map(name: "telegram_id")
-  telegramLink String?        @unique @map(name: "telegram_link")
-  createdAt    DateTime       @default(now()) @map("created_at")
-  firstName    String?        @map(name: "first_name")
-  lastName     String?        @map(name: "last_name")
-  languageCode String?        @default("ru") @map(name: "language_code")
-  price        Int            @default(150) @map(name: "price")
-  free         Boolean        @default(false) @map(name: "is_free")
-  payerId      Int?           @map(name: "payer_id")
+  id           Int           @id @default(autoincrement())
+  username     String        @unique
+  telegramId   String?       @unique @map(name: "telegram_id")
+  telegramLink String?       @unique @map(name: "telegram_link")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  firstName    String?       @map(name: "first_name")
+  lastName     String?       @map(name: "last_name")
+  languageCode String?       @default("ru") @map(name: "language_code")
+  price        Int           @default(150) @map(name: "price")
+  free         Boolean       @default(false) @map(name: "is_free")
+  payerId      Int?          @map(name: "payer_id")
+  devices      Device[]      @default([])
+  protocols    VPNProtocol[] @default([])
   payments     Payment[]
-  devices      UserDevice[]
-  protocols    UserProtocol[]
-  payer        User?          @relation("UserToPayer", fields: [payerId], references: [id])
-  dependants   User[]         @relation("UserToPayer")
+  payer        User?         @relation("UserToPayer", fields: [payerId], references: [id])
+  dependants   User[]        @relation("UserToPayer")
 
   @@map("users")
-}
-
-model UserDevice {
-  id     Int    @id @default(autoincrement())
-  userId Int    @map(name: "user_id")
-  user   User   @relation(fields: [userId], references: [id])
-  device Device @map(name: "device")
-
-  @@map("user_devices")
-}
-
-model UserProtocol {
-  id       Int         @id @default(autoincrement())
-  userId   Int         @map(name: "user_id")
-  user     User        @relation(fields: [userId], references: [id])
-  protocol VPNProtocol @map(name: "protocol")
-
-  @@map("user_protocols")
 }
 
 model Payment {

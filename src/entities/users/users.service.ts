@@ -1,14 +1,12 @@
-import type { Device, User, UserDevice, UserProtocol } from '@prisma/client';
+import type { Device, User, VPNProtocol } from '@prisma/client';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
-import { skipKeyboard, createUserOperationsKeyboard, chooseUserReply } from '../../core/buttons';
+import { chooseUserReply, createUserOperationsKeyboard, skipKeyboard } from '../../core/buttons';
 import { CommandScope, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
-import logger from '../../core/logger';
-import { prisma } from '../../core/prisma';
-import { paymentsService } from './payments';
+import pollOptions from '../../core/pollOptions';
 import type { UsersContext } from './users.handler';
-import { UsersRepository, type FullUserInfo } from './users.repository';
+import { UsersRepository } from './users.repository';
 
 export class UsersService {
 	constructor(private repository: UsersRepository) {}
@@ -20,25 +18,28 @@ export class UsersService {
 			firstName: false,
 			lastName: false,
 			telegramLink: false,
+			devices: false,
+			protocols: false,
 		},
 	};
 
-	async create(message: Message, context: UsersContext) {
-		if (message.user_shared) {
+	async create(message: Message, context: UsersContext, selectedOptions: (Device | VPNProtocol)[] = []) {
+		const chatId = message ? message.chat.id : context.chatId;
+		if (message?.user_shared) {
 			this.state.params.set('telegram_id', message.user_shared.user_id.toString());
-			await bot.sendMessage(message.chat.id, 'Enter new username');
+			await bot.sendMessage(chatId, 'Enter new username');
 			this.setCreateStep('username');
 			return;
 		}
 		if (this.state.createSteps.username) {
 			this.state.params.set('username', message.text);
-			await bot.sendMessage(message.chat.id, 'Enter first name');
+			await bot.sendMessage(chatId, 'Enter first name');
 			this.setCreateStep('firstName');
 			return;
 		}
 		if (this.state.createSteps.firstName) {
 			this.state.params.set('first_name', message.text);
-			await bot.sendMessage(message.chat.id, 'Enter last name', skipKeyboard);
+			await bot.sendMessage(chatId, 'Enter last name', skipKeyboard);
 			this.setCreateStep('lastName');
 			return;
 		}
@@ -46,7 +47,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.state.params.set('last_name', message.text);
 			}
-			await bot.sendMessage(message.chat.id, 'Enter telegram link', skipKeyboard);
+			await bot.sendMessage(chatId, 'Enter telegram link', skipKeyboard);
 			this.setCreateStep('telegramLink');
 			return;
 		}
@@ -54,6 +55,22 @@ export class UsersService {
 			if (!context.skip) {
 				this.state.params.set('telegram_link', message.text);
 			}
+			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
+				allows_multiple_answers: true,
+			});
+			this.setCreateStep('devices');
+			return;
+		}
+		if (this.state.createSteps.devices) {
+			this.state.params.set('devices', selectedOptions);
+			await bot.sendPoll(chatId, 'Choose protocols', pollOptions.protocols, {
+				allows_multiple_answers: true,
+			});
+			this.setCreateStep('protocols');
+			return;
+		}
+		if (this.state.createSteps.protocols) {
+			this.state.params.set('protocols', selectedOptions);
 		}
 		const params = this.state.params;
 		const username = params.get('username');
@@ -64,9 +81,11 @@ export class UsersService {
 				params.get('telegram_id'),
 				params.get('telegram_link'),
 				params.get('last_name'),
+				params.get('devices'),
+				params.get('protocols'),
 			);
 			await bot.sendMessage(
-				message.chat.id,
+				chatId,
 				`User successfully created 
 		id: ${result.id}				
 		Username: ${result.username} 
@@ -76,10 +95,7 @@ export class UsersService {
 				},
 			);
 		} catch (error) {
-			await bot.sendMessage(
-				message.chat.id,
-				`Unexpected error occurred while creating user ${username}: ${error}`,
-			);
+			await bot.sendMessage(chatId, `Unexpected error occurred while creating user ${username}: ${error}`);
 		} finally {
 			this.state.params.clear();
 			globalHandler.finishCommand();
@@ -88,9 +104,9 @@ export class UsersService {
 
 	async list(message: Message) {
 		const users = await this.repository.list();
-		const buttons = users.map(({ id, username }) => [
+		const buttons = users.map(({ id, username, firstName, lastName }) => [
 			{
-				text: username,
+				text: `${username} (${firstName} ${lastName})`,
 				callback_data: JSON.stringify({
 					s: CommandScope.Users,
 					c: {
@@ -118,8 +134,13 @@ export class UsersService {
 		globalHandler.finishCommand();
 	}
 
-	async update(message: Message, context: UsersContext, state: { init: boolean }) {
-		const textProps = ['telegramLink', 'firstName', 'lastName'];
+	async update(
+		message: Message,
+		context: UsersContext,
+		state: { init: boolean },
+		selectedOptions: (Device | VPNProtocol)[] = [],
+	) {
+		const textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
 		const textProp = textProps.includes(context.prop);
 		if (state.init) {
 			if (textProp) {
@@ -129,29 +150,30 @@ export class UsersService {
 					reply_markup: chooseUserReply,
 				});
 			} else {
-				await bot.sendMessage(message.chat.id, `Send poll`);
+				await bot.sendPoll(message.chat.id, `Select ${context.prop}`, pollOptions[context.prop], {
+					allows_multiple_answers: true,
+				});
 			}
 			state.init = false;
 			return;
 		}
-		await bot.sendMessage(message.chat.id, `You entered ${message.text}`);
-		if (textProp) {
-			this.applyUpdate(message, context, message.text);
-		} else if (context.prop === 'telegramId') {
-			this.applyUpdate(message, context, message.user_shared.user_id.toString());
-		} else {
-			await bot.sendMessage(message.chat.id, `Get from poll`);
+		if (selectedOptions.length) {
+			const updated = await this.repository.update(context.id, {
+				[context.prop]: selectedOptions,
+			});
+			await bot.sendMessage(context.chatId, this.formatUserInfo(updated), {
+				parse_mode: 'MarkdownV2',
+			});
+			globalHandler.finishCommand();
+			return;
 		}
-		globalHandler.finishCommand();
-	}
-
-	private async applyUpdate(message: Message, context: UsersContext, data) {
 		const updated = await this.repository.update(context.id, {
-			[context.prop]: data,
+			[context.prop]: textProp ? message.text : message.user_shared.user_id.toString(),
 		});
 		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated), {
 			parse_mode: 'MarkdownV2',
 		});
+		globalHandler.finishCommand();
 	}
 
 	async delete(message: Message, context: UsersContext, start: boolean) {
@@ -184,30 +206,9 @@ export class UsersService {
 		await bot.sendMessage(message.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
-	async addDevice(telegramId: string, device: Device) {
-		const user = await prisma.user.findFirstOrThrow({
-			where: {
-				telegramId,
-			},
-		});
-		await prisma.userDevice.create({
-			data: {
-				userId: user.id,
-				device,
-			},
-		});
-	}
-
-	async setFirstName(message: Message) {
-		await bot.sendMessage(message.chat.id, 'Enter first name');
-	}
-
-	async pay(msg: Message) {
-		if (msg.user_shared) {
-			await paymentsService.pay(msg);
-			logger.log(`Request ID: ${msg.user_shared.request_id}, ${msg.user_shared.user_id}`);
-			await bot.sendMessage(msg.chat.id, `Request ID: ${msg.user_shared.request_id}, ${msg.user_shared.user_id}`);
-		}
+	async pay(message: Message, context: UsersContext) {
+		const user = await this.repository.getById(Number(context.id));
+		await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}`);
 	}
 
 	private setCreateStep(current: string) {
@@ -217,7 +218,7 @@ export class UsersService {
 		});
 	}
 
-	private formatUserInfo(user: FullUserInfo) {
+	private formatUserInfo(user: User) {
 		return `
 id: ${user.id}
 username: \`${user.username}\`

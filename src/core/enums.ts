@@ -18,6 +18,7 @@ export enum VPNUserCommand {
 	Delete = 'd',
 	GetUser = 'g',
 	Update = 'u',
+	Pay = 'p',
 }
 
 export enum CommandScope {
