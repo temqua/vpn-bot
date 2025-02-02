@@ -31,6 +31,12 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
+		if (context.cmd === VPNUserCommand.Sync) {
+			await this.service.sync(message);
+			this.state.init = false;
+			globalHandler.finishCommand();
+			return;
+		}
 		if (start && context.cmd === VPNUserCommand.Create) {
 			await bot.sendMessage(message.chat.id, 'Share new user:', {
 				reply_markup: chooseUserReply,

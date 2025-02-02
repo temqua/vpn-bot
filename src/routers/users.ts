@@ -4,6 +4,8 @@ import bot from '../core/bot';
 import { createButtons, inlineButtons, showButtons } from '../core/buttons';
 import { VPNProtocol } from '../core/enums';
 import { CertificatesService } from '../entities/keys/certificates.service';
+import { UsersRepository } from '../entities/users/users.repository';
+import { UsersService } from '../entities/users/users.service';
 
 bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
@@ -98,7 +100,7 @@ bot.onText(/\/users\s+wg/, async (msg: Message, match: RegExpMatchArray | null) 
 	await getClients(msg, match, VPNProtocol.WG);
 });
 
-bot.onText(/\/users\s+new/, async (msg: Message, match) => {
+bot.onText(/\/users\s+new/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -108,6 +110,13 @@ bot.onText(/\/users\s+new/, async (msg: Message, match) => {
 		},
 	};
 	await bot.sendMessage(msg.chat.id, 'Select certificate to create:', inlineKeyboard);
+});
+
+bot.onText(/\/users\s+sync/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await new UsersService(new UsersRepository()).sync(msg);
 });
 
 bot.onText(/\/users$/, async (msg: Message) => {
@@ -146,7 +155,7 @@ bot.onText(/\/user\s+pay/, async (msg: Message) => {
 	});
 });
 
-bot.onText(/\/users\s+(?!ikev2|wg)(.*)/, async (msg: Message) => {
+bot.onText(/\/users\s+(?!ikev2|wg|sync)(.*)/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}

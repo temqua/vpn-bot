@@ -7,6 +7,9 @@ import { globalHandler } from '../../core/globalHandler';
 import pollOptions from '../../core/pollOptions';
 import type { UsersContext } from './users.handler';
 import { UsersRepository } from './users.repository';
+import { exportToSheet } from './sheets.service';
+import env from '../../env';
+import logger from '../../core/logger';
 
 export class UsersService {
 	constructor(private repository: UsersRepository) {}
@@ -216,6 +219,47 @@ export class UsersService {
 	async pay(message: Message, context: UsersContext) {
 		const user = await this.repository.getById(Number(context.id));
 		await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}`);
+	}
+
+	async sync(message: Message) {
+		logger.log('Started user sync process');
+		const data = await this.repository.list();
+		const header = [
+			'id',
+			'username',
+			'telegram ID',
+			'telegram link',
+			'first name',
+			'last name',
+			'price',
+			'is free',
+			'devices',
+			'protocols',
+			'created at',
+		];
+		const preparedData = data.map(row => {
+			return [
+				row.id ? row.id.toString() : '',
+				row.username ?? '',
+				row.telegramId ?? '',
+				row.telegramLink ?? '',
+				row.firstName ?? '',
+				row.lastName ?? '',
+				row.price ? row.price.toString() : '',
+				row.free ? 'TRUE' : 'FALSE',
+				row.devices?.length ? row.devices.join(', ') : '',
+				row.protocols?.length ? row.protocols.join(', ') : '',
+				row.createdAt ? row.createdAt.toISOString() : '',
+			];
+		});
+		try {
+			await exportToSheet(env.SHEET_ID, 'Users!B1', preparedData);
+			logger.success('Finished user sync process');
+			await bot.sendMessage(message.chat.id, '✅ Users data successfully exported to Google Sheets!');
+		} catch (error) {
+			logger.error(`Users sync process finished with error: ${error}`);
+			await bot.sendMessage(message.chat.id, `❌ Users sync process finished with error: ${error}`);
+		}
 	}
 
 	private setCreateStep(current: string) {

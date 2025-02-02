@@ -10,6 +10,7 @@ const env = cleanEnv(process.env, {
 	ADMIN_USER_ID: num({ default: 190349851 }),
 	OUTLINE_API_ROOT: str({ default: '' }),
 	BOT_TOKEN: str({ default: '' }),
+	SHEET_ID: str({ default: '' }),
 });
 
 export default env;

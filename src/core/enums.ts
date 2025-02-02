@@ -19,6 +19,7 @@ export enum VPNUserCommand {
 	GetUser = 'g',
 	Update = 'u',
 	Pay = 'p',
+	Sync = 's',
 }
 
 export enum CommandScope {

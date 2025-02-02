@@ -1,12 +1,12 @@
 import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
+import bot from '../core/bot';
+import { chooseUserReply } from '../core/buttons';
 import { VPNProtocol } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
-import bot from '../core/bot';
 import { logsService } from '../core/logs';
-import { chooseUserReply } from '../core/buttons';
 
 const userHelpMessage = Object.values(VPNProtocol)
 	.filter(p => p !== VPNProtocol.Outline)

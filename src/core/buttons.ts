@@ -58,6 +58,15 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+		{
+			text: 'Sync',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.Sync,
+				},
+			}),
+		},
 	],
 ];
 
