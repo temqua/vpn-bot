@@ -104,6 +104,7 @@ export class UsersService {
 
 	async list(message: Message) {
 		const users = await this.repository.list();
+		const chunkSize = 50;
 		const buttons = users.map(({ id, username, firstName, lastName }) => [
 			{
 				text: `${username} (${firstName} ${lastName})`,
@@ -117,12 +118,17 @@ export class UsersService {
 				}),
 			} as InlineKeyboardButton,
 		]);
-		const inlineKeyboard: SendBasicOptions = {
-			reply_markup: {
-				inline_keyboard: [...buttons],
-			},
-		};
-		await bot.sendMessage(message.chat.id, 'Select user:', inlineKeyboard);
+		const chunksCount = Math.ceil(buttons.length / chunkSize);
+		for (let i = 0; i < chunksCount; i++) {
+			const chunk = buttons.slice(i, i + chunkSize);
+			const inlineKeyboard: SendBasicOptions = {
+				reply_markup: {
+					inline_keyboard: [...chunk],
+				},
+			};
+			await bot.sendMessage(message.chat.id, `Select user (part ${i + 1}):`, inlineKeyboard);
+		}
+
 		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
 	}
 
