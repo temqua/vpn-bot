@@ -120,7 +120,7 @@ export class UsersService {
 		]);
 		const chunksCount = Math.ceil(buttons.length / chunkSize);
 		for (let i = 0; i < chunksCount; i++) {
-			const chunk = buttons.slice(i, i + chunkSize);
+			const chunk = buttons.slice(i * chunkSize, i * chunkSize + chunkSize);
 			const inlineKeyboard: SendBasicOptions = {
 				reply_markup: {
 					inline_keyboard: [...chunk],
