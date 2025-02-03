@@ -253,7 +253,7 @@ export class UsersService {
 			];
 		});
 		try {
-			await exportToSheet(env.SHEET_ID, 'Users!A2', [header, ...preparedData]);
+			await exportToSheet(env.SHEET_ID, 'Users!A2', preparedData);
 			logger.success('Finished user sync process');
 			await bot.sendMessage(message.chat.id, '✅ Users data successfully exported to Google Sheets!');
 		} catch (error) {
