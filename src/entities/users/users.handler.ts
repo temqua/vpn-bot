@@ -1,3 +1,4 @@
+import type { User } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
 import { chooseUserReply } from '../../core/buttons';
@@ -6,7 +7,6 @@ import { VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
-import type { User } from '@prisma/client';
 
 export type UsersContext = {
 	cmd: VPNUserCommand;

@@ -4,12 +4,12 @@ import bot from '../../core/bot';
 import { chooseUserReply, createUserOperationsKeyboard, skipKeyboard } from '../../core/buttons';
 import { CommandScope, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
+import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
+import env from '../../env';
+import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository } from './users.repository';
-import { exportToSheet } from './sheets.service';
-import env from '../../env';
-import logger from '../../core/logger';
 
 export class UsersService {
 	constructor(private repository: UsersRepository) {}

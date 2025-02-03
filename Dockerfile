@@ -15,10 +15,10 @@ RUN apt -yqq update \
 ENV PATH="/root/.bun/bin:$PATH"
 
 # Copy application files
-COPY package.json bun.lockb .env tsconfig.json /app/
+COPY package.json bun.lockb .env tsconfig.json sheets-api.json /app/
 COPY src/ ./src
 COPY scripts/ ./scripts
 COPY prisma/ ./prisma
 RUN bun install --production
 EXPOSE 500/udp 4500/udp 51820/udp
-CMD [ "bun", "src/main.ts" ]
+CMD [ "bun", "start" ]
