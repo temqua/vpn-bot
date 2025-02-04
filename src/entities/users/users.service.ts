@@ -272,13 +272,13 @@ export class UsersService {
 	private formatUserInfo(user: User) {
 		return `
 id: ${user.id}
-username: \`${user.username}\`
-First Name: \`${user.firstName}\`
-Last Name: \`${user.lastName}\`
+username: ${user.username}
+First Name: ${user.firstName}
+Last Name: ${user.lastName}
 Created At: \`${user.createdAt.toISOString()}\`
-Telegram Link: \`${user.telegramLink}\`
+Telegram Link: ${user.telegramLink}
 Telegram Id: \`${user.telegramId}\`
-Price: \`${user.price}\`
+Price: ${user.price}
 Free: \`${user.free}\`
 Devices: ${user.devices.join(', ')}
 Protocols: ${user.protocols.join(', ')}
