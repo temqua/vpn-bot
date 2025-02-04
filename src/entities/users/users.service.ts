@@ -10,6 +10,7 @@ import env from '../../env';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository } from './users.repository';
+import { format } from 'date-fns';
 
 export class UsersService {
 	constructor(private repository: UsersRepository) {}
@@ -137,9 +138,7 @@ export class UsersService {
 
 	async getById(message: Message, context: UsersContext) {
 		const user = await this.repository.getById(Number(context.id));
-		await bot.sendMessage(message.chat.id, this.formatUserInfo(user), {
-			parse_mode: 'MarkdownV2',
-		});
+		await bot.sendMessage(message.chat.id, this.formatUserInfo(user));
 		await bot.sendMessage(message.chat.id, 'Available operations', createUserOperationsKeyboard(user.id));
 		globalHandler.finishCommand();
 	}
@@ -171,18 +170,14 @@ export class UsersService {
 			const updated = await this.repository.update(context.id, {
 				[context.prop]: selectedOptions,
 			});
-			await bot.sendMessage(context.chatId, this.formatUserInfo(updated), {
-				parse_mode: 'MarkdownV2',
-			});
+			await bot.sendMessage(context.chatId, this.formatUserInfo(updated));
 			globalHandler.finishCommand();
 			return;
 		}
 		const updated = await this.repository.update(context.id, {
 			[context.prop]: textProp ? message.text : message.user_shared.user_id.toString(),
 		});
-		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated), {
-			parse_mode: 'MarkdownV2',
-		});
+		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated));
 		globalHandler.finishCommand();
 	}
 
@@ -275,13 +270,12 @@ id: ${user.id}
 username: ${user.username}
 First Name: ${user.firstName}
 Last Name: ${user.lastName}
-Created At: \`${user.createdAt.toISOString()}\`
 Telegram Link: ${user.telegramLink}
-Telegram Id: \`${user.telegramId}\`
-Price: ${user.price}
-Free: \`${user.free}\`
+Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Protocols: ${user.protocols.join(', ')}
+Price: ${user.price}
+Created At: ${format(user.createdAt, 'dd.MM.yyyy')}
 		`;
 	}
 }
