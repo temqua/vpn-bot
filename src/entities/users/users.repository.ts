@@ -42,7 +42,11 @@ export class UsersRepository {
 	}
 
 	async list(): Promise<User[]> {
-		return await prisma.user.findMany();
+		return await prisma.user.findMany({
+			orderBy: {
+				firstName: 'asc',
+			},
+		});
 	}
 
 	async delete(id: number) {
