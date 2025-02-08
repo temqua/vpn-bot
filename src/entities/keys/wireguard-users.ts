@@ -13,6 +13,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class WireguardKeysService implements ICertificatesService {
 	async getFile(message: Message, username: string) {
+		logger.log(`[${__filename}]: getFile ${username}`);
 		const filePath = path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.conf`);
 		try {
 			await access(filePath, constants.F_OK);
@@ -33,6 +34,7 @@ export class WireguardKeysService implements ICertificatesService {
 	}
 
 	async getAll(message: Message) {
+		logger.log(`[${__filename}]: getAll`);
 		try {
 			const { stdout, stderr } = await exec(`bash wireguard.sh --listclients`);
 			if (!!stderr) {
@@ -51,6 +53,7 @@ export class WireguardKeysService implements ICertificatesService {
 	}
 
 	async create(message: Message, username: string) {
+		logger.log(`[${__filename}]: create ${username}`);
 		try {
 			const command = `bash ${env.CREATE_PATH} ${username.toString()} wg`;
 			logger.log(command);
@@ -72,6 +75,7 @@ export class WireguardKeysService implements ICertificatesService {
 		}
 	}
 	async delete(message: Message, username: string) {
+		logger.log(`[${__filename}]: delete ${username}`);
 		try {
 			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} wg`);
 			if (!!stdout) {

@@ -1,20 +1,22 @@
 import type { User } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
-import { chooseUserReply } from '../../core/buttons';
+import { skipButton } from '../../core/buttons';
 import type { ICommandHandler } from '../../core/contracts';
-import { VPNUserCommand } from '../../core/enums';
+import { UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
+import { PaymentsRepository } from './payments.repository';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
 
-export type UsersContext = {
+export interface UsersContext {
 	cmd: VPNUserCommand;
 	id?: string;
 	skip?: number;
 	prop?: keyof User;
 	chatId?: number;
-};
+	payerId?: string;
+}
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(private service: UsersService) {}
@@ -37,15 +39,28 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
-		if (start && context.cmd === VPNUserCommand.Create) {
-			await bot.sendMessage(message.chat.id, 'Share new user:', {
-				reply_markup: chooseUserReply,
+		if (start && context.cmd === VPNUserCommand.Pay) {
+			await bot.sendMessage(message.chat.id, 'Share user', {
+				reply_markup: {
+					keyboard: [
+						[
+							{
+								text: 'Share contact',
+								request_user: {
+									request_id: UserRequest.Pay,
+								},
+							},
+						],
+					],
+					one_time_keyboard: true, // The keyboard will hide after one use
+					resize_keyboard: true, // Fit the keyboard to the screen size
+				},
 			});
 			this.state.init = false;
 			return;
 		}
 		if (context.cmd === VPNUserCommand.Create) {
-			await this.service.create(message, context);
+			await this.service.create(message, context, this.state.init);
 		}
 		if (context.cmd === VPNUserCommand.GetUser) {
 			await this.service.getById(message, context);
@@ -58,18 +73,20 @@ class UsersCommandsHandler implements ICommandHandler {
 			this.state.init = false;
 		}
 		if (context.cmd === VPNUserCommand.Pay) {
-			await this.service.pay(message, context);
+			await this.service.pay(message);
 		}
 	}
 
 	async handlePoll(context: UsersContext, poll: Poll) {
 		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text);
 		if (context.cmd === VPNUserCommand.Create) {
-			await this.service.create(null, context, selected);
+			await this.service.create(null, context, false, selected);
 		} else {
 			await this.service.update(null, context, this.state, selected);
 		}
 	}
 }
 
-export const userCommandsHandler = new UsersCommandsHandler(new UsersService(new UsersRepository()));
+export const userCommandsHandler = new UsersCommandsHandler(
+	new UsersService(new UsersRepository(), new PaymentsRepository()),
+);

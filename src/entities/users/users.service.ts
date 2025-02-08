@@ -1,23 +1,29 @@
 import type { Device, User, VPNProtocol } from '@prisma/client';
+import { format } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
+import { basename } from 'path';
 import bot from '../../core/bot';
-import { chooseUserReply, createUserOperationsKeyboard, skipKeyboard } from '../../core/buttons';
-import { CommandScope, VPNUserCommand } from '../../core/enums';
+import { createUserOperationsKeyboard, getUserContactKeyboard, skipButton, skipKeyboard } from '../../core/buttons';
+import { CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
 import env from '../../env';
+import type { PaymentsRepository } from './payments.repository';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
-import { UsersRepository } from './users.repository';
-import { format } from 'date-fns';
+import { UsersRepository, type VPNUser } from './users.repository';
 
 export class UsersService {
-	constructor(private repository: UsersRepository) {}
+	constructor(
+		private repository: UsersRepository,
+		private paymentsRepository: PaymentsRepository,
+	) {}
 
 	private state = {
 		params: new Map(),
 		createSteps: {
+			telegramId: false,
 			username: false,
 			firstName: false,
 			lastName: false,
@@ -27,10 +33,38 @@ export class UsersService {
 		},
 	};
 
-	async create(message: Message, context: UsersContext, selectedOptions: (Device | VPNProtocol)[] = []) {
+	async create(
+		message: Message,
+		context: UsersContext,
+		start = false,
+		selectedOptions: (Device | VPNProtocol)[] = [],
+	) {
+		logger.log(`[${basename(__filename)}]: create. Active step ${this.getActiveStep() ?? 'first'}`);
 		const chatId = message ? message.chat.id : context.chatId;
-		if (message?.user_shared) {
-			this.state.params.set('telegram_id', message.user_shared.user_id.toString());
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Share user. For skipping just send any text', {
+				reply_markup: {
+					keyboard: [
+						[
+							{
+								text: 'Share contact',
+								request_user: {
+									request_id: UserRequest.Create,
+								},
+							},
+						],
+					],
+					one_time_keyboard: true, // The keyboard will hide after one use
+					resize_keyboard: true, // Fit the keyboard to the screen size
+				},
+			});
+			this.setCreateStep('telegramId');
+			return;
+		}
+		if (this.state.createSteps.telegramId) {
+			if (message?.user_shared) {
+				this.state.params.set('telegram_id', message.user_shared.user_id.toString());
+			}
 			await bot.sendMessage(chatId, 'Enter new username');
 			this.setCreateStep('username');
 			return;
@@ -91,27 +125,29 @@ export class UsersService {
 			await bot.sendMessage(
 				chatId,
 				`User successfully created 
-		id: ${result.id}				
-		Username: ${result.username} 
-		First name: ${result.firstName}`,
-				{
-					parse_mode: 'MarkdownV2',
-				},
+id: ${result.id}				
+Username: ${result.username} 
+First name: ${result.firstName}`,
 			);
 		} catch (error) {
+			logger.error(
+				`[${basename(__filename)}]: Unexpected error occurred while creating user ${username}: ${error}`,
+			);
 			await bot.sendMessage(chatId, `Unexpected error occurred while creating user ${username}: ${error}`);
 		} finally {
 			this.state.params.clear();
+			this.resetCreateSteps();
 			globalHandler.finishCommand();
 		}
 	}
 
 	async list(message: Message) {
+		logger.log(`[${basename(__filename)}]: list`);
 		const users = await this.repository.list();
 		const chunkSize = 50;
 		const buttons = users.map(({ id, username, firstName, lastName }) => [
 			{
-				text: `${username} (${firstName} ${lastName})`,
+				text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
 				callback_data: JSON.stringify({
 					s: CommandScope.Users,
 					c: {
@@ -137,9 +173,10 @@ export class UsersService {
 	}
 
 	async getById(message: Message, context: UsersContext) {
+		logger.log(`[${basename(__filename)}]: getById`);
 		const user = await this.repository.getById(Number(context.id));
 		await bot.sendMessage(message.chat.id, this.formatUserInfo(user));
-		await bot.sendMessage(message.chat.id, 'Available operations', createUserOperationsKeyboard(user.id));
+		await bot.sendMessage(message.chat.id, 'Select field to update', createUserOperationsKeyboard(user.id));
 		globalHandler.finishCommand();
 	}
 
@@ -149,15 +186,19 @@ export class UsersService {
 		state: { init: boolean },
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
+		logger.log(`[${basename(__filename)}]: update`);
 		const textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
 		const textProp = textProps.includes(context.prop);
 		if (state.init) {
 			if (textProp) {
 				await bot.sendMessage(message.chat.id, `Enter ${context.prop}`);
 			} else if (context.prop === 'telegramId') {
-				await bot.sendMessage(message.chat.id, 'Share new user:', {
-					reply_markup: chooseUserReply,
+				await bot.sendMessage(message.chat.id, 'Share user:', {
+					reply_markup: getUserContactKeyboard(UserRequest.Update),
 				});
+			} else if (context.prop === 'payerId') {
+				this.state.params.set('updateId', context.id);
+				await this.getPossiblePayers(message);
 			} else {
 				await bot.sendPoll(message.chat.id, `Select ${context.prop}`, pollOptions[context.prop], {
 					allows_multiple_answers: true,
@@ -170,22 +211,37 @@ export class UsersService {
 			const updated = await this.repository.update(context.id, {
 				[context.prop]: selectedOptions,
 			});
+			logger.success(`Field ${context.prop} has been successfully updated for user ${context.id}`);
 			await bot.sendMessage(context.chatId, this.formatUserInfo(updated));
+			globalHandler.finishCommand();
+			return;
+		}
+		if (context.prop === 'payerId') {
+			const updateId = this.state.params.get('updateId');
+			const updated = await this.repository.update(updateId, {
+				payerId: context.id,
+			});
+			logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
+			await bot.sendMessage(context.chatId, this.formatUserInfo(updated));
+			this.state.params.clear();
 			globalHandler.finishCommand();
 			return;
 		}
 		const updated = await this.repository.update(context.id, {
 			[context.prop]: textProp ? message.text : message.user_shared.user_id.toString(),
 		});
+		logger.success(`User info has been successfully updated for user ${context.id}`);
 		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated));
 		globalHandler.finishCommand();
 	}
 
-	async delete(message: Message, context: UsersContext, start: boolean) {
+	async delete(msg: Message, context: UsersContext, start: boolean) {
+		logger.log(`[${basename(__filename)}]: delete`);
 		if (!start) {
-			await bot.sendMessage(message.chat.id, 'Selected id: ' + context.id);
 			await this.repository.delete(Number(context.id));
-			await bot.sendMessage(message.chat.id, `User with id ${context.id} has been successfully removed`);
+			const message = `User with id ${context.id} has been successfully removed`;
+			logger.success(`[${basename(__filename)}]: ${message}`);
+			await bot.sendMessage(msg.chat.id, message);
 			globalHandler.finishCommand();
 			return;
 		}
@@ -208,16 +264,43 @@ export class UsersService {
 				inline_keyboard: [...buttons],
 			},
 		};
-		await bot.sendMessage(message.chat.id, 'Select user to delete:', inlineKeyboard);
+		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
-	async pay(message: Message, context: UsersContext) {
-		const user = await this.repository.getById(Number(context.id));
-		await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}`);
+	async pay(message: Message) {
+		logger.log(`[${basename(__filename)}]: pay`);
+		if (message.user_shared?.user_id) {
+			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
+			this.state.params.set('user', user);
+			await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}. Enter amount`);
+			return;
+		}
+		const user = this.state.params.get('user');
+		if (!user) {
+			const errorMessage = `Unexpected error while pay processing. User did not found`;
+			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
+			await bot.sendMessage(message.chat.id, errorMessage);
+			this.state.params.clear();
+			globalHandler.finishCommand();
+			return;
+		}
+		try {
+			await this.paymentsRepository.create(user.id, Number(message.text));
+			const successMessage = `Payment ${message.text} has been successfully processed for user ${user.username}`;
+			await logger.success(`${basename(__filename)}: ${successMessage}`);
+			await bot.sendMessage(message.chat.id, successMessage);
+		} catch (err) {
+			const errMessage = `Unexpected error while pay processing for user ${user.username}: ${err}`;
+			await bot.sendMessage(message.chat.id, errMessage);
+			await logger.error(`[${basename(__filename)}]: ${errMessage}`);
+		} finally {
+			this.state.params.clear();
+			globalHandler.finishCommand();
+		}
 	}
 
 	async sync(message: Message) {
-		logger.log('Started user sync process');
+		logger.log(`[${basename(__filename)}]: sync`);
 		const data = await this.repository.list();
 		const header = [
 			'id',
@@ -249,10 +332,10 @@ export class UsersService {
 		});
 		try {
 			await exportToSheet(env.SHEET_ID, 'Users!A2', preparedData);
-			logger.success('Finished user sync process');
+			logger.success(`${basename(__filename)}}: Users data successfully exported to Google Sheets!`);
 			await bot.sendMessage(message.chat.id, '✅ Users data successfully exported to Google Sheets!');
 		} catch (error) {
-			logger.error(`Users sync process finished with error: ${error}`);
+			logger.error(`[${basename(__filename)}]: Users sync process finished with error: ${error}`);
 			await bot.sendMessage(message.chat.id, `❌ Users sync process finished with error: ${error}`);
 		}
 	}
@@ -264,7 +347,52 @@ export class UsersService {
 		});
 	}
 
-	private formatUserInfo(user: User) {
+	private async getPossiblePayers(message: Message) {
+		const users = await this.repository.payersList();
+		const chunkSize = 50;
+		const buttons = users.map(({ id, username, firstName, lastName }) => [
+			{
+				text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
+				callback_data: JSON.stringify({
+					s: CommandScope.Users,
+					c: {
+						cmd: VPNUserCommand.Update,
+						id,
+						prop: 'payerId',
+					},
+					p: 1,
+				}),
+			} as InlineKeyboardButton,
+		]);
+		const chunksCount = Math.ceil(buttons.length / chunkSize);
+		for (let i = 0; i < chunksCount; i++) {
+			const chunk = buttons.slice(i * chunkSize, i * chunkSize + chunkSize);
+			const inlineKeyboard: SendBasicOptions = {
+				reply_markup: {
+					inline_keyboard: [...chunk],
+				},
+			};
+			await bot.sendMessage(message.chat.id, `Select user (part ${i + 1}):`, inlineKeyboard);
+		}
+
+		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
+	}
+
+	private getActiveStep() {
+		const result = Object.keys(this.state.createSteps).filter(k => this.state.createSteps[k]);
+		if (result.length) {
+			return result[0];
+		}
+		return null;
+	}
+
+	private resetCreateSteps() {
+		Object.keys(this.state.createSteps).forEach(k => {
+			this.state.createSteps[k] = false;
+		});
+	}
+
+	private formatUserInfo(user: VPNUser) {
 		return `
 id: ${user.id}
 username: ${user.username}
@@ -275,6 +403,8 @@ Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Protocols: ${user.protocols.join(', ')}
 Price: ${user.price}
+${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}
+${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}
 Created At: ${format(user.createdAt, 'dd.MM.yyyy')}
 		`;
 	}

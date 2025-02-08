@@ -1,19 +1,21 @@
 import type { Message } from 'node-telegram-bot-api';
-import type { OutlineApiService } from './outline.api-service';
-import { CommandScope, VPNKeyCommand, VPNProtocol } from '../../core/enums';
+import { basename } from 'path';
 import bot from '../../core/bot';
+import { CommandScope, VPNKeyCommand, VPNProtocol } from '../../core/enums';
+import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import type { KeysContext } from './keys.handler';
-import { globalHandler } from '../../core/globalHandler';
-
+import type { OutlineApiService } from './outline.api-service';
 export class OutlineService {
 	constructor(private service: OutlineApiService) {}
 
 	async create(message: Message, username: string) {
+		logger.log(`[${basename(__filename)}]: create`);
 		await this.service.create(message, username);
 	}
 
 	async getAll(message: Message) {
+		logger.log(`[${basename(__filename)}]: getAll`);
 		try {
 			const users = await this.service.getAll(message);
 			const buttons = users.accessKeys.map(({ name, id }) => [
@@ -37,7 +39,7 @@ export class OutlineService {
 			};
 			await bot.sendMessage(message.chat.id, 'Select user for additional info:', inlineKeyboard);
 			await bot.sendMessage(message.chat.id, `Total count ${users.accessKeys.length}`);
-			logger.success('Outline users list was handled');
+			logger.success(`[${basename(__filename)}]: Outline users list was handled`);
 		} catch (error) {
 			logger.error(`Outline users list fetching finished with error: ${error}`);
 			await bot.sendMessage(message.chat.id, `Error while fetching Outline users: ${error}`);
@@ -45,9 +47,12 @@ export class OutlineService {
 	}
 
 	async delete(context: KeysContext, message: Message, start: boolean) {
+		logger.log(`[${basename(__filename)}]: delete.${start ? ' Started' : ''}`);
 		if (!start) {
 			await bot.sendMessage(message.chat.id, 'Selected user id to delete: ' + context.id);
 			await this.service.delete(message, context.id);
+			logger.success(`Outline user ${context.id} has been successfully deleted`);
+			await bot.sendMessage(message.chat.id, `Outline user ${context.id} was successfully deleted`);
 			globalHandler.finishCommand();
 			return;
 		}
@@ -75,6 +80,7 @@ export class OutlineService {
 	}
 
 	async getUser(context: KeysContext, message: Message) {
+		logger.log(`[${basename(__filename)}]: getUser`);
 		try {
 			const key = await this.service.getUser(message, context.id);
 			if (!key) {
@@ -93,6 +99,7 @@ export class OutlineService {
 					parse_mode: 'MarkdownV2',
 				},
 			);
+			logger.success(`Outline user ${context.id} has been successfully fetched`);
 		} catch (err) {
 			logger.error(`Outline user ${context.id} fetching finished with error: ${err}`);
 			await bot.sendMessage(message.chat.id, `Error while fetching outline user ${context.id}: ${err}`);

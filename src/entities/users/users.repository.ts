@@ -1,5 +1,11 @@
-import type { Device, User, VPNProtocol } from '@prisma/client';
+import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
 import { prisma } from '../../core/prisma';
+
+export type VPNUser = User & {
+	payer: User;
+	payments: Payment[];
+	dependants: User[];
+};
 
 export class UsersRepository {
 	async create(
@@ -24,10 +30,23 @@ export class UsersRepository {
 		});
 	}
 
-	async getById(id: number): Promise<User> {
+	async getById(id: number): Promise<VPNUser> {
 		return await prisma.user.findUnique({
 			where: {
 				id,
+			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
+			},
+		});
+	}
+
+	async getByTelegramId(telegramId: string): Promise<User> {
+		return await prisma.user.findUnique({
+			where: {
+				telegramId,
 			},
 		});
 	}
@@ -37,12 +56,33 @@ export class UsersRepository {
 			where: {
 				id,
 			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
+			},
 			data,
 		});
 	}
 
-	async list(): Promise<User[]> {
+	async list(): Promise<VPNUser[]> {
 		return await prisma.user.findMany({
+			orderBy: {
+				firstName: 'asc',
+			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
+			},
+		});
+	}
+
+	async payersList(): Promise<User[]> {
+		return await prisma.user.findMany({
+			where: {
+				payerId: null,
+			},
 			orderBy: {
 				firstName: 'asc',
 			},

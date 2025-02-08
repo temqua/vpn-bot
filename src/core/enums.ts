@@ -6,23 +6,30 @@ export enum VPNProtocol {
 
 export enum VPNKeyCommand {
 	Create = 'cr',
-	List = 'l',
-	Delete = 'd',
+	List = 'list',
+	Delete = 'del',
 	GetFile = 'f',
 	GetUser = 'g',
 }
 
 export enum VPNUserCommand {
 	Create = 'cr',
-	List = 'l',
-	Delete = 'd',
+	List = 'list',
+	Delete = 'del',
 	GetUser = 'g',
 	Update = 'u',
-	Pay = 'p',
-	Sync = 's',
+	Pay = 'pay',
+	Sync = 'sync',
 }
 
 export enum CommandScope {
 	Keys = 'keys',
 	Users = 'users',
+}
+
+export enum UserRequest {
+	Create,
+	Update,
+	Pay,
+	Lookup,
 }

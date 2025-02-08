@@ -1,17 +1,17 @@
 import type { Message } from 'node-telegram-bot-api';
+import bot from '../../core/bot';
 import type { ICommandHandler } from '../../core/contracts';
 import { VPNKeyCommand, VPNProtocol } from '../../core/enums';
-import bot from '../../core/bot';
 import { globalHandler } from '../../core/globalHandler';
-import { outlineCommandsHandler } from './outline.handler';
 import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
+import { outlineCommandsHandler } from './outline.handler';
 
-export type KeysContext = {
+export interface KeysContext {
 	pr: VPNProtocol;
 	cmd: VPNKeyCommand;
 	id?: string;
-};
+}
 
 class KeysCommandsHandler implements ICommandHandler {
 	async handle(context: KeysContext, message: Message, start = false) {

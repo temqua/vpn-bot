@@ -1,15 +1,15 @@
-const getDate = (): string => new Date().toISOString();
+const newDate = (): string => new Date().toISOString();
 export default {
 	warn: (message: string) => {
-		console.warn(`[${getDate()}] ${message}`);
+		console.warn(`[${newDate()}] ${message}`);
 	},
 	error: (message: string) => {
-		console.error(`[${getDate()}] ❌ ${message}`);
+		console.error(`[${newDate()}] ❌ ${message}`);
 	},
 	log: (message: string) => {
-		console.log(`[${getDate()}] ${message}`);
+		console.log(`[${newDate()}] ${message}`);
 	},
 	success: (message: string) => {
-		console.log(`[${getDate()}] ✅ ${message}`);
+		console.log(`[${newDate()}] ✅ ${message}`);
 	},
 };

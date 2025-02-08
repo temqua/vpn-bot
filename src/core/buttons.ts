@@ -1,5 +1,5 @@
 import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
-import { CommandScope, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
+import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './globalHandler';
 
 const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol]) => {
@@ -32,7 +32,7 @@ const listKeysButtonParams = Object.entries(VPNProtocol).map(
 export const userButtons: InlineKeyboardButton[][] = [
 	[
 		{
-			text: 'Create User',
+			text: 'Create',
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
@@ -50,7 +50,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
-			text: 'Delete User',
+			text: 'Delete',
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
@@ -58,12 +58,23 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+	],
+	[
 		{
 			text: 'Sync',
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
 					cmd: VPNUserCommand.Sync,
+				},
+			}),
+		},
+		{
+			text: 'Pay',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.Pay,
 				},
 			}),
 		},
@@ -131,25 +142,46 @@ export const keyButtons: InlineKeyboardButton[][] = [
 
 export const inlineButtons = [...keyButtons, ...userButtons];
 
-export const showButtons = [listKeysButtonParams];
+export const showKeysButtons = [listKeysButtonParams];
 
 export const createButtons = [createKeyButtonsParams];
-export const chooseUserReply: ReplyKeyboardMarkup = {
-	keyboard: [
-		[
-			{
-				text: 'Share user contact',
-				request_user: {
-					request_id: 1,
-				},
-			},
-		],
-	],
-	one_time_keyboard: true, // The keyboard will hide after one use
-	resize_keyboard: true, // Fit the keyboard to the screen size
-};
 
-const skipButton: InlineKeyboardButton = {
+export function getUserContactKeyboard(requestId: UserRequest, text = 'Share user contact'): ReplyKeyboardMarkup {
+	return {
+		keyboard: [
+			[
+				{
+					text,
+					request_user: {
+						request_id: requestId,
+					},
+				},
+			],
+		],
+		one_time_keyboard: true, // The keyboard will hide after one use
+		resize_keyboard: true, // Fit the keyboard to the screen size
+	};
+}
+
+export function getUserCreateKeyboard(): ReplyKeyboardMarkup {
+	return {
+		keyboard: [
+			[
+				{
+					text: 'Share new user',
+					request_user: {
+						request_id: UserRequest.Create,
+					},
+				},
+				{
+					text: 'Skip',
+				},
+			],
+		],
+	};
+}
+
+export const skipButton: InlineKeyboardButton = {
 	text: 'Skip',
 	callback_data: JSON.stringify({
 		s: CommandScope.Users,
@@ -168,10 +200,10 @@ export const skipKeyboard: SendBasicOptions = {
 };
 
 const createUserOperationsInlineKeyboard = (id: number) => {
-	return ['username', 'telegramId', 'telegramLink', 'firstName', 'lastName', 'devices', 'protocols']
-		.map(prop => [
+	return ['username', 'telegramId', 'telegramLink', 'firstName', 'lastName', 'devices', 'protocols', 'payerId'].map(
+		prop => [
 			{
-				text: `Set ${prop}`,
+				text: `${prop}`,
 				callback_data: JSON.stringify({
 					s: CommandScope.Users,
 					c: {
@@ -181,21 +213,8 @@ const createUserOperationsInlineKeyboard = (id: number) => {
 					},
 				}),
 			} as InlineKeyboardButton,
-		])
-		.concat([
-			[
-				{
-					text: 'Pay',
-					callback_data: JSON.stringify({
-						s: CommandScope.Users,
-						c: {
-							cmd: VPNUserCommand.Pay,
-							id,
-						},
-					}),
-				} as InlineKeyboardButton,
-			],
-		]);
+		],
+	);
 };
 
 export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {

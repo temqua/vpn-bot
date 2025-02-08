@@ -12,6 +12,7 @@ const exec = util.promisify(require('node:child_process').exec);
 
 export class IKEv2KeysService implements ICertificatesService {
 	async getFile(message: Message, username: string) {
+		logger.log(`[${__filename}]: getFile ${username}`);
 		const filePath = path.resolve(env.IKE_CONTAINER_DIR, `${username}/`, `${username}.zip`);
 		try {
 			await access(filePath, constants.F_OK);
@@ -32,6 +33,7 @@ export class IKEv2KeysService implements ICertificatesService {
 	}
 
 	async getAll(message: Message) {
+		logger.log(`[${__filename}]: getAll`);
 		try {
 			const { stdout, stderr } = await exec(`ikev2.sh --listclients`);
 			if (!!stdout) {
@@ -52,6 +54,7 @@ export class IKEv2KeysService implements ICertificatesService {
 	}
 
 	async create(message: Message, username: string) {
+		logger.log(`[${__filename}]: create ${username}`);
 		try {
 			const command = `bash ${env.CREATE_PATH} ${username.toString()} ikev2`;
 			logger.log(command);
@@ -75,6 +78,7 @@ export class IKEv2KeysService implements ICertificatesService {
 	}
 
 	async delete(message: Message, username: string) {
+		logger.log(`[${__filename}]: delete ${username}`);
 		try {
 			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} ikev2`);
 			if (!!stdout) {
