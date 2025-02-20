@@ -1,18 +1,19 @@
 import type { User } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
-import { skipButton } from '../../core/buttons';
 import type { ICommandHandler } from '../../core/contracts';
 import { UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import { PaymentsRepository } from './payments.repository';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
+import { PlanRepository } from './plans.repository';
 
 export interface UsersContext {
 	cmd: VPNUserCommand;
 	id?: string;
 	skip?: number;
+	accept?: number;
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;
@@ -73,7 +74,7 @@ class UsersCommandsHandler implements ICommandHandler {
 			this.state.init = false;
 		}
 		if (context.cmd === VPNUserCommand.Pay) {
-			await this.service.pay(message);
+			await this.service.pay(message, context, this.state.init);
 		}
 	}
 
@@ -88,5 +89,5 @@ class UsersCommandsHandler implements ICommandHandler {
 }
 
 export const userCommandsHandler = new UsersCommandsHandler(
-	new UsersService(new UsersRepository(), new PaymentsRepository()),
+	new UsersService(new UsersRepository(), new PaymentsRepository(), new PlanRepository()),
 );

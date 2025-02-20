@@ -1,15 +1,16 @@
-import type { Device, User, VPNProtocol } from '@prisma/client';
-import { format } from 'date-fns';
+import type { Device, VPNProtocol } from '@prisma/client';
+import { addMonths, format } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../core/bot';
-import { createUserOperationsKeyboard, getUserContactKeyboard, skipButton, skipKeyboard } from '../../core/buttons';
+import { acceptKeyboard, createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
 import { CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
 import env from '../../env';
 import type { PaymentsRepository } from './payments.repository';
+import type { PlanRepository } from './plans.repository';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
@@ -18,6 +19,7 @@ export class UsersService {
 	constructor(
 		private repository: UsersRepository,
 		private paymentsRepository: PaymentsRepository,
+		private plansRepository: PlanRepository,
 	) {}
 
 	private state = {
@@ -31,6 +33,11 @@ export class UsersService {
 			devices: false,
 			protocols: false,
 		},
+		paymentSteps: {
+			amount: false,
+			months: false,
+			expires: false,
+		},
 	};
 
 	async create(
@@ -39,7 +46,9 @@ export class UsersService {
 		start = false,
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
-		logger.log(`[${basename(__filename)}]: create. Active step ${this.getActiveStep() ?? 'first'}`);
+		logger.log(
+			`[${basename(__filename)}]: create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'first'}`,
+		);
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Share user. For skipping just send any text', {
@@ -267,15 +276,18 @@ First name: ${result.firstName}`,
 		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
-	async pay(message: Message) {
-		logger.log(`[${basename(__filename)}]: pay`);
+	async pay(message: Message, context: UsersContext, start = false) {
+		logger.log(
+			`[${basename(__filename)}]: pay. Active step ${this.getActiveStep(this.state.paymentSteps) ?? 'first'}`,
+		);
 		if (message.user_shared?.user_id) {
 			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
 			this.state.params.set('user', user);
 			await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}. Enter amount`);
+			this.setActiveStep('amount', this.state.paymentSteps);
 			return;
 		}
-		const user = this.state.params.get('user');
+		const user: VPNUser = this.state.params.get('user');
 		if (!user) {
 			const errorMessage = `Unexpected error while pay processing. User did not found`;
 			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
@@ -283,6 +295,46 @@ First name: ${result.firstName}`,
 			this.state.params.clear();
 			globalHandler.finishCommand();
 			return;
+		}
+		if (this.state.paymentSteps.amount) {
+			const amount = Number(message.text);
+			const plan = await this.plansRepository.findPlanByAmount(amount);
+			const monthsCount = plan ? plan.months : amount / user.price;
+			if (plan) {
+				await bot.sendMessage(
+					message.chat.id,
+					`Found plan ${plan.name} for amount ${plan.amount}. 
+					Price: ${plan.price} 
+					People: ${plan.peopleCount}
+					Months: ${plan.months}
+					`,
+				);
+			}
+			await bot.sendMessage(
+				message.chat.id,
+				`Calculated months count: ${monthsCount}. If you want to provide custom just enter in new message`,
+				acceptKeyboard,
+			);
+			this.state.params.set('months', monthsCount);
+			this.setActiveStep('months', this.state.paymentSteps);
+			return;
+		}
+		if (this.state.paymentSteps.months) {
+			if (!context.accept) {
+				this.state.params.set('months', message.text);
+			}
+			const calculated = addMonths(new Date(), this.state.params.get('months'));
+			await bot.sendMessage(
+				message.chat.id,
+				`Calculated expires on date: ${calculated.toISOString()}. If you want to provide custom just enter new date in ISO format`,
+				acceptKeyboard,
+			);
+			this.state.params.set('expires', calculated);
+			this.setActiveStep('expires', this.state.paymentSteps);
+			return;
+		}
+		if (this.state.paymentSteps.expires && !context.accept) {
+			this.state.params.set('expires', message.text);
 		}
 		try {
 			await this.paymentsRepository.create(user.id, Number(message.text));
@@ -341,9 +393,17 @@ First name: ${result.firstName}`,
 	}
 
 	private setCreateStep(current: string) {
-		Object.keys(this.state.createSteps).forEach(k => {
-			this.state.createSteps[k] = false;
-			this.state.createSteps[current] = true;
+		this.setActiveStep(current, this.state.createSteps);
+	}
+
+	private setPaymentStep(current: string) {
+		this.setActiveStep(current, this.state.paymentSteps);
+	}
+
+	private setActiveStep(current: string, steps) {
+		Object.keys(steps).forEach(k => {
+			steps[k] = false;
+			steps[current] = true;
 		});
 	}
 
@@ -378,8 +438,8 @@ First name: ${result.firstName}`,
 		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
 	}
 
-	private getActiveStep() {
-		const result = Object.keys(this.state.createSteps).filter(k => this.state.createSteps[k]);
+	private getActiveStep(steps) {
+		const result = Object.keys(steps).filter(k => steps[k]);
 		if (result.length) {
 			return result[0];
 		}
