@@ -198,7 +198,7 @@ export const acceptButton: InlineKeyboardButton = {
 	callback_data: JSON.stringify({
 		s: CommandScope.Users,
 		c: {
-			cmd: VPNUserCommand.Create,
+			cmd: VPNUserCommand.Pay,
 			accept: 1,
 		},
 		p: 1,

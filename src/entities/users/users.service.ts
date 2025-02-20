@@ -276,9 +276,9 @@ First name: ${result.firstName}`,
 		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
-	async pay(message: Message, context: UsersContext, start = false) {
+	async pay(message: Message, context: UsersContext) {
 		logger.log(
-			`[${basename(__filename)}]: pay. Active step ${this.getActiveStep(this.state.paymentSteps) ?? 'first'}`,
+			`[${basename(__filename)}]: pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'first'}"`,
 		);
 		if (message.user_shared?.user_id) {
 			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
@@ -298,15 +298,16 @@ First name: ${result.firstName}`,
 		}
 		if (this.state.paymentSteps.amount) {
 			const amount = Number(message.text);
-			const plan = await this.plansRepository.findPlanByAmount(amount);
-			const monthsCount = plan ? plan.months : amount / user.price;
+			this.state.params.set('amount', amount);
+			const plan = await this.plansRepository.findPlan(amount, user.price);
+			const monthsCount = plan ? plan.months : Math.floor(amount / user.price);
 			if (plan) {
 				await bot.sendMessage(
 					message.chat.id,
-					`Found plan ${plan.name} for amount ${plan.amount}. 
-					Price: ${plan.price} 
-					People: ${plan.peopleCount}
-					Months: ${plan.months}
+					`Найден план ${plan.name} для ${plan.amount} рублей. 
+Цена: ${plan.price} 
+Количество человек: ${plan.peopleCount}
+Количество месяцев: ${plan.months}
 					`,
 				);
 			}
@@ -321,12 +322,13 @@ First name: ${result.firstName}`,
 		}
 		if (this.state.paymentSteps.months) {
 			if (!context.accept) {
-				this.state.params.set('months', message.text);
+				this.state.params.set('months', Number(message.text));
 			}
-			const calculated = addMonths(new Date(), this.state.params.get('months'));
+			let months = this.state.params.get('months');
+			const calculated = addMonths(new Date(), months);
 			await bot.sendMessage(
 				message.chat.id,
-				`Calculated expires on date: ${calculated.toISOString()}. If you want to provide custom just enter new date in ISO format`,
+				`Calculated expires on date: ${calculated.toISOString()}. If you want to provide custom just enter new date in ISO format like 2025-01-01 or 2025-02-02T22:59:24Z`,
 				acceptKeyboard,
 			);
 			this.state.params.set('expires', calculated);
@@ -334,10 +336,13 @@ First name: ${result.firstName}`,
 			return;
 		}
 		if (this.state.paymentSteps.expires && !context.accept) {
-			this.state.params.set('expires', message.text);
+			this.state.params.set('expires', new Date(message.text));
 		}
 		try {
-			await this.paymentsRepository.create(user.id, Number(message.text));
+			const amount = this.state.params.get('amount');
+			const monthsCount = this.state.params.get('months');
+			const expiresOn = this.state.params.get('expires');
+			await this.paymentsRepository.create(user.id, Number(amount), Number(monthsCount), expiresOn);
 			const successMessage = `Payment ${message.text} has been successfully processed for user ${user.username}`;
 			await logger.success(`${basename(__filename)}: ${successMessage}`);
 			await bot.sendMessage(message.chat.id, successMessage);
