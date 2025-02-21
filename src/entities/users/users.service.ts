@@ -37,6 +37,7 @@ export class UsersService {
 			amount: false,
 			months: false,
 			expires: false,
+			nalog: false,
 		},
 	};
 
@@ -335,17 +336,34 @@ First name: ${result.firstName}`,
 			this.setActiveStep('expires', this.state.paymentSteps);
 			return;
 		}
-		if (this.state.paymentSteps.expires && !context.accept) {
-			this.state.params.set('expires', new Date(message.text));
+		if (this.state.paymentSteps.expires) {
+			if (!context.accept) {
+				this.state.params.set('expires', new Date(message.text));
+			}
+			await bot.sendMessage(
+				message.chat.id,
+				`Do you want to add nalog? If yes click Accept button`,
+				acceptKeyboard,
+			);
+			this.setActiveStep('nalog', this.state.paymentSteps);
+			this.state.params.set('nalog', false);
+			return;
+		}
+		if (this.state.paymentSteps.nalog) {
+			this.state.params.set('nalog', Boolean(context.accept));
 		}
 		try {
 			const amount = this.state.params.get('amount');
 			const monthsCount = this.state.params.get('months');
 			const expiresOn = this.state.params.get('expires');
+			const nalog = this.state.params.get('nalog');
 			await this.paymentsRepository.create(user.id, Number(amount), Number(monthsCount), expiresOn);
 			const successMessage = `Payment ${message.text} has been successfully processed for user ${user.username}`;
 			await logger.success(`${basename(__filename)}: ${successMessage}`);
 			await bot.sendMessage(message.chat.id, successMessage);
+			if (nalog) {
+				await this.addPaymentNalog(amount);
+			}
 		} catch (err) {
 			const errMessage = `Unexpected error while pay processing for user ${user.username}: ${err}`;
 			await bot.sendMessage(message.chat.id, errMessage);
@@ -354,6 +372,10 @@ First name: ${result.firstName}`,
 			this.state.params.clear();
 			globalHandler.finishCommand();
 		}
+	}
+
+	async addPaymentNalog(amount: number) {
+		logger.log(`[${basename(__filename)}]: add nalog`);
 	}
 
 	async sync(message: Message) {
