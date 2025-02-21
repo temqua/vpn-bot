@@ -284,13 +284,16 @@ First name: ${result.firstName}`,
 		if (message.user_shared?.user_id) {
 			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
 			this.state.params.set('user', user);
-			await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}. Enter amount`);
+			await bot.sendMessage(
+				message.chat.id,
+				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях`,
+			);
 			this.setActiveStep('amount', this.state.paymentSteps);
 			return;
 		}
 		const user: VPNUser = this.state.params.get('user');
 		if (!user) {
-			const errorMessage = `Unexpected error while pay processing. User did not found`;
+			const errorMessage = `Ошибка при обработке платежа. Пользователь не найден в системе`;
 			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
 			await bot.sendMessage(message.chat.id, errorMessage);
 			this.state.params.clear();
@@ -301,6 +304,13 @@ First name: ${result.firstName}`,
 			const amount = Number(message.text);
 			this.state.params.set('amount', amount);
 			const plan = await this.plansRepository.findPlan(amount, user.price);
+			const existingPayments = await this.paymentsRepository.findByUser(user.id);
+			if (existingPayments) {
+				await bot.sendMessage(
+					message.chat.id,
+					`Последний платёж этого пользователя количеством ${existingPayments.amount} ${existingPayments.currency} создан ${existingPayments.paymentDate} на ${existingPayments.monthsCount} месяцев и истекает ${existingPayments.expiresOn}`,
+				);
+			}
 			const monthsCount = plan ? plan.months : Math.floor(amount / user.price);
 			if (plan) {
 				await bot.sendMessage(
@@ -314,7 +324,7 @@ First name: ${result.firstName}`,
 			}
 			await bot.sendMessage(
 				message.chat.id,
-				`Calculated months count: ${monthsCount}. If you want to provide custom just enter in new message`,
+				`Вычисленное количество месяцев на основании найденного плана, либо по существующей цене ${user.price} для пользователя: ${monthsCount}. Можно ввести своё количество ответным сообщением`,
 				acceptKeyboard,
 			);
 			this.state.params.set('months', monthsCount);
@@ -329,7 +339,7 @@ First name: ${result.firstName}`,
 			const calculated = addMonths(new Date(), months);
 			await bot.sendMessage(
 				message.chat.id,
-				`Calculated expires on date: ${calculated.toISOString()}. If you want to provide custom just enter new date in ISO format like 2025-01-01 or 2025-02-02T22:59:24Z`,
+				`Вычисленная дата окончания работы: ${calculated.toISOString()}. Можно отправить свою дату в ISO формате 2025-01-01 или 2025-02-02T22:59:24Z`,
 				acceptKeyboard,
 			);
 			this.state.params.set('expires', calculated);
@@ -340,11 +350,7 @@ First name: ${result.firstName}`,
 			if (!context.accept) {
 				this.state.params.set('expires', new Date(message.text));
 			}
-			await bot.sendMessage(
-				message.chat.id,
-				`Do you want to add nalog? If yes click Accept button`,
-				acceptKeyboard,
-			);
+			await bot.sendMessage(message.chat.id, `Добавить налог? Если да, нажмите Accept`, acceptKeyboard);
 			this.setActiveStep('nalog', this.state.paymentSteps);
 			this.state.params.set('nalog', false);
 			return;
@@ -357,15 +363,26 @@ First name: ${result.firstName}`,
 			const monthsCount = this.state.params.get('months');
 			const expiresOn = this.state.params.get('expires');
 			const nalog = this.state.params.get('nalog');
-			await this.paymentsRepository.create(user.id, Number(amount), Number(monthsCount), expiresOn);
-			const successMessage = `Payment ${message.text} has been successfully processed for user ${user.username}`;
-			await logger.success(`${basename(__filename)}: ${successMessage}`);
-			await bot.sendMessage(message.chat.id, successMessage);
-			if (nalog) {
-				await this.addPaymentNalog(amount);
+			const result = await this.paymentsRepository.create(
+				user.id,
+				Number(amount),
+				Number(monthsCount),
+				expiresOn,
+			);
+			if (result) {
+				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. Новая дата истечения срока ${expiresOn}. ID платежа ${result.id}`;
+				await logger.success(`${basename(__filename)}: ${successMessage}`);
+				await bot.sendMessage(message.chat.id, successMessage);
+				if (nalog) {
+					await this.addPaymentNalog(amount);
+				}
+			} else {
+				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} не был создан`;
+				await bot.sendMessage(message.chat.id, errMessage);
+				await logger.error(`[${basename(__filename)}]: ${errMessage}`);
 			}
 		} catch (err) {
-			const errMessage = `Unexpected error while pay processing for user ${user.username}: ${err}`;
+			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username}: ${err}`;
 			await bot.sendMessage(message.chat.id, errMessage);
 			await logger.error(`[${basename(__filename)}]: ${errMessage}`);
 		} finally {
