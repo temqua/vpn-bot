@@ -193,9 +193,27 @@ export const skipButton: InlineKeyboardButton = {
 	} as CommandDetailCompressed),
 };
 
+export const acceptButton: InlineKeyboardButton = {
+	text: 'Accept',
+	callback_data: JSON.stringify({
+		s: CommandScope.Users,
+		c: {
+			cmd: VPNUserCommand.Pay,
+			accept: 1,
+		},
+		p: 1,
+	} as CommandDetailCompressed),
+};
+
 export const skipKeyboard: SendBasicOptions = {
 	reply_markup: {
 		inline_keyboard: [[skipButton]],
+	},
+};
+
+export const acceptKeyboard: SendBasicOptions = {
+	reply_markup: {
+		inline_keyboard: [[acceptButton]],
 	},
 };
 

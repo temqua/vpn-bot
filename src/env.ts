@@ -11,6 +11,9 @@ const env = cleanEnv(process.env, {
 	OUTLINE_API_ROOT: str({ default: '' }),
 	BOT_TOKEN: str({ default: '' }),
 	SHEET_ID: str({ default: '' }),
+	NALOG_USERNAME: str({ default: '' }),
+	NALOG_PASSWORD: str({ default: '' }),
+	NALOG_DEVICE_ID: str({ default: '' }),
 });
 
 export default env;

@@ -1,24 +1,29 @@
-import type { Device, User, VPNProtocol } from '@prisma/client';
-import { format } from 'date-fns';
+import type { Device, VPNProtocol } from '@prisma/client';
+import { addMonths, format } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../core/bot';
-import { createUserOperationsKeyboard, getUserContactKeyboard, skipButton, skipKeyboard } from '../../core/buttons';
+import { acceptKeyboard, createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
 import { CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
 import env from '../../env';
 import type { PaymentsRepository } from './payments.repository';
+import type { PlanRepository } from './plans.repository';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
+import { NalogService } from './nalog.service';
 
 export class UsersService {
 	constructor(
 		private repository: UsersRepository,
 		private paymentsRepository: PaymentsRepository,
+		private plansRepository: PlanRepository,
 	) {}
+
+	private nalogService = new NalogService();
 
 	private state = {
 		params: new Map(),
@@ -31,6 +36,12 @@ export class UsersService {
 			devices: false,
 			protocols: false,
 		},
+		paymentSteps: {
+			amount: false,
+			months: false,
+			expires: false,
+			nalog: false,
+		},
 	};
 
 	async create(
@@ -39,7 +50,9 @@ export class UsersService {
 		start = false,
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
-		logger.log(`[${basename(__filename)}]: create. Active step ${this.getActiveStep() ?? 'first'}`);
+		logger.log(
+			`[${basename(__filename)}]: create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'start'}`,
+		);
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Share user. For skipping just send any text', {
@@ -267,35 +280,146 @@ First name: ${result.firstName}`,
 		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
-	async pay(message: Message) {
-		logger.log(`[${basename(__filename)}]: pay`);
+	async pay(message: Message, context: UsersContext) {
+		logger.log(
+			`[${basename(__filename)}]: pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`,
+		);
 		if (message.user_shared?.user_id) {
 			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
+			if (!user) {
+				const errorMessage = 'Пользователь не найден в системе';
+				logger.error(errorMessage);
+				await bot.sendMessage(message.chat.id, errorMessage);
+				this.state.params.clear();
+				globalHandler.finishCommand();
+				return;
+			}
 			this.state.params.set('user', user);
-			await bot.sendMessage(message.chat.id, `Pay operation for user ${user.username}. Enter amount`);
+			await bot.sendMessage(
+				message.chat.id,
+				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях`,
+			);
+			this.setActiveStep('amount', this.state.paymentSteps);
 			return;
 		}
-		const user = this.state.params.get('user');
+		const user: VPNUser = this.state.params.get('user');
 		if (!user) {
-			const errorMessage = `Unexpected error while pay processing. User did not found`;
+			const errorMessage = `Ошибка при обработке платежа. Пользователь не найден в системе`;
 			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
 			await bot.sendMessage(message.chat.id, errorMessage);
 			this.state.params.clear();
 			globalHandler.finishCommand();
 			return;
 		}
+		if (this.state.paymentSteps.amount) {
+			const amount = Number(message.text);
+			this.state.params.set('amount', amount);
+			const plan = await this.plansRepository.findPlan(amount, user.price);
+			const existingPayments = await this.paymentsRepository.findByUser(user.id);
+			if (existingPayments) {
+				await bot.sendMessage(
+					message.chat.id,
+					`Последний платёж этого пользователя количеством ${existingPayments.amount} ${existingPayments.currency} создан ${existingPayments.paymentDate} на ${existingPayments.monthsCount} месяцев и истекает ${existingPayments.expiresOn}`,
+				);
+			}
+			const monthsCount = plan ? plan.months : Math.floor(amount / user.price);
+			if (plan) {
+				await bot.sendMessage(
+					message.chat.id,
+					`Найден план ${plan.name} для ${plan.amount} рублей. 
+Цена: ${plan.price} 
+Количество человек: ${plan.peopleCount}
+Количество месяцев: ${plan.months}
+					`,
+				);
+			}
+			await bot.sendMessage(
+				message.chat.id,
+				`Вычисленное количество месяцев на основании найденного плана, либо по существующей цене ${user.price} для пользователя: ${monthsCount}. Можно ввести своё количество ответным сообщением`,
+				acceptKeyboard,
+			);
+			this.state.params.set('months', monthsCount);
+			this.setActiveStep('months', this.state.paymentSteps);
+			return;
+		}
+		if (this.state.paymentSteps.months) {
+			if (!context.accept) {
+				this.state.params.set('months', Number(message.text));
+			}
+			let months = this.state.params.get('months');
+			const calculated = addMonths(new Date(), months);
+			await bot.sendMessage(
+				message.chat.id,
+				`Вычисленная дата окончания работы: ${calculated.toISOString()}. Можно отправить свою дату в ISO формате 2025-01-01 или 2025-02-02T22:59:24Z`,
+				acceptKeyboard,
+			);
+			this.state.params.set('expires', calculated);
+			this.setActiveStep('expires', this.state.paymentSteps);
+			return;
+		}
+		if (this.state.paymentSteps.expires) {
+			if (!context.accept) {
+				this.state.params.set('expires', new Date(message.text));
+			}
+			await bot.sendMessage(message.chat.id, `Добавить налог? Если да, нажмите Accept`, acceptKeyboard);
+			this.setActiveStep('nalog', this.state.paymentSteps);
+			this.state.params.set('nalog', false);
+			return;
+		}
+		if (this.state.paymentSteps.nalog) {
+			this.state.params.set('nalog', Boolean(context.accept));
+		}
 		try {
-			await this.paymentsRepository.create(user.id, Number(message.text));
-			const successMessage = `Payment ${message.text} has been successfully processed for user ${user.username}`;
-			await logger.success(`${basename(__filename)}: ${successMessage}`);
-			await bot.sendMessage(message.chat.id, successMessage);
+			const amount = this.state.params.get('amount');
+			const monthsCount = this.state.params.get('months');
+			const expiresOn = this.state.params.get('expires');
+			const nalog = this.state.params.get('nalog');
+			const result = await this.paymentsRepository.create(
+				user.id,
+				Number(amount),
+				Number(monthsCount),
+				expiresOn,
+			);
+			if (result) {
+				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. Новая дата истечения срока ${expiresOn}. ID платежа ${result.id}`;
+				logger.success(`${basename(__filename)}: ${successMessage}`);
+				await bot.sendMessage(message.chat.id, successMessage);
+				if (nalog) {
+					await this.addPaymentNalog(message.chat.id, user.username, amount);
+				}
+			} else {
+				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} не был создан`;
+				logger.error(`[${basename(__filename)}]: ${errMessage}`);
+				await bot.sendMessage(message.chat.id, errMessage);
+			}
 		} catch (err) {
-			const errMessage = `Unexpected error while pay processing for user ${user.username}: ${err}`;
+			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username} ${err}`;
+			logger.error(`[${basename(__filename)}]: ${errMessage}`);
 			await bot.sendMessage(message.chat.id, errMessage);
-			await logger.error(`[${basename(__filename)}]: ${errMessage}`);
 		} finally {
 			this.state.params.clear();
 			globalHandler.finishCommand();
+		}
+	}
+
+	async addPaymentNalog(chatId: number, username: string, amount: number) {
+		logger.log(`[${basename(__filename)}]: add nalog`);
+		try {
+			const token = await this.nalogService.auth();
+			const paymentId = await this.nalogService.addNalog(token, amount);
+			if (!paymentId) {
+				const errMessage = `Ошибка! При добавлении налога за пользователя ${username} не получен ID операции`;
+				logger.error(`[${basename(__filename)}]: ${errMessage}`);
+				await bot.sendMessage(chatId, errMessage);
+			} else {
+				const successMessage = `Налог успешно добавлен за пользователя ${username}`;
+				logger.success(`[${basename(__filename)}]: ${successMessage} `);
+				await bot.sendMessage(chatId, successMessage);
+			}
+		} catch (err) {
+			const errMessage = `Ошибка при добавлении налога для пользователя ${username}: ${err}`;
+			logger.error(`[${basename(__filename)}]: ${errMessage}`);
+			await bot.sendMessage(chatId, errMessage);
 		}
 	}
 
@@ -341,9 +465,17 @@ First name: ${result.firstName}`,
 	}
 
 	private setCreateStep(current: string) {
-		Object.keys(this.state.createSteps).forEach(k => {
-			this.state.createSteps[k] = false;
-			this.state.createSteps[current] = true;
+		this.setActiveStep(current, this.state.createSteps);
+	}
+
+	private setPaymentStep(current: string) {
+		this.setActiveStep(current, this.state.paymentSteps);
+	}
+
+	private setActiveStep(current: string, steps) {
+		Object.keys(steps).forEach(k => {
+			steps[k] = false;
+			steps[current] = true;
 		});
 	}
 
@@ -378,8 +510,8 @@ First name: ${result.firstName}`,
 		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
 	}
 
-	private getActiveStep() {
-		const result = Object.keys(this.state.createSteps).filter(k => this.state.createSteps[k]);
+	private getActiveStep(steps) {
+		const result = Object.keys(steps).filter(k => steps[k]);
 		if (result.length) {
 			return result[0];
 		}

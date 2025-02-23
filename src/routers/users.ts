@@ -7,8 +7,9 @@ import { globalHandler, type CommandDetails } from '../core/globalHandler';
 import { PaymentsRepository } from '../entities/users/payments.repository';
 import { UsersRepository } from '../entities/users/users.repository';
 import { UsersService } from '../entities/users/users.service';
+import { PlanRepository } from '../entities/users/plans.repository';
 
-const usersService = new UsersService(new UsersRepository(), new PaymentsRepository());
+const usersService = new UsersService(new UsersRepository(), new PaymentsRepository(), new PlanRepository());
 
 bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
