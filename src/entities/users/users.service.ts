@@ -14,6 +14,7 @@ import type { PlanRepository } from './plans.repository';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
+import { NalogService } from './nalog.service';
 
 export class UsersService {
 	constructor(
@@ -21,6 +22,8 @@ export class UsersService {
 		private paymentsRepository: PaymentsRepository,
 		private plansRepository: PlanRepository,
 	) {}
+
+	private nalogService = new NalogService();
 
 	private state = {
 		params: new Map(),
@@ -48,7 +51,7 @@ export class UsersService {
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
 		logger.log(
-			`[${basename(__filename)}]: create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'first'}`,
+			`[${basename(__filename)}]: create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'start'}`,
 		);
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
@@ -279,10 +282,18 @@ First name: ${result.firstName}`,
 
 	async pay(message: Message, context: UsersContext) {
 		logger.log(
-			`[${basename(__filename)}]: pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'first'}"`,
+			`[${basename(__filename)}]: pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`,
 		);
 		if (message.user_shared?.user_id) {
 			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
+			if (!user) {
+				const errorMessage = 'Пользователь не найден в системе';
+				logger.error(errorMessage);
+				await bot.sendMessage(message.chat.id, errorMessage);
+				this.state.params.clear();
+				globalHandler.finishCommand();
+				return;
+			}
 			this.state.params.set('user', user);
 			await bot.sendMessage(
 				message.chat.id,
@@ -371,28 +382,45 @@ First name: ${result.firstName}`,
 			);
 			if (result) {
 				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. Новая дата истечения срока ${expiresOn}. ID платежа ${result.id}`;
-				await logger.success(`${basename(__filename)}: ${successMessage}`);
+				logger.success(`${basename(__filename)}: ${successMessage}`);
 				await bot.sendMessage(message.chat.id, successMessage);
 				if (nalog) {
-					await this.addPaymentNalog(amount);
+					await this.addPaymentNalog(message.chat.id, user.username, amount);
 				}
 			} else {
 				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} не был создан`;
+				logger.error(`[${basename(__filename)}]: ${errMessage}`);
 				await bot.sendMessage(message.chat.id, errMessage);
-				await logger.error(`[${basename(__filename)}]: ${errMessage}`);
 			}
 		} catch (err) {
-			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username}: ${err}`;
+			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username} ${err}`;
+			logger.error(`[${basename(__filename)}]: ${errMessage}`);
 			await bot.sendMessage(message.chat.id, errMessage);
-			await logger.error(`[${basename(__filename)}]: ${errMessage}`);
 		} finally {
 			this.state.params.clear();
 			globalHandler.finishCommand();
 		}
 	}
 
-	async addPaymentNalog(amount: number) {
+	async addPaymentNalog(chatId: number, username: string, amount: number) {
 		logger.log(`[${basename(__filename)}]: add nalog`);
+		try {
+			const token = await this.nalogService.auth();
+			const paymentId = await this.nalogService.addNalog(token, amount);
+			if (!paymentId) {
+				const errMessage = `Ошибка! При добавлении налога за пользователя ${username} не получен ID операции`;
+				logger.error(`[${basename(__filename)}]: ${errMessage}`);
+				await bot.sendMessage(chatId, errMessage);
+			} else {
+				const successMessage = `Налог успешно добавлен за пользователя ${username}`;
+				logger.success(`[${basename(__filename)}]: ${successMessage} `);
+				await bot.sendMessage(chatId, successMessage);
+			}
+		} catch (err) {
+			const errMessage = `Ошибка при добавлении налога для пользователя ${username}: ${err}`;
+			logger.error(`[${basename(__filename)}]: ${errMessage}`);
+			await bot.sendMessage(chatId, errMessage);
+		}
 	}
 
 	async sync(message: Message) {
