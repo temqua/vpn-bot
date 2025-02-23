@@ -1,5 +1,9 @@
-import type { Payment } from '@prisma/client';
+import type { Payment, User } from '@prisma/client';
 import { prisma } from '../../core/prisma';
+
+export type UserPayment = {
+	user: User;
+} & Payment;
 
 export class PaymentsRepository {
 	async create(
@@ -20,13 +24,21 @@ export class PaymentsRepository {
 		});
 	}
 
-	async findByUser(userId: number): Promise<Payment> {
+	async getLastPayment(userId: number): Promise<Payment> {
 		return await prisma.payment.findFirst({
 			where: {
 				userId,
 			},
 			orderBy: {
 				paymentDate: 'desc',
+			},
+		});
+	}
+
+	async getAllByUserId(userId: number): Promise<Payment[]> {
+		return await prisma.payment.findMany({
+			where: {
+				userId,
 			},
 		});
 	}

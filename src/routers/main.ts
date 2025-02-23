@@ -1,12 +1,14 @@
 import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
-import { isAdmin } from '../core';
+import { formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
 import { UserRequest, VPNProtocol } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
+import { PlansService } from '../entities/users/plans.service';
+import { PlanRepository } from '../entities/users/plans.repository';
 
 const keysHelpMessage = Object.values(VPNProtocol)
 	.filter(p => p !== VPNProtocol.Outline)
@@ -37,6 +39,8 @@ ${keysHelpMessage}
 /users
 /users sync
 `;
+
+const plansService = new PlansService(new PlanRepository());
 
 bot.onText(/\/start/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
@@ -83,6 +87,19 @@ bot.onText(/\/lookup/, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, 'Share user:', {
 		reply_markup: getUserContactKeyboard(UserRequest.Lookup),
 	});
+});
+
+bot.onText(/\/plans/, async (msg: Message) => {
+	const plans = await plansService.getAll();
+	for (const plan of plans) {
+		await bot.sendMessage(
+			msg.chat.id,
+			`${plan.name}
+Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
+Количество человек: ${plan.peopleCount}
+Продолжительность: ${plan.months} месяцев`,
+		);
+	}
 });
 
 bot.on('poll', p => {

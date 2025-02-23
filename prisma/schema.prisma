@@ -24,6 +24,7 @@ model User {
   languageCode String?       @default("ru") @map(name: "language_code")
   price        Int           @default(150) @map(name: "price")
   free         Boolean       @default(false) @map(name: "is_free")
+  currency     String        @default("RUB")
   payerId      Int?          @map(name: "payer_id")
   devices      Device[]      @default([])
   protocols    VPNProtocol[] @default([])
@@ -53,6 +54,7 @@ model Plan {
   amount      Int
   months      Int
   price       Int      @default(150)
+  currency    String   @default("RUB")
   peopleCount Int      @default(1) @map(name: "people_count")
   createdAt   DateTime @default(now()) @map("created_at")
 

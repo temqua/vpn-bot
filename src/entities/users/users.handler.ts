@@ -17,6 +17,7 @@ export interface UsersContext {
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;
+	subo?: VPNUserCommand;
 }
 
 class UsersCommandsHandler implements ICommandHandler {
@@ -66,6 +67,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.GetUser) {
 			await this.service.getById(message, context);
 		}
+		if (context.cmd === VPNUserCommand.Expand) {
+			await this.service.expand(message, context);
+		}
 		if (context.cmd === VPNUserCommand.Update) {
 			await this.service.update(message, context, this.state);
 		}
@@ -73,8 +77,11 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.delete(message, context, this.state.init);
 			this.state.init = false;
 		}
+		if (context.cmd === VPNUserCommand.ShowPayments) {
+			await this.service.showPayments(message, context);
+		}
 		if (context.cmd === VPNUserCommand.Pay) {
-			await this.service.pay(message, context, this.state.init);
+			await this.service.pay(message, context);
 		}
 	}
 

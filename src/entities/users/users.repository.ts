@@ -43,10 +43,15 @@ export class UsersRepository {
 		});
 	}
 
-	async getByTelegramId(telegramId: string): Promise<User> {
+	async getByTelegramId(telegramId: string): Promise<VPNUser> {
 		return await prisma.user.findUnique({
 			where: {
 				telegramId,
+			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
 			},
 		});
 	}
