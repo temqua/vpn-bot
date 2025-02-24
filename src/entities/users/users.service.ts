@@ -420,7 +420,7 @@ Amount: ${p.amount} ${p.currency}`,
 					`Последний платёж этого пользователя количеством ${lastPayment.amount} ${lastPayment.currency} создан ${formatDate(lastPayment.paymentDate)} на ${lastPayment.monthsCount} месяцев и истекает ${formatDate(lastPayment.expiresOn)}`,
 				);
 			}
-			const calculated = addMonths(lastPayment.expiresOn ?? new Date(), months);
+			const calculated = addMonths(lastPayment?.expiresOn ?? new Date(), months);
 			await bot.sendMessage(
 				message.chat.id,
 				`Вычисленная дата окончания работы: ${calculated.toISOString()}. 

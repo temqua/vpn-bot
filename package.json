@@ -1,6 +1,6 @@
 {
 	"name": "vpn-bot",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"description": "Simple Telegram bot for Dagon VPN management",
 	"main": "src/main.ts",
 	"scripts": {
@@ -24,7 +24,7 @@
 	},
 	"homepage": "https://github.com/temqua/vpn-bot#readme",
 	"dependencies": {
-		"@prisma/client": "^6.3.0",
+		"@prisma/client": "^6.4.0",
 		"date-fns": "^4.1.0",
 		"dotenv": "^16.4.1",
 		"envalid": "^8.0.0",
@@ -36,7 +36,7 @@
 		"@types/ms": "^0.7.34",
 		"@types/node-telegram-bot-api": "^0.64.7",
 		"prettier": "^3.2.5",
-		"prisma": "^6.3.0"
+		"prisma": "^6.4.0"
 	},
 	"peerDependencies": {
 		"typescript": "^5.3.3"
