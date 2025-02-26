@@ -45,6 +45,13 @@ async function main() {
 				peopleCount: 1,
 				price: 150,
 			},
+			{
+				amount: 400,
+				months: 1,
+				name: 'месяц за троих c 2025',
+				peopleCount: 1,
+				price: 150,
+			},
 		],
 	});
 }

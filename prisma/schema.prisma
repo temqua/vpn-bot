@@ -36,14 +36,17 @@ model User {
 }
 
 model Payment {
-  id          String    @id @default(uuid())
-  user        User      @relation(fields: [userId], references: [id])
-  userId      Int       @map(name: "user_id")
-  paymentDate DateTime  @default(now()) @map(name: "payment_date")
-  amount      Int
-  currency    String    @default("RUB")
-  monthsCount Int?      @map(name: "months_count")
-  expiresOn   DateTime? @map(name: "expires_on")
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          Int       @map(name: "user_id")
+  paymentDate     DateTime  @default(now()) @map(name: "payment_date")
+  amount          Int
+  currency        String    @default("RUB")
+  monthsCount     Int?      @map(name: "months_count")
+  expiresOn       DateTime? @map(name: "expires_on")
+  parentPaymentId String?   @map(name: "parent_payment_id")
+  parentPayment   Payment?  @relation("PaymentToChildPayment", fields: [parentPaymentId], references: [id])
+  childPayments   Payment[] @relation("PaymentToChildPayment")
 
   @@map("payments")
 }

@@ -4,12 +4,7 @@ import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-teleg
 import { basename } from 'path';
 import { formatDate } from '../../core';
 import bot from '../../core/bot';
-import {
-	acceptKeyboard,
-	createUserOperationsKeyboard,
-	getUserContactKeyboard,
-	skipKeyboard
-} from '../../core/buttons';
+import { acceptKeyboard, createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
 import { CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler, type CommandDetailCompressed } from '../../core/globalHandler';
 import logger from '../../core/logger';
