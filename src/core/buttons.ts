@@ -41,7 +41,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
-			text: 'Show Users',
+			text: 'All Users',
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
@@ -75,6 +75,38 @@ export const userButtons: InlineKeyboardButton[][] = [
 				s: CommandScope.Users,
 				c: {
 					cmd: VPNUserCommand.Pay,
+				},
+			}),
+		},
+	],
+];
+
+export const findUserButtons: InlineKeyboardButton[][] = [
+	[
+		{
+			text: 'Username',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.FindByUsername,
+				},
+			}),
+		},
+		{
+			text: 'Telegram contact',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.GetByTelegramId,
+				},
+			}),
+		},
+		{
+			text: 'First name',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.FindByFirstName,
 				},
 			}),
 		},

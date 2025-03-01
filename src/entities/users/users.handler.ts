@@ -1,13 +1,13 @@
 import type { User } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
-import bot from '../../core/bot';
 import type { ICommandHandler } from '../../core/contracts';
-import { UserRequest, VPNUserCommand } from '../../core/enums';
+import { VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import { PaymentsRepository } from './payments.repository';
+import { PaymentsService } from './payments.service';
+import { PlanRepository } from './plans.repository';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
-import { PlanRepository } from './plans.repository';
 
 export interface UsersContext {
 	cmd: VPNUserCommand;
@@ -21,7 +21,10 @@ export interface UsersContext {
 }
 
 class UsersCommandsHandler implements ICommandHandler {
-	constructor(private service: UsersService) {}
+	constructor(
+		private service: UsersService,
+		private paymentsService: PaymentsService,
+	) {}
 	private state = {
 		params: new Map(),
 		init: false,
@@ -41,31 +44,23 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
-		if (start && context.cmd === VPNUserCommand.Pay) {
-			await bot.sendMessage(message.chat.id, 'Share user', {
-				reply_markup: {
-					keyboard: [
-						[
-							{
-								text: 'Share contact',
-								request_user: {
-									request_id: UserRequest.Pay,
-								},
-							},
-						],
-					],
-					one_time_keyboard: true, // The keyboard will hide after one use
-					resize_keyboard: true, // Fit the keyboard to the screen size
-				},
-			});
-			this.state.init = false;
-			return;
+		if (context.cmd === VPNUserCommand.Pay) {
+			await this.paymentsService.pay(message, context, this.state.init);
 		}
 		if (context.cmd === VPNUserCommand.Create) {
 			await this.service.create(message, context, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.GetUser) {
+		if (context.cmd === VPNUserCommand.GetById) {
 			await this.service.getById(message, context);
+		}
+		if (context.cmd === VPNUserCommand.FindByUsername) {
+			await this.service.findByUsername(message, this.state.init);
+		}
+		if (context.cmd === VPNUserCommand.GetByTelegramId) {
+			await this.service.getByTelegramId(message, this.state.init);
+		}
+		if (context.cmd === VPNUserCommand.FindByFirstName) {
+			await this.service.findByFirstName(message, this.state.init);
 		}
 		if (context.cmd === VPNUserCommand.Expand) {
 			await this.service.expand(message, context);
@@ -78,10 +73,7 @@ class UsersCommandsHandler implements ICommandHandler {
 			this.state.init = false;
 		}
 		if (context.cmd === VPNUserCommand.ShowPayments) {
-			await this.service.showPayments(message, context);
-		}
-		if (context.cmd === VPNUserCommand.Pay) {
-			await this.service.pay(message, context);
+			await this.paymentsService.showPayments(message, context);
 		}
 	}
 
@@ -89,12 +81,15 @@ class UsersCommandsHandler implements ICommandHandler {
 		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text);
 		if (context.cmd === VPNUserCommand.Create) {
 			await this.service.create(null, context, false, selected);
-		} else {
+		} else if (context.cmd === VPNUserCommand.Update) {
 			await this.service.update(null, context, this.state, selected);
+		} else if (context.cmd === VPNUserCommand.Pay) {
+			await this.paymentsService.pay(null, context, false);
 		}
 	}
 }
 
 export const userCommandsHandler = new UsersCommandsHandler(
-	new UsersService(new UsersRepository(), new PaymentsRepository(), new PlanRepository()),
+	new UsersService(new UsersRepository()),
+	new PaymentsService(new PaymentsRepository(), new PlanRepository(), new UsersRepository()),
 );

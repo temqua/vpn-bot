@@ -56,6 +56,51 @@ export class UsersRepository {
 		});
 	}
 
+	async findByUsername(username: string): Promise<VPNUser[]> {
+		return await prisma.user.findMany({
+			where: {
+				username: {
+					mode: 'insensitive',
+					contains: username,
+				},
+			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
+			},
+		});
+	}
+
+	async getByUsername(username: string): Promise<VPNUser> {
+		return await prisma.user.findUnique({
+			where: {
+				username,
+			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
+			},
+		});
+	}
+
+	async findByFirstName(firstName: string): Promise<VPNUser[]> {
+		return await prisma.user.findMany({
+			where: {
+				firstName: {
+					mode: 'insensitive',
+					contains: firstName,
+				},
+			},
+			include: {
+				payer: true,
+				payments: true,
+				dependants: true,
+			},
+		});
+	}
+
 	async update(id: number, data) {
 		return await prisma.user.update({
 			where: {

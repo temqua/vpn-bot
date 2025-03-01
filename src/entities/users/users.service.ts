@@ -1,30 +1,20 @@
 import type { Device, VPNProtocol } from '@prisma/client';
-import { addMonths } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import { formatDate } from '../../core';
 import bot from '../../core/bot';
-import { acceptKeyboard, createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
+import { createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
 import { CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
-import { globalHandler, type CommandDetailCompressed } from '../../core/globalHandler';
+import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
 import env from '../../env';
-import { NalogService } from './nalog.service';
-import type { PaymentsRepository } from './payments.repository';
-import type { PlanRepository } from './plans.repository';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
 
 export class UsersService {
-	constructor(
-		private repository: UsersRepository,
-		private paymentsRepository: PaymentsRepository,
-		private plansRepository: PlanRepository,
-	) {}
-
-	private nalogService = new NalogService();
+	constructor(private repository: UsersRepository) {}
 
 	private state = {
 		params: new Map(),
@@ -36,12 +26,6 @@ export class UsersService {
 			telegramLink: false,
 			devices: false,
 			protocols: false,
-		},
-		paymentSteps: {
-			amount: false,
-			months: false,
-			expires: false,
-			nalog: false,
 		},
 	};
 
@@ -165,7 +149,7 @@ First name: ${result.firstName}`,
 				callback_data: JSON.stringify({
 					s: CommandScope.Users,
 					c: {
-						cmd: VPNUserCommand.GetUser,
+						cmd: VPNUserCommand.GetById,
 						id,
 					},
 					p: 1,
@@ -186,39 +170,74 @@ First name: ${result.firstName}`,
 		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
 	}
 
-	async getById(message: Message, context: UsersContext) {
-		logger.log(`[${basename(__filename)}]: getById`);
-		const user = await this.repository.getById(Number(context.id));
-		await bot.sendMessage(message.chat.id, this.formatUserInfo(user));
-		await bot.sendMessage(message.chat.id, 'Select operation', {
+	async findByFirstName(message: Message, start: boolean) {
+		logger.log(`[${basename(__filename)}]: findByFirstName`);
+		if (!start) {
+			const users = await this.repository.findByFirstName(message.text);
+			if (!users.length) {
+				await bot.sendMessage(message.chat.id, `No users found in system with first name ${message.text}`);
+			}
+			for (const user of users) {
+				await this.sendUserMenu(message.chat.id, user);
+			}
+		}
+		await bot.sendMessage(message.chat.id, 'Enter first name');
+	}
+
+	async findByUsername(message: Message, start: boolean) {
+		logger.log(`[${basename(__filename)}]: findByUsername`);
+		if (!start) {
+			const users = await this.repository.findByUsername(message.text);
+			if (!users.length) {
+				await bot.sendMessage(message.chat.id, `No users found in system with username ${message.text}`);
+			}
+			for (const user of users) {
+				await this.sendUserMenu(message.chat.id, user);
+			}
+			globalHandler.finishCommand();
+			return;
+		}
+		await bot.sendMessage(message.chat.id, 'Enter username');
+	}
+
+	async getByTelegramId(message: Message, start: boolean) {
+		logger.log(`[${basename(__filename)}]: getByTelegramId`);
+		if (!start) {
+			if (message?.user_shared) {
+				const user = await this.repository.getByTelegramId(message?.user_shared?.user_id?.toString());
+				if (user) {
+					await this.sendUserMenu(message.chat.id, user);
+				} else {
+					await bot.sendMessage(message.chat.id, 'User not found in system');
+				}
+			} else {
+				await bot.sendMessage(message.chat.id, 'You did not sent any telegram contact');
+			}
+			globalHandler.finishCommand();
+			return;
+		}
+		await bot.sendMessage(message.chat.id, 'Share user', {
 			reply_markup: {
-				inline_keyboard: [
+				keyboard: [
 					[
 						{
-							text: 'Update',
-							callback_data: JSON.stringify({
-								s: CommandScope.Users,
-								c: {
-									cmd: VPNUserCommand.Expand,
-									id: context.id,
-									subo: VPNUserCommand.Update,
-								},
-							}),
-						},
-						{
-							text: 'Payments',
-							callback_data: JSON.stringify({
-								s: CommandScope.Users,
-								c: {
-									cmd: VPNUserCommand.ShowPayments,
-									id: context.id,
-								},
-							}),
+							text: 'Share contact',
+							request_user: {
+								request_id: UserRequest.Get,
+							},
 						},
 					],
 				],
+				one_time_keyboard: true, // The keyboard will hide after one use
+				resize_keyboard: true, // Fit the keyboard to the screen size
 			},
 		});
+	}
+
+	async getById(message: Message, context: UsersContext) {
+		logger.log(`[${basename(__filename)}]: getById`);
+		const user = await this.repository.getById(Number(context.id));
+		await this.sendUserMenu(message.chat.id, user);
 		globalHandler.finishCommand();
 	}
 
@@ -229,24 +248,6 @@ First name: ${result.firstName}`,
 			createUserOperationsKeyboard(Number(context.id)),
 		);
 
-		globalHandler.finishCommand();
-	}
-
-	async showPayments(message: Message, context: UsersContext) {
-		const payments = await this.paymentsRepository.getAllByUserId(Number(context.id));
-		if (!payments.length) {
-			await bot.sendMessage(message.chat.id, 'No payments found for user');
-		}
-		for (const p of payments) {
-			await bot.sendMessage(
-				message.chat.id,
-				`UUID: ${p.id}				
-Payment Date: ${formatDate(p.paymentDate)}
-Months Count: ${p.monthsCount}
-Expires On: ${formatDate(p.expiresOn)}
-Amount: ${p.amount} ${p.currency}`,
-			);
-		}
 		globalHandler.finishCommand();
 	}
 
@@ -278,7 +279,7 @@ Amount: ${p.amount} ${p.currency}`,
 			return;
 		}
 		if (selectedOptions.length) {
-			const updated = await this.repository.update(context.id, {
+			const updated = await this.repository.update(Number(context.id), {
 				[context.prop]: selectedOptions,
 			});
 			logger.success(`Field ${context.prop} has been successfully updated for user ${context.id}`);
@@ -297,7 +298,7 @@ Amount: ${p.amount} ${p.currency}`,
 			globalHandler.finishCommand();
 			return;
 		}
-		const updated = await this.repository.update(context.id, {
+		const updated = await this.repository.update(Number(context.id), {
 			[context.prop]: textProp ? message.text : message.user_shared.user_id.toString(),
 		});
 		logger.success(`User info has been successfully updated for user ${context.id}`);
@@ -335,194 +336,6 @@ Amount: ${p.amount} ${p.currency}`,
 			},
 		};
 		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
-	}
-
-	async pay(message: Message, context: UsersContext) {
-		logger.log(
-			`[${basename(__filename)}]: pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`,
-		);
-		if (message.user_shared?.user_id) {
-			const user = await this.repository.getByTelegramId(message.user_shared.user_id.toString());
-			if (!user) {
-				const errorMessage = 'Пользователь не найден в системе';
-				logger.error(errorMessage);
-				await bot.sendMessage(message.chat.id, errorMessage);
-				this.state.params.clear();
-				globalHandler.finishCommand();
-				return;
-			}
-			this.state.params.set('user', user);
-			await bot.sendMessage(
-				message.chat.id,
-				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях`,
-			);
-			this.setActiveStep('amount', this.state.paymentSteps);
-			return;
-		}
-		const user: VPNUser = this.state.params.get('user');
-		if (!user) {
-			const errorMessage = `Ошибка при обработке платежа. Пользователь не найден в системе`;
-			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
-			await bot.sendMessage(message.chat.id, errorMessage);
-			this.state.params.clear();
-			globalHandler.finishCommand();
-			return;
-		}
-		if (this.state.paymentSteps.amount) {
-			const amount = Number(message.text);
-			this.state.params.set('amount', amount);
-			const dependants = user.dependants?.length ?? 0;
-			const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependants);
-			if (user.dependants?.length) {
-				await bot.sendMessage(
-					message.chat.id,
-					`Обнаружено ${user.dependants.length} зависимых клиентов: ${user.dependants.map(u => u.username).join(', ')}`,
-				);
-			}
-			if (plan) {
-				await bot.sendMessage(
-					message.chat.id,
-					`Найден план ${plan.name} для ${plan.amount} ${plan.currency}. 
-Цена: ${plan.price} 
-Количество человек: ${plan.peopleCount}
-Количество месяцев: ${plan.months}
-					`,
-				);
-			}
-			const monthsCount = plan
-				? plan.months
-				: // : dependants > 0
-					// ? Math.floor(amount / (user.price * (dependants + 1)))
-					Math.floor(amount / user.price);
-			await bot.sendMessage(
-				message.chat.id,
-				`Вычисленное количество месяцев на основании найденного плана, либо по существующей цене ${user.price} для пользователя: ${monthsCount}. Можно ввести своё количество ответным сообщением`,
-				acceptKeyboard,
-			);
-			this.state.params.set('months', monthsCount);
-			this.setActiveStep('months', this.state.paymentSteps);
-			return;
-		}
-		if (this.state.paymentSteps.months) {
-			if (!context.accept) {
-				this.state.params.set('months', Number(message.text));
-			}
-			let months = this.state.params.get('months');
-			const lastPayment = await this.paymentsRepository.getLastPayment(user.id);
-			if (lastPayment) {
-				await bot.sendMessage(
-					message.chat.id,
-					`Последний платёж этого пользователя количеством ${lastPayment.amount} ${lastPayment.currency} создан ${formatDate(lastPayment.paymentDate)} на ${lastPayment.monthsCount} месяцев и истекает ${formatDate(lastPayment.expiresOn)}`,
-				);
-			}
-			const calculated = addMonths(lastPayment?.expiresOn ?? new Date(), months);
-			await bot.sendMessage(
-				message.chat.id,
-				`Вычисленная дата окончания работы: ${calculated.toISOString()}. 
-Можно отправить свою дату в ISO формате 2025-01-01 или 2025-02-02T22:59:24Z`,
-				acceptKeyboard,
-			);
-			this.state.params.set('expires', calculated);
-			this.setActiveStep('expires', this.state.paymentSteps);
-			delete context.accept;
-			return;
-		}
-		if (this.state.paymentSteps.expires) {
-			if (!context.accept) {
-				this.state.params.set('expires', new Date(message.text));
-			}
-			await bot.sendMessage(message.chat.id, `Добавить налог? Если да, нажмите Accept`, {
-				reply_markup: {
-					inline_keyboard: [
-						[
-							{
-								text: 'Yes',
-								callback_data: JSON.stringify({
-									s: CommandScope.Users,
-									c: {
-										cmd: VPNUserCommand.Pay,
-										accept: 1,
-									},
-									p: 1,
-								} as CommandDetailCompressed),
-							},
-							{
-								text: 'No',
-								callback_data: JSON.stringify({
-									s: CommandScope.Users,
-									c: {
-										cmd: VPNUserCommand.Pay,
-										accept: 0,
-									},
-									p: 1,
-								} as CommandDetailCompressed),
-							},
-						],
-					],
-				},
-			});
-			this.state.params.set('nalog', false);
-			this.setActiveStep('nalog', this.state.paymentSteps);
-			delete context.accept;
-			return;
-		}
-		if (this.state.paymentSteps.nalog) {
-			this.state.params.set('nalog', Boolean(context?.accept));
-		}
-		try {
-			const amount = this.state.params.get('amount');
-			const monthsCount = this.state.params.get('months');
-			const expiresOn = this.state.params.get('expires');
-			const nalog = this.state.params.get('nalog');
-			const result = await this.paymentsRepository.create(
-				user.id,
-				Number(amount),
-				Number(monthsCount),
-				expiresOn,
-			);
-			if (result) {
-				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. 
-Новая дата истечения срока ${formatDate(expiresOn)}. 
-ID платежа ${result.id}`;
-				logger.success(`${basename(__filename)}: ${successMessage}`);
-				await bot.sendMessage(message.chat.id, successMessage);
-				if (nalog) {
-					await this.addPaymentNalog(message.chat.id, user.username, amount);
-				}
-			} else {
-				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} не был создан`;
-				logger.error(`[${basename(__filename)}]: ${errMessage}`);
-				await bot.sendMessage(message.chat.id, errMessage);
-			}
-		} catch (err) {
-			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username} ${err}`;
-			logger.error(`[${basename(__filename)}]: ${errMessage}`);
-			await bot.sendMessage(message.chat.id, errMessage);
-		} finally {
-			this.state.params.clear();
-			globalHandler.finishCommand();
-		}
-	}
-
-	async addPaymentNalog(chatId: number, username: string, amount: number) {
-		logger.log(`[${basename(__filename)}]: add nalog`);
-		try {
-			const token = await this.nalogService.auth();
-			const paymentId = await this.nalogService.addNalog(token, amount);
-			if (!paymentId) {
-				const errMessage = `Ошибка! При добавлении налога за пользователя ${username} не получен ID операции`;
-				logger.error(`[${basename(__filename)}]: ${errMessage}`);
-				await bot.sendMessage(chatId, errMessage);
-			} else {
-				const successMessage = `Налог успешно добавлен за пользователя ${username}`;
-				logger.success(`[${basename(__filename)}]: ${successMessage} `);
-				await bot.sendMessage(chatId, successMessage);
-			}
-		} catch (err) {
-			const errMessage = `Ошибка при добавлении налога для пользователя ${username}: ${err}`;
-			logger.error(`[${basename(__filename)}]: ${errMessage}`);
-			await bot.sendMessage(chatId, errMessage);
-		}
 	}
 
 	async sync(message: Message) {
@@ -568,10 +381,6 @@ ID платежа ${result.id}`;
 
 	private setCreateStep(current: string) {
 		this.setActiveStep(current, this.state.createSteps);
-	}
-
-	private setPaymentStep(current: string) {
-		this.setActiveStep(current, this.state.paymentSteps);
 	}
 
 	private setActiveStep(current: string, steps) {
@@ -623,6 +432,49 @@ ID платежа ${result.id}`;
 	private resetCreateSteps() {
 		Object.keys(this.state.createSteps).forEach(k => {
 			this.state.createSteps[k] = false;
+		});
+	}
+
+	private async sendUserMenu(chatId: number, user: VPNUser) {
+		await bot.sendMessage(chatId, this.formatUserInfo(user));
+		await bot.sendMessage(chatId, 'Select operation', {
+			reply_markup: {
+				inline_keyboard: [
+					[
+						{
+							text: 'Update',
+							callback_data: JSON.stringify({
+								s: CommandScope.Users,
+								c: {
+									cmd: VPNUserCommand.Expand,
+									id: user.id,
+									subo: VPNUserCommand.Update,
+								},
+							}),
+						},
+						{
+							text: 'Payments',
+							callback_data: JSON.stringify({
+								s: CommandScope.Users,
+								c: {
+									cmd: VPNUserCommand.ShowPayments,
+									id: user.id,
+								},
+							}),
+						},
+						{
+							text: 'Pay',
+							callback_data: JSON.stringify({
+								s: CommandScope.Users,
+								c: {
+									cmd: VPNUserCommand.Pay,
+									id: user.id,
+								},
+							}),
+						},
+					],
+				],
+			},
 		});
 	}
 

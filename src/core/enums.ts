@@ -16,7 +16,10 @@ export enum VPNUserCommand {
 	Create = 'cr',
 	List = 'list',
 	Delete = 'del',
-	GetUser = 'get',
+	GetById = 'getid',
+	FindByUsername = 'findus',
+	GetByTelegramId = 'gettg',
+	FindByFirstName = 'findfn',
 	Update = 'u',
 	Pay = 'pay',
 	Sync = 'sync',
@@ -34,4 +37,5 @@ export enum UserRequest {
 	Update,
 	Pay,
 	Lookup,
+	Get,
 }

@@ -58,6 +58,12 @@ bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
 		return;
 	}
 
+	if (msg.text && ['cancel', 'Cancel'].includes(msg.text)) {
+		await bot.sendMessage(msg.chat.id, 'Отправлена команда отмены всех других команд');
+		globalHandler.finishCommand();
+		return;
+	}
+
 	if (globalHandler.hasActiveCommand()) {
 		globalHandler.handleNewMessage(msg);
 		return;

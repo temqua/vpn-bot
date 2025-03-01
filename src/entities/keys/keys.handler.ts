@@ -28,7 +28,6 @@ class KeysCommandsHandler implements ICommandHandler {
 			await bot.sendMessage(message.chat.id, 'Enter username');
 			return;
 		}
-		await bot.sendMessage(message.chat.id, `Selected operation ${context.cmd}`);
 		const method = commandsMap[context.cmd];
 		const service = new CertificatesService(context.pr);
 		await service[method](message, message.text);
