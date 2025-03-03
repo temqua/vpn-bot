@@ -1,4 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
+import childProcess from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
 import path from 'node:path';
@@ -8,8 +9,7 @@ import type { ICertificatesService } from '../../core/contracts';
 import logger from '../../core/logger';
 import env from '../../env';
 
-const exec = util.promisify(require('node:child_process').exec);
-
+const exec = util.promisify(childProcess.exec);
 export class IKEv2KeysService implements ICertificatesService {
 	async getFile(message: Message, username: string) {
 		logger.log(`[${__filename}]: getFile ${username}`);
@@ -36,10 +36,10 @@ export class IKEv2KeysService implements ICertificatesService {
 		logger.log(`[${__filename}]: getAll`);
 		try {
 			const { stdout, stderr } = await exec(`ikev2.sh --listclients`);
-			if (!!stdout) {
+			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while getting IKEv2 clients: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
@@ -59,10 +59,10 @@ export class IKEv2KeysService implements ICertificatesService {
 			const command = `bash ${env.CREATE_PATH} ${username.toString()} ikev2`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
-			if (!!stdout) {
+			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while creating IKEv2 client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
@@ -81,10 +81,10 @@ export class IKEv2KeysService implements ICertificatesService {
 		logger.log(`[${__filename}]: delete ${username}`);
 		try {
 			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} ikev2`);
-			if (!!stdout) {
+			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while deleting IKEv2 client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);

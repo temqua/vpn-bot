@@ -3,9 +3,9 @@ import { spawn } from 'node:child_process';
 import bot from './bot';
 import logger from './logger';
 import util from 'node:util';
+import childProcess from 'node:child_process';
 
-const exec = util.promisify(require('node:child_process').exec);
-
+const exec = util.promisify(childProcess.exec);
 export class LogsService {
 	async vnstat(msg: Message, flags: string[] = []) {
 		try {
@@ -35,10 +35,10 @@ export class LogsService {
 	async wg(msg: Message) {
 		try {
 			const { stdout, stderr } = await exec('wg');
-			if (!!stdout) {
+			if (stdout) {
 				await bot.sendMessage(msg.chat.id, stdout.toString());
 			}
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while executing wg command: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(msg.chat.id, errorMsg);

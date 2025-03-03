@@ -1,25 +1,29 @@
-import type { Payment, User } from '@prisma/client';
+import type { Payment, Plan, User } from '@prisma/client';
 import { prisma } from '../../core/prisma';
+
+export type UserPaymentDto = {
+	amount: number;
+	monthsCount: number;
+	expiresOn: Date;
+	plan?: Plan;
+	parentPaymentId?: string;
+};
 
 export type UserPayment = {
 	user: User;
 } & Payment;
 
 export class PaymentsRepository {
-	async create(
-		userId: number,
-		amount: number,
-		monthsCount: number,
-		expiresOn: Date,
-		currency = 'RUB',
-	): Promise<Payment> {
+	async create(userId: number, paymentParams: UserPaymentDto): Promise<Payment> {
 		return await prisma.payment.create({
 			data: {
 				userId,
-				currency,
-				amount,
-				monthsCount,
-				expiresOn,
+				amount: paymentParams.amount,
+				monthsCount: paymentParams.monthsCount,
+				expiresOn: paymentParams.expiresOn,
+				planId: paymentParams.plan?.id ?? null,
+				parentPaymentId: paymentParams.parentPaymentId ?? null,
+				currency: 'RUB',
 			},
 		});
 	}
@@ -39,6 +43,14 @@ export class PaymentsRepository {
 		return await prisma.payment.findMany({
 			where: {
 				userId,
+			},
+		});
+	}
+
+	async getById(id: string): Promise<Payment> {
+		return await prisma.payment.findUnique({
+			where: {
+				id,
 			},
 		});
 	}

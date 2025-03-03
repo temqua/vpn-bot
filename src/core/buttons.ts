@@ -93,7 +93,7 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
-			text: 'Telegram contact',
+			text: 'Contact',
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
 				c: {
@@ -273,4 +273,35 @@ export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
 			inline_keyboard: createUserOperationsInlineKeyboard(id),
 		},
 	};
+};
+
+export const yesNoKeyboard: SendBasicOptions = {
+	reply_markup: {
+		inline_keyboard: [
+			[
+				{
+					text: 'Yes',
+					callback_data: JSON.stringify({
+						s: CommandScope.Users,
+						c: {
+							cmd: VPNUserCommand.Pay,
+							accept: 1,
+						},
+						p: 1,
+					} as CommandDetailCompressed),
+				},
+				{
+					text: 'No',
+					callback_data: JSON.stringify({
+						s: CommandScope.Users,
+						c: {
+							cmd: VPNUserCommand.Pay,
+							accept: 0,
+						},
+						p: 1,
+					} as CommandDetailCompressed),
+				},
+			],
+		],
+	},
 };

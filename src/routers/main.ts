@@ -1,14 +1,13 @@
-import type TelegramBot from 'node-telegram-bot-api';
 import type { Message } from 'node-telegram-bot-api';
-import { formatDate, isAdmin } from '../core';
+import { isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
 import { UserRequest, VPNProtocol } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
-import { PlansService } from '../entities/users/plans.service';
 import { PlanRepository } from '../entities/users/plans.repository';
+import { PlansService } from '../entities/users/plans.service';
 
 const keysHelpMessage = Object.values(VPNProtocol)
 	.filter(p => p !== VPNProtocol.Outline)
@@ -51,7 +50,7 @@ bot.onText(/\/start/, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, startMessage);
 });
 
-bot.on('message', async (msg: Message, metadata: TelegramBot.Metadata) => {
+bot.on('message', async (msg: Message) => {
 	logger.log(`${msg.from.id} (${msg.from.first_name}) — ${msg.text}`);
 	if (!isAdmin(msg)) {
 		await bot.sendMessage(msg.chat.id, 'Forbidden');

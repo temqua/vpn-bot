@@ -1,4 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
+import childProcess from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
 import { homedir } from 'node:os';
@@ -9,8 +10,7 @@ import type { ICertificatesService } from '../../core/contracts';
 import logger from '../../core/logger';
 import env from '../../env';
 
-const exec = util.promisify(require('node:child_process').exec);
-
+const exec = util.promisify(childProcess.exec);
 export class WireguardKeysService implements ICertificatesService {
 	async getFile(message: Message, username: string) {
 		logger.log(`[${__filename}]: getFile ${username}`);
@@ -37,7 +37,7 @@ export class WireguardKeysService implements ICertificatesService {
 		logger.log(`[${__filename}]: getAll`);
 		try {
 			const { stdout, stderr } = await exec(`bash wireguard.sh --listclients`);
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while getting WireGuard clients: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
@@ -58,10 +58,10 @@ export class WireguardKeysService implements ICertificatesService {
 			const command = `bash ${env.CREATE_PATH} ${username.toString()} wg`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
-			if (!!stdout) {
+			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while creating wireguard client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
@@ -78,10 +78,10 @@ export class WireguardKeysService implements ICertificatesService {
 		logger.log(`[${__filename}]: delete ${username}`);
 		try {
 			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} wg`);
-			if (!!stdout) {
+			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
-			if (!!stderr) {
+			if (stderr) {
 				const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);

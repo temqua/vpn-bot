@@ -49,7 +49,7 @@ async function main() {
 				amount: 400,
 				months: 1,
 				name: 'месяц за троих c 2025',
-				peopleCount: 1,
+				peopleCount: 3,
 				price: 150,
 			},
 		],
