@@ -249,22 +249,32 @@ export const acceptKeyboard: SendBasicOptions = {
 	},
 };
 
+export const updateProps = [
+	'username',
+	'telegramId',
+	'telegramLink',
+	'firstName',
+	'lastName',
+	'price',
+	'devices',
+	'protocols',
+	'payerId',
+];
+
 const createUserOperationsInlineKeyboard = (id: number) => {
-	return ['username', 'telegramId', 'telegramLink', 'firstName', 'lastName', 'devices', 'protocols', 'payerId'].map(
-		prop => [
-			{
-				text: `${prop}`,
-				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
-						cmd: VPNUserCommand.Update,
-						prop,
-						id,
-					},
-				}),
-			} as InlineKeyboardButton,
-		],
-	);
+	return updateProps.map(prop => [
+		{
+			text: `${prop}`,
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.Update,
+					prop,
+					id,
+				},
+			}),
+		} as InlineKeyboardButton,
+	]);
 };
 
 export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {

@@ -1,6 +1,6 @@
 {
 	"name": "vpn-bot",
-	"version": "2.6.0",
+	"version": "2.6.1",
 	"description": "Simple Telegram bot for Dagon VPN management",
 	"main": "src/main.ts",
 	"scripts": {

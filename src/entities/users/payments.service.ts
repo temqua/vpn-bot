@@ -50,16 +50,25 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			await bot.sendMessage(message.chat.id, 'No payments found for user');
 		}
 		for (const p of payments) {
-			await bot.sendMessage(message.chat.id, this.formatPayment(p));
-			if (p.parentPaymentId) {
-				const parentPayment = await this.repository.getById(p.parentPaymentId);
-				if (parentPayment) {
-					await bot.sendMessage(
-						message.chat.id,
-						`Parent payment info:
-${this.formatPayment(parentPayment)}`,
-					);
-				}
+			if (!p.parentPaymentId) {
+				await bot.sendMessage(message.chat.id, this.formatPayment(p));
+				continue;
+			}
+			await bot.sendMessage(
+				message.chat.id,
+				`Child payment ${p.id}
+Expires On: ${formatDate(p.expiresOn)}`,
+			);
+			const parentPayment = await this.repository.getById(p.parentPaymentId);
+			if (parentPayment) {
+				await bot.sendMessage(
+					message.chat.id,
+					`Parent payment ${parentPayment.id}
+Payment Date: ${formatDate(parentPayment.paymentDate)}
+Months Count: ${parentPayment.monthsCount}
+Expires On: ${formatDate(parentPayment.expiresOn)}
+Amount: ${parentPayment.amount} ${parentPayment.currency}`,
+				);
 			}
 		}
 		globalHandler.finishCommand();

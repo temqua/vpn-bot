@@ -28,6 +28,7 @@ export class UsersService {
 			protocols: false,
 		},
 	};
+	private textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
 
 	async create(
 		message: Message,
@@ -258,23 +259,9 @@ First name: ${result.firstName}`,
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
 		logger.log(`[${basename(__filename)}]: update`);
-		const textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
-		const textProp = textProps.includes(context.prop);
+		const textProp = this.textProps.includes(context.prop);
 		if (state.init) {
-			if (textProp) {
-				await bot.sendMessage(message.chat.id, `Enter ${context.prop}`);
-			} else if (context.prop === 'telegramId') {
-				await bot.sendMessage(message.chat.id, 'Share user:', {
-					reply_markup: getUserContactKeyboard(UserRequest.Update),
-				});
-			} else if (context.prop === 'payerId') {
-				this.state.params.set('updateId', context.id);
-				await this.getPossiblePayers(message);
-			} else {
-				await bot.sendPoll(message.chat.id, `Select ${context.prop}`, pollOptions[context.prop], {
-					allows_multiple_answers: true,
-				});
-			}
+			this.initUpdate(message, context);
 			state.init = false;
 			return;
 		}
@@ -298,9 +285,13 @@ First name: ${result.firstName}`,
 			globalHandler.finishCommand();
 			return;
 		}
-		const updated = await this.repository.update(Number(context.id), {
+		const updateDto = {
 			[context.prop]: textProp ? message.text : message.user_shared.user_id.toString(),
-		});
+		};
+		if (updateDto.price) {
+			updateDto.price = Number(updateDto.price);
+		}
+		const updated = await this.repository.update(Number(context.id), updateDto);
 		logger.success(`User info has been successfully updated for user ${context.id}`);
 		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated));
 		globalHandler.finishCommand();
@@ -390,23 +381,58 @@ First name: ${result.firstName}`,
 		});
 	}
 
+	private async initUpdate(message: Message, context: UsersContext) {
+		const textProp = this.textProps.includes(context.prop);
+		if (textProp) {
+			await bot.sendMessage(message.chat.id, `Enter ${context.prop}`);
+		} else if (context.prop === 'telegramId') {
+			await bot.sendMessage(message.chat.id, 'Share user:', {
+				reply_markup: getUserContactKeyboard(UserRequest.Update),
+			});
+		} else if (context.prop === 'payerId') {
+			this.state.params.set('updateId', context.id);
+			await this.getPossiblePayers(message);
+		} else {
+			await bot.sendPoll(message.chat.id, `Select ${context.prop}`, pollOptions[context.prop], {
+				allows_multiple_answers: true,
+			});
+		}
+	}
+
 	private async getPossiblePayers(message: Message) {
 		const users = await this.repository.payersList();
 		const chunkSize = 50;
-		const buttons = users.map(({ id, username, firstName, lastName }) => [
-			{
-				text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
-				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
-						cmd: VPNUserCommand.Update,
-						id,
-						prop: 'payerId',
+		const buttons = users
+			.map(({ id, username, firstName, lastName }) => [
+				{
+					text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
+					callback_data: JSON.stringify({
+						s: CommandScope.Users,
+						c: {
+							cmd: VPNUserCommand.Update,
+							id,
+							prop: 'payerId',
+						},
+						p: 1,
+					}),
+				} as InlineKeyboardButton,
+			])
+			.concat([
+				[
+					{
+						text: 'Set null',
+						callback_data: JSON.stringify({
+							s: CommandScope.Users,
+							c: {
+								cmd: VPNUserCommand.Update,
+								id: null,
+								prop: 'payerId',
+							},
+							p: 1,
+						}),
 					},
-					p: 1,
-				}),
-			} as InlineKeyboardButton,
-		]);
+				],
+			]);
 		const chunksCount = Math.ceil(buttons.length / chunkSize);
 		for (let i = 0; i < chunksCount; i++) {
 			const chunk = buttons.slice(i * chunkSize, i * chunkSize + chunkSize);

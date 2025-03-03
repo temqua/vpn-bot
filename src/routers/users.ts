@@ -13,18 +13,18 @@ bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	const inlineKeyboard = {
-		reply_markup: {
-			inline_keyboard: userButtons,
-		},
-	};
-	await bot.sendMessage(msg.chat.id, 'Select command:', inlineKeyboard);
 	const findUsersKeyboard = {
 		reply_markup: {
 			inline_keyboard: findUserButtons,
 		},
 	};
 	await bot.sendMessage(msg.chat.id, 'Find user by', findUsersKeyboard);
+	const inlineKeyboard = {
+		reply_markup: {
+			inline_keyboard: userButtons,
+		},
+	};
+	await bot.sendMessage(msg.chat.id, 'Select command:', inlineKeyboard);
 });
 
 bot.onText(/\/users$/, async (msg: Message) => {
