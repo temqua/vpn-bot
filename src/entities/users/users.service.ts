@@ -36,9 +36,8 @@ export class UsersService {
 		start = false,
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
-		logger.log(
-			`[${basename(__filename)}]: create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'start'}`,
-		);
+		this.log(`create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'start'}`);
+
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Share user. For skipping just send any text', {
@@ -141,7 +140,7 @@ First name: ${result.firstName}`,
 	}
 
 	async list(message: Message) {
-		logger.log(`[${basename(__filename)}]: list`);
+		this.log('list');
 		const users = await this.repository.list();
 		const chunkSize = 50;
 		const buttons = users.map(({ id, username, firstName, lastName }) => [
@@ -172,7 +171,7 @@ First name: ${result.firstName}`,
 	}
 
 	async findByFirstName(message: Message, start: boolean) {
-		logger.log(`[${basename(__filename)}]: findByFirstName`);
+		this.log('findByFirstName');
 		if (!start) {
 			const users = await this.repository.findByFirstName(message.text);
 			if (!users.length) {
@@ -186,7 +185,8 @@ First name: ${result.firstName}`,
 	}
 
 	async findByUsername(message: Message, start: boolean) {
-		logger.log(`[${basename(__filename)}]: findByUsername`);
+		this.log('findByUsername');
+
 		if (!start) {
 			const users = await this.repository.findByUsername(message.text);
 			if (!users.length) {
@@ -202,7 +202,7 @@ First name: ${result.firstName}`,
 	}
 
 	async getByTelegramId(message: Message, start: boolean) {
-		logger.log(`[${basename(__filename)}]: getByTelegramId`);
+		this.log('getByTelegramId');
 		if (!start) {
 			if (message?.user_shared) {
 				const user = await this.repository.getByTelegramId(message?.user_shared?.user_id?.toString());
@@ -236,7 +236,7 @@ First name: ${result.firstName}`,
 	}
 
 	async getById(message: Message, context: UsersContext) {
-		logger.log(`[${basename(__filename)}]: getById`);
+		this.log('getById');
 		const user = await this.repository.getById(Number(context.id));
 		await this.sendUserMenu(message.chat.id, user);
 		globalHandler.finishCommand();
@@ -258,7 +258,7 @@ First name: ${result.firstName}`,
 		state: { init: boolean },
 		selectedOptions: (Device | VPNProtocol)[] = [],
 	) {
-		logger.log(`[${basename(__filename)}]: update`);
+		this.log('update');
 		const textProp = this.textProps.includes(context.prop);
 		if (state.init) {
 			this.initUpdate(message, context);
@@ -298,7 +298,7 @@ First name: ${result.firstName}`,
 	}
 
 	async delete(msg: Message, context: UsersContext, start: boolean) {
-		logger.log(`[${basename(__filename)}]: delete`);
+		this.log('delete');
 		if (!start) {
 			await this.repository.delete(Number(context.id));
 			const message = `User with id ${context.id} has been successfully removed`;
@@ -330,34 +330,21 @@ First name: ${result.firstName}`,
 	}
 
 	async sync(message: Message) {
-		logger.log(`[${basename(__filename)}]: sync`);
+		this.log('sync');
 		const data = await this.repository.list();
-		const header = [
-			'id',
-			'username',
-			'telegram ID',
-			'telegram link',
-			'first name',
-			'last name',
-			'price',
-			'is free',
-			'devices',
-			'protocols',
-			'created at',
-		];
 		const preparedData = data.map(row => {
 			return [
-				row.id ? row.id.toString() : '',
+				row.firstName ?? '',
+				row.lastName ?? '',
 				row.username ?? '',
 				row.telegramId ?? '',
 				row.telegramLink ?? '',
-				row.firstName ?? '',
-				row.lastName ?? '',
+				row.id ? row.id.toString() : '',
 				row.price ? row.price.toString() : '',
-				row.free ? 'TRUE' : 'FALSE',
 				row.devices?.length ? row.devices.join(', ') : '',
 				row.protocols?.length ? row.protocols.join(', ') : '',
-				row.createdAt ? row.createdAt.toISOString() : '',
+				row.createdAt ? new Date(row.createdAt).toLocaleString('en-US', { timeZone: 'UTC' }) : '',
+				row.free ? true : false,
 			];
 		});
 		try {
@@ -368,6 +355,26 @@ First name: ${result.firstName}`,
 			logger.error(`[${basename(__filename)}]: Users sync process finished with error: ${error}`);
 			await bot.sendMessage(message.chat.id, `❌ Users sync process finished with error: ${error}`);
 		}
+	}
+
+	async showUnpaid(message: Message) {
+		this.log('upaid');
+		const users = await this.repository.getUnpaidUsers();
+		for (const user of users) {
+			await bot.sendMessage(message.chat.id, `User ${user.username} have no payments for next month.`);
+			if (user.payments.length) {
+				const lastPayment = user.payments[0];
+				await bot.sendMessage(
+					message.chat.id,
+					`Last payment UUID ${lastPayment.id}
+	Payment Date: ${formatDate(lastPayment.paymentDate)}
+	Months count: ${lastPayment.monthsCount}
+	Expires on: ${formatDate(lastPayment.expiresOn)}
+	Amount: ${lastPayment.amount}`,
+				);
+			}
+		}
+		globalHandler.finishCommand();
 	}
 
 	private setCreateStep(current: string) {
@@ -518,5 +525,9 @@ Price: ${user.price}
 Created At: ${formatDate(user.createdAt)}
 ${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}
 		`;
+	}
+
+	private log(message: string) {
+		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
 }

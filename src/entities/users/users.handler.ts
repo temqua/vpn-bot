@@ -75,6 +75,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.ShowPayments) {
 			await this.paymentsService.showPayments(message, context);
 		}
+		if (context.cmd === VPNUserCommand.ShowUnpaid) {
+			await this.service.showUnpaid(message);
+		}
 	}
 
 	async handlePoll(context: UsersContext, poll: Poll) {

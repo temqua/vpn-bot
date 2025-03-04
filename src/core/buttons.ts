@@ -51,6 +51,15 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+		{
+			text: 'Unpaid',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.ShowUnpaid,
+				},
+			}),
+		},
 	],
 ];
 

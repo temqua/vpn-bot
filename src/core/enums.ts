@@ -26,6 +26,7 @@ export enum VPNUserCommand {
 	Sync = 'sync',
 	Expand = 'e',
 	ShowPayments = 'sp',
+	ShowUnpaid = 'su',
 }
 
 export enum CommandScope {

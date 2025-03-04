@@ -146,4 +146,25 @@ export class UsersRepository {
 			},
 		});
 	}
+
+	async getUnpaidUsers() {
+		return await prisma.user.findMany({
+			where: {
+				payments: {
+					none: {
+						expiresOn: {
+							gt: new Date(),
+						},
+					},
+				},
+			},
+			include: {
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
+			},
+		});
+	}
 }

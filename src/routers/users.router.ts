@@ -3,7 +3,7 @@ import { isAdmin } from '../core';
 import bot from '../core/bot';
 import { findUserButtons, userButtons } from '../core/buttons';
 import { CommandScope, VPNUserCommand } from '../core/enums';
-import { globalHandler, type CommandDetails } from '../core/globalHandler';
+import { globalHandler } from '../core/globalHandler';
 import { UsersRepository } from '../entities/users/users.repository';
 import { UsersService } from '../entities/users/users.service';
 
@@ -31,39 +31,60 @@ bot.onText(/\/users$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	const data: CommandDetails = {
-		scope: CommandScope.Users,
-		context: {
-			cmd: VPNUserCommand.List,
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.List,
+			},
 		},
-	};
-	globalHandler.execute(data, msg);
+		msg,
+	);
+});
+
+bot.onText(/\/users\s+unpaid$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.ShowUnpaid,
+			},
+		},
+		msg,
+	);
 });
 
 bot.onText(/\/user\s+create$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	const data: CommandDetails = {
-		scope: CommandScope.Users,
-		context: {
-			cmd: VPNUserCommand.Create,
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.Create,
+			},
 		},
-	};
-	globalHandler.execute(data, msg);
+		msg,
+	);
 });
 
 bot.onText(/\/user\s+delete$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	const data: CommandDetails = {
-		scope: CommandScope.Users,
-		context: {
-			cmd: VPNUserCommand.Delete,
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.Delete,
+			},
 		},
-	};
-	globalHandler.execute(data, msg);
+		msg,
+	);
 });
 
 bot.onText(/\/users\s+sync/, async (msg: Message) => {

@@ -35,15 +35,6 @@ export class PaymentsService {
 		},
 	};
 
-	private formatPayment(p: Payment) {
-		return `UUID: ${p.id}				
-Payment Date: ${formatDate(p.paymentDate)}
-Months Count: ${p.monthsCount}
-Expires On: ${formatDate(p.expiresOn)}
-Amount: ${p.amount} ${p.currency}
-${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
-	}
-
 	async showPayments(message: Message, context: UsersContext) {
 		const payments = await this.repository.getAllByUserId(Number(context.id));
 		if (!payments.length) {
@@ -75,9 +66,7 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 	}
 
 	async pay(message: Message, context: UsersContext, start: boolean) {
-		logger.log(
-			`[${basename(__filename)}]: pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`,
-		);
+		this.log(`pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`);
 		if (start) {
 			this.setActiveStep('user', this.state.paymentSteps);
 			if (!context.id) {
@@ -175,8 +164,8 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 		await this.executePayment(message.chat.id, user);
 	}
 
-	async addPaymentNalog(chatId: number, username: string, amount: number) {
-		logger.log(`[${basename(__filename)}]: add nalog`);
+	private async addPaymentNalog(chatId: number, username: string, amount: number) {
+		this.log('add nalog');
 		try {
 			const token = await this.nalogService.auth();
 			const paymentId = await this.nalogService.addNalog(token, amount);
@@ -196,23 +185,13 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 		}
 	}
 
-	private setPaymentStep(current: string) {
-		this.setActiveStep(current, this.state.paymentSteps);
-	}
-
-	private setActiveStep(current: string, steps) {
-		Object.keys(steps).forEach(k => {
-			steps[k] = false;
-			steps[current] = true;
-		});
-	}
-
-	private getActiveStep(steps) {
-		const result = Object.keys(steps).filter(k => steps[k]);
-		if (result.length) {
-			return result[0];
-		}
-		return null;
+	private formatPayment(p: Payment) {
+		return `UUID: ${p.id}				
+Payment Date: ${formatDate(p.paymentDate)}
+Months Count: ${p.monthsCount}
+Expires On: ${formatDate(p.expiresOn)}
+Amount: ${p.amount} ${p.currency}
+${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 	}
 
 	private async calculateMonthsCount(chatId: number, user: VPNUser) {
@@ -328,5 +307,28 @@ ID платежа ${result.id}`;
 			this.state.params.clear();
 			globalHandler.finishCommand();
 		}
+	}
+
+	private setPaymentStep(current: string) {
+		this.setActiveStep(current, this.state.paymentSteps);
+	}
+
+	private setActiveStep(current: string, steps) {
+		Object.keys(steps).forEach(k => {
+			steps[k] = false;
+			steps[current] = true;
+		});
+	}
+
+	private getActiveStep(steps) {
+		const result = Object.keys(steps).filter(k => steps[k]);
+		if (result.length) {
+			return result[0];
+		}
+		return null;
+	}
+
+	private log(message: string) {
+		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
 }

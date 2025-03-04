@@ -1,7 +1,7 @@
 {
 	"name": "vpn-bot",
-	"version": "2.7.0",
-	"description": "Simple Telegram bot for Dagon VPN management",
+	"version": "2.8.0",
+	"description": "Simple Telegram bot for Tesseract VPN management",
 	"main": "src/main.ts",
 	"scripts": {
 		"prestart": "bunx prisma generate",
