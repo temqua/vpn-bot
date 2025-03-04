@@ -343,7 +343,7 @@ First name: ${result.firstName}`,
 				row.price ? row.price.toString() : '',
 				row.devices?.length ? row.devices.join(', ') : '',
 				row.protocols?.length ? row.protocols.join(', ') : '',
-				row.createdAt ? new Date(row.createdAt).toLocaleString('en-US', { timeZone: 'UTC' }) : '',
+				row.createdAt ? new Date(row.createdAt).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
 				row.free ? true : false,
 			];
 		});
