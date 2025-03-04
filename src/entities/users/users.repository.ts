@@ -150,6 +150,7 @@ export class UsersRepository {
 	async getUnpaidUsers() {
 		return await prisma.user.findMany({
 			where: {
+				free: false,
 				payments: {
 					none: {
 						expiresOn: {
