@@ -97,7 +97,7 @@ accessUrl: \`${key.accessUrl}\``,
 						parse_mode: 'MarkdownV2',
 					},
 				);
-				logger.success(`Outline user ${username} was successfully created`);
+				logger.success(`Outline user ${username} has been successfully created`);
 			} else {
 				const errorMessage = `Outline user ${username} was not created correctly`;
 				logger.error(errorMessage);
@@ -123,7 +123,7 @@ accessUrl: \`${key.accessUrl}\``,
 				);
 				return;
 			}
-			const successMessage = `Outline user ${id} was successfully deleted`;
+			const successMessage = `Outline user ${id} has been successfully deleted`;
 			logger.success(successMessage);
 			await bot.sendMessage(message.chat.id, successMessage);
 		} catch (error) {

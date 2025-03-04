@@ -47,12 +47,10 @@ export class OutlineService {
 	}
 
 	async delete(context: KeysContext, message: Message, start: boolean) {
-		logger.log(`[${basename(__filename)}]: delete.${start ? ' Started' : ''}`);
+		logger.log(`[${basename(__filename)}]: delete${start ? ' Operation start' : ''}`);
 		if (!start) {
 			await bot.sendMessage(message.chat.id, 'Selected user id to delete: ' + context.id);
 			await this.service.delete(message, context.id);
-			logger.success(`Outline user ${context.id} has been successfully deleted`);
-			await bot.sendMessage(message.chat.id, `Outline user ${context.id} was successfully deleted`);
 			globalHandler.finishCommand();
 			return;
 		}

@@ -2,33 +2,6 @@ import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from
 import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './globalHandler';
 
-const createKeyButtonsParams = Object.entries(VPNProtocol).map(([label, protocol]) => {
-	return {
-		text: label,
-		callback_data: JSON.stringify({
-			s: CommandScope.Keys,
-			c: {
-				cmd: VPNKeyCommand.Create,
-				pr: protocol,
-			},
-		}),
-	} as InlineKeyboardButton;
-});
-
-const listKeysButtonParams = Object.entries(VPNProtocol).map(
-	([label, protocol]) =>
-		({
-			text: `${label} Users`,
-			callback_data: JSON.stringify({
-				s: CommandScope.Keys,
-				c: {
-					cmd: VPNKeyCommand.List,
-					pr: protocol,
-				},
-			}),
-		}) as InlineKeyboardButton,
-);
-
 export const userButtons: InlineKeyboardButton[][] = [
 	[
 		{
@@ -113,70 +86,76 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 	],
 ];
 
+export const getProtocolButtons = (operation: VPNKeyCommand) => {
+	return Object.entries(VPNProtocol)
+		.filter(([_, protocol]) => !(operation === VPNKeyCommand.GetFile && protocol === VPNProtocol.Outline))
+		.map(
+			([label, protocol]) =>
+				({
+					text: label,
+					callback_data: JSON.stringify({
+						s: CommandScope.Keys,
+						c: {
+							cmd: operation,
+							pr: protocol,
+						},
+					}),
+				}) as InlineKeyboardButton,
+		);
+};
+
 export const keyButtons: InlineKeyboardButton[][] = [
-	...Object.entries(VPNProtocol).map(([protocolLabel, protocol]) => {
-		return [
-			{
-				text: `Create ${protocolLabel}`,
-				callback_data: JSON.stringify({
-					s: CommandScope.Keys,
-					c: {
-						cmd: VPNKeyCommand.Create,
-						pr: protocol,
-					},
-				}),
-			},
-			{
-				text: `Show ${protocolLabel}`,
-				callback_data: JSON.stringify({
-					s: CommandScope.Keys,
-					c: {
-						cmd: VPNKeyCommand.List,
-						pr: protocol,
-					},
-				}),
-			},
-			{
-				text: `Delete ${protocolLabel}`,
-				callback_data: JSON.stringify({
-					s: CommandScope.Keys,
-					c: {
-						cmd: VPNKeyCommand.Delete,
-						pr: protocol,
-					},
-				}),
-			},
-		];
-	}),
 	[
 		{
-			text: 'Get File IKEv2',
+			text: 'Create',
 			callback_data: JSON.stringify({
 				s: CommandScope.Keys,
 				c: {
-					cmd: VPNKeyCommand.GetFile,
-					pr: VPNProtocol.IKEv2,
+					cmd: VPNKeyCommand.Expand,
+					subo: VPNKeyCommand.Create,
 				},
 			}),
 		},
 		{
-			text: 'Get File WireGuard',
+			text: 'Delete',
 			callback_data: JSON.stringify({
 				s: CommandScope.Keys,
 				c: {
-					cmd: VPNKeyCommand.GetFile,
-					pr: VPNProtocol.WG,
+					cmd: VPNKeyCommand.Expand,
+					subo: VPNKeyCommand.Delete,
+				},
+			}),
+		},
+	],
+	[
+		{
+			text: 'Get File',
+			callback_data: JSON.stringify({
+				s: CommandScope.Keys,
+				c: {
+					cmd: VPNKeyCommand.Expand,
+					subo: VPNKeyCommand.GetFile,
+				},
+			}),
+		},
+		{
+			text: 'Show',
+			callback_data: JSON.stringify({
+				s: CommandScope.Keys,
+				c: {
+					cmd: VPNKeyCommand.Expand,
+					subo: VPNKeyCommand.List,
 				},
 			}),
 		},
 	],
 ];
 
-export const inlineButtons = [...keyButtons, ...userButtons];
+export const showKeysButtons = [getProtocolButtons(VPNKeyCommand.List)];
 
-export const showKeysButtons = [listKeysButtonParams];
+export const createButtons = [getProtocolButtons(VPNKeyCommand.Create)];
 
-export const createButtons = [createKeyButtonsParams];
+export const deleteButtons = [getProtocolButtons(VPNKeyCommand.Delete)];
 
 export function getUserContactKeyboard(requestId: UserRequest, text = 'Share user contact'): ReplyKeyboardMarkup {
 	return {

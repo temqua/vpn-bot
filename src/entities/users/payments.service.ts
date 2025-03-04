@@ -304,8 +304,8 @@ ID платежа ${result.id}`;
 						});
 						if (childResult) {
 							const successMessage = `Платёж для дочернего юзера на ${monthsCount} месяцев был успешно обработан для пользователя ${dep.username}. 
-							Новая дата истечения срока ${formatDate(expiresOn)}. 
-							ID платежа ${result.id}`;
+Новая дата истечения срока ${formatDate(expiresOn)}. 
+ID платежа ${result.id}`;
 							logger.success(`${basename(__filename)}: ${successMessage}`);
 							await bot.sendMessage(chatId, successMessage);
 						} else {

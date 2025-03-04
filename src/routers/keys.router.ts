@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
 import bot from '../core/bot';
-import { createButtons, keyButtons, showKeysButtons } from '../core/buttons';
+import { createButtons, deleteButtons, keyButtons, showKeysButtons } from '../core/buttons';
 import { CommandScope, VPNKeyCommand, VPNProtocol } from '../core/enums';
 import { globalHandler } from '../core/globalHandler';
 import { CertificatesService } from '../entities/keys/certificates.service';
@@ -15,7 +15,7 @@ bot.onText(/\/key$/, async (msg: Message) => {
 			inline_keyboard: keyButtons,
 		},
 	};
-	await bot.sendMessage(msg.chat.id, 'Select protocol', inlineKeyboard);
+	await bot.sendMessage(msg.chat.id, 'Select operation', inlineKeyboard);
 });
 
 bot.onText(/\/keys$/, async (msg: Message) => {
@@ -27,7 +27,7 @@ bot.onText(/\/keys$/, async (msg: Message) => {
 			inline_keyboard: showKeysButtons,
 		},
 	};
-	await bot.sendMessage(msg.chat.id, 'Select command', inlineKeyboard);
+	await bot.sendMessage(msg.chat.id, 'Select protocol', inlineKeyboard);
 });
 
 bot.onText(/\/key\s+create$/, async (msg: Message) => {
@@ -39,7 +39,19 @@ bot.onText(/\/key\s+create$/, async (msg: Message) => {
 			inline_keyboard: createButtons,
 		},
 	};
-	await bot.sendMessage(msg.chat.id, 'Select certificate to create:', inlineKeyboard);
+	await bot.sendMessage(msg.chat.id, 'Select protocol:', inlineKeyboard);
+});
+
+bot.onText(/\/key\s+delete$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const inlineKeyboard = {
+		reply_markup: {
+			inline_keyboard: deleteButtons,
+		},
+	};
+	await bot.sendMessage(msg.chat.id, 'Select protocol:', inlineKeyboard);
 });
 
 bot.onText(/\/key\s+create\s+wg$/, async (msg: Message) => {

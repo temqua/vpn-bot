@@ -10,6 +10,7 @@ export enum VPNKeyCommand {
 	Delete = 'del',
 	GetFile = 'f',
 	GetUser = 'get',
+	Expand = 'e',
 }
 
 export enum VPNUserCommand {
