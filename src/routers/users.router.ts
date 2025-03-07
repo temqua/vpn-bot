@@ -113,5 +113,5 @@ bot.onText(/\/user\s+unpaid/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	bot.sendMessage(msg.chat.id, "Correct command is /users unpaid")
+	bot.sendMessage(msg.chat.id, 'Correct command is /users unpaid');
 });

@@ -361,18 +361,25 @@ First name: ${result.firstName}`,
 		this.log('upaid');
 		const users = await this.repository.getUnpaidUsers();
 		for (const user of users) {
-			await bot.sendMessage(message.chat.id, `User ${user.username} have no payments for next month.`);
 			if (user.payments.length) {
 				const lastPayment = user.payments[0];
 				await bot.sendMessage(
 					message.chat.id,
-					`Last payment UUID ${lastPayment.id}
+					`User ${user.username} last payment UUID ${lastPayment.id}
 	Payment Date: ${formatDate(lastPayment.paymentDate)}
 	Months count: ${lastPayment.monthsCount}
 	Expires on: ${formatDate(lastPayment.expiresOn)}
 	Amount: ${lastPayment.amount}`,
 				);
 			}
+		}
+		if (users.length) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Users 
+${users.map(u => u.username).join('\n')} 
+have no payments for next month.`,
+			);
 		}
 		globalHandler.finishCommand();
 	}
