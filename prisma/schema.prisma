@@ -24,6 +24,8 @@ model User {
   languageCode String?       @default("ru") @map(name: "language_code")
   price        Int           @default(150) @map(name: "price")
   free         Boolean       @default(false) @map(name: "is_free")
+  active       Boolean       @default(true)
+  bank         String?
   currency     String        @default("RUB")
   payerId      Int?          @map(name: "payer_id")
   devices      Device[]      @default([])

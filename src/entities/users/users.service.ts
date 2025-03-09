@@ -1,10 +1,10 @@
-import type { Device, VPNProtocol } from '@prisma/client';
+import type { Device, User, VPNProtocol } from '@prisma/client';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import { formatDate } from '../../core';
 import bot from '../../core/bot';
 import { createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
-import { CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
+import { Bank, BoolFieldState, CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
@@ -26,15 +26,18 @@ export class UsersService {
 			telegramLink: false,
 			devices: false,
 			protocols: false,
+			bank: false,
 		},
 	};
 	private textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
+	private boolProps = ['active', 'free'];
+	private numberProps = ['price'];
 
 	async create(
 		message: Message,
 		context: UsersContext,
 		start = false,
-		selectedOptions: (Device | VPNProtocol)[] = [],
+		selectedOptions: (Device | VPNProtocol | Bank)[] = [],
 	) {
 		this.log(`create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'start'}`);
 
@@ -94,24 +97,41 @@ export class UsersService {
 			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
 				allows_multiple_answers: true,
 			});
+			await bot.sendMessage(chatId, 'Skip', skipKeyboard);
 			this.setCreateStep('devices');
 			return;
 		}
 		if (this.state.createSteps.devices) {
-			this.state.params.set('devices', selectedOptions);
+			if (!context.skip) {
+				this.state.params.set('devices', selectedOptions);
+			}
 			await bot.sendPoll(chatId, 'Choose protocols', pollOptions.protocols, {
 				allows_multiple_answers: true,
 			});
+			await bot.sendMessage(chatId, 'Skip', skipKeyboard);
 			this.setCreateStep('protocols');
 			return;
 		}
 		if (this.state.createSteps.protocols) {
-			this.state.params.set('protocols', selectedOptions);
+			if (!context.skip) {
+				this.state.params.set('protocols', selectedOptions);
+			}
+			await bot.sendPoll(chatId, 'Choose bank', pollOptions.banks, {
+				allows_multiple_answers: false,
+			});
+			await bot.sendMessage(chatId, 'Skip', skipKeyboard);
+			this.setCreateStep('bank');
+			return;
+		}
+		if (this.state.createSteps.bank) {
+			if (!context.skip) {
+				this.state.params.set('bank', selectedOptions[0]);
+			}
 		}
 		const params = this.state.params;
 		const username = params.get('username');
 		try {
-			const result = await this.repository.create(
+			const newUser = await this.repository.create(
 				username,
 				params.get('first_name'),
 				params.get('telegram_id'),
@@ -119,14 +139,10 @@ export class UsersService {
 				params.get('last_name'),
 				params.get('devices'),
 				params.get('protocols'),
+				params.get('bank'),
 			);
-			await bot.sendMessage(
-				chatId,
-				`User successfully created 
-id: ${result.id}				
-Username: ${result.username} 
-First name: ${result.firstName}`,
-			);
+			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
+			await this.sendUserMenu(chatId, newUser);
 		} catch (error) {
 			logger.error(
 				`[${basename(__filename)}]: Unexpected error occurred while creating user ${username}: ${error}`,
@@ -256,22 +272,32 @@ First name: ${result.firstName}`,
 		message: Message,
 		context: UsersContext,
 		state: { init: boolean },
-		selectedOptions: (Device | VPNProtocol)[] = [],
+		selectedOptions: (Device | VPNProtocol | Bank | BoolFieldState)[] = [],
 	) {
 		this.log('update');
 		const textProp = this.textProps.includes(context.prop);
+		const boolProp = this.boolProps.includes(context.prop);
+		const numberProp = this.numberProps.includes(context.prop);
 		if (state.init) {
 			this.initUpdate(message, context);
 			state.init = false;
 			return;
 		}
+		if (boolProp) {
+			const value = selectedOptions[0] === 'true';
+			await this.applyUpdate(context.chatId, Number(context.id), context.prop, value);
+			return;
+		}
 		if (selectedOptions.length) {
-			const updated = await this.repository.update(Number(context.id), {
-				[context.prop]: selectedOptions,
-			});
-			logger.success(`Field ${context.prop} has been successfully updated for user ${context.id}`);
-			await bot.sendMessage(context.chatId, this.formatUserInfo(updated));
-			globalHandler.finishCommand();
+			let value: string | boolean | string[];
+			if (context.prop === 'bank') {
+				value = selectedOptions[0];
+			} else if (boolProp) {
+				value = selectedOptions[0] === 'true';
+			} else {
+				value = selectedOptions;
+			}
+			await this.applyUpdate(context.chatId, Number(context.id), context.prop, value);
 			return;
 		}
 		if (context.prop === 'payerId') {
@@ -285,16 +311,12 @@ First name: ${result.firstName}`,
 			globalHandler.finishCommand();
 			return;
 		}
-		const updateDto = {
-			[context.prop]: textProp ? message.text : message.user_shared.user_id.toString(),
-		};
-		if (updateDto.price) {
-			updateDto.price = Number(updateDto.price);
-		}
-		const updated = await this.repository.update(Number(context.id), updateDto);
-		logger.success(`User info has been successfully updated for user ${context.id}`);
-		await bot.sendMessage(message.chat.id, this.formatUserInfo(updated));
-		globalHandler.finishCommand();
+		const newValue = textProp
+			? message.text
+			: numberProp
+				? Number(message.text)
+				: message.user_shared.user_id.toString();
+		this.applyUpdate(message.chat.id, Number(context.id), context.prop, newValue);
 	}
 
 	async delete(msg: Message, context: UsersContext, start: boolean) {
@@ -397,11 +419,16 @@ have no payments for next month.`,
 
 	private async initUpdate(message: Message, context: UsersContext) {
 		const textProp = this.textProps.includes(context.prop);
+		const boolProp = this.boolProps.includes(context.prop);
 		if (textProp) {
 			await bot.sendMessage(message.chat.id, `Enter ${context.prop}`);
 		} else if (context.prop === 'telegramId') {
 			await bot.sendMessage(message.chat.id, 'Share user:', {
 				reply_markup: getUserContactKeyboard(UserRequest.Update),
+			});
+		} else if (boolProp) {
+			await bot.sendPoll(message.chat.id, `Choose new state`, pollOptions.boolFieldState, {
+				allows_multiple_answers: false,
 			});
 		} else if (context.prop === 'payerId') {
 			this.state.params.set('updateId', context.id);
@@ -461,6 +488,17 @@ have no payments for next month.`,
 		await bot.sendMessage(message.chat.id, `Total count ${users.length}`);
 	}
 
+	private async applyUpdate(chatId: number, id: number, prop: string, value: string[] | number | string | boolean) {
+		const updated = await this.repository.update(id, {
+			[prop]: value,
+		});
+		logger.success(`Field ${prop} has been successfully updated for user ${id}`);
+		await bot.sendMessage(chatId, this.formatUserInfo(updated));
+		this.state.params.clear();
+		globalHandler.finishCommand();
+		return;
+	}
+
 	private getActiveStep(steps) {
 		const result = Object.keys(steps).filter(k => steps[k]);
 		if (result.length) {
@@ -475,7 +513,7 @@ have no payments for next month.`,
 		});
 	}
 
-	private async sendUserMenu(chatId: number, user: VPNUser) {
+	private async sendUserMenu(chatId: number, user: User | VPNUser) {
 		await bot.sendMessage(chatId, this.formatUserInfo(user));
 		await bot.sendMessage(chatId, 'Select operation', {
 			reply_markup: {
@@ -518,10 +556,10 @@ have no payments for next month.`,
 		});
 	}
 
-	private formatUserInfo(user: VPNUser) {
+	private formatUserInfo(user: VPNUser | User) {
 		return `
-id: ${user.id}
-username: ${user.username}
+ID: ${user.id}
+Username: ${user.username}
 First Name: ${user.firstName}
 Last Name: ${user.lastName}
 Telegram Link: ${user.telegramLink}
@@ -530,7 +568,10 @@ Devices: ${user.devices.join(', ')}
 Protocols: ${user.protocols.join(', ')}
 Price: ${user.price}
 Created At: ${formatDate(user.createdAt)}
+${user.bank ? 'Bank: ' + user.bank : ''}
+${user.free ? 'Is free' : ''}
 ${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}
+${user.active ? '' : 'Inactive'}
 		`;
 	}
 

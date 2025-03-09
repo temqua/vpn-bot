@@ -41,3 +41,23 @@ export enum UserRequest {
 	Lookup,
 	Get,
 }
+
+export enum Bank {
+	Sberbank = 'Сбербанк',
+	T = 'Т-Банк',
+	PSB = 'Промсвязьбанк',
+	Gazprombank = 'Газпромбанк',
+	Alpha = 'Альфа-банк',
+	Ozon = 'Ozon Банк',
+	Sovcombank = 'Совкомбанк',
+	Raiffeisen = 'Райффайзен Банк',
+	VTB = 'ВТБ',
+	Uralsib = 'Уралсиб',
+	// Pochta = 'Почта Банк',
+	// Ren = 'Ренессанс Банк'
+}
+
+export enum BoolFieldState {
+	True = 'true',
+	False = 'false',
+}

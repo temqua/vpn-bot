@@ -12,8 +12,8 @@ import { UsersService } from './users.service';
 export interface UsersContext {
 	cmd: VPNUserCommand;
 	id?: string;
-	skip?: number;
-	accept?: number;
+	skip?: 1 | 0;
+	accept?: 1 | 0;
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;

@@ -1,4 +1,4 @@
-import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
+import type { Bank, Device, Payment, User, VPNProtocol } from '@prisma/client';
 import { prisma } from '../../core/prisma';
 
 export type VPNUser = User & {
@@ -16,7 +16,8 @@ export class UsersRepository {
 		lastName: string | null,
 		devices: Device[],
 		protocols: VPNProtocol[],
-	) {
+		bank: Bank,
+	): Promise<User> {
 		return await prisma.user.create({
 			data: {
 				username,
@@ -26,6 +27,7 @@ export class UsersRepository {
 				lastName,
 				devices,
 				protocols,
+				bank,
 			},
 		});
 	}
@@ -151,6 +153,7 @@ export class UsersRepository {
 		return await prisma.user.findMany({
 			where: {
 				free: false,
+				active: true,
 				payments: {
 					none: {
 						expiresOn: {

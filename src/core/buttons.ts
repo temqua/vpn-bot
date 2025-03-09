@@ -246,6 +246,9 @@ export const updateProps = [
 	'price',
 	'devices',
 	'protocols',
+	'bank',
+	'active',
+	'free',
 	'payerId',
 ];
 
