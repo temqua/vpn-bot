@@ -116,7 +116,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.state.params.set('protocols', selectedOptions);
 			}
-			await bot.sendPoll(chatId, 'Choose bank', pollOptions.banks, {
+			await bot.sendPoll(chatId, 'Choose bank', pollOptions.bank, {
 				allows_multiple_answers: false,
 			});
 			await bot.sendMessage(chatId, 'Skip', skipKeyboard);

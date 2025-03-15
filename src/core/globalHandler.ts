@@ -26,7 +26,7 @@ class GlobalHandler {
 	}
 
 	finishCommand() {
-		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Finished ${this.activeCommand.context.cmd} command`);
+		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Finished ${this.activeCommand?.context?.cmd} command`);
 		this.activeCommand = null;
 	}
 
@@ -34,7 +34,7 @@ class GlobalHandler {
 		if (!this.activeCommand) {
 			return;
 		}
-		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand.context.cmd} command`);
+		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
 		userCommandsHandler.handlePoll(this.activeCommand.context as UsersContext, poll);
 	}
 
@@ -42,14 +42,14 @@ class GlobalHandler {
 		if (!this.activeCommand) {
 			return;
 		}
-		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand.context.cmd} command`);
+		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
 		const handler: ICommandHandler =
 			this.activeCommand.scope === CommandScope.Keys ? keysCommandsHandler : userCommandsHandler;
 		handler.handle(this.activeCommand.context, message);
 	}
 
 	async execute(command: CommandDetails, message: Message) {
-		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command.context.cmd} command`);
+		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command?.context?.cmd} command`);
 		this.activeCommand = command;
 		const handler: ICommandHandler =
 			this.activeCommand.scope === CommandScope.Keys ? keysCommandsHandler : userCommandsHandler;
