@@ -420,7 +420,8 @@ have no payments for next month.`,
 	private async initUpdate(message: Message, context: UsersContext) {
 		const textProp = this.textProps.includes(context.prop);
 		const boolProp = this.boolProps.includes(context.prop);
-		if (textProp) {
+		const numberProp = this.numberProps.includes(context.prop);
+		if (textProp || numberProp) {
 			await bot.sendMessage(message.chat.id, `Enter ${context.prop}`);
 		} else if (context.prop === 'telegramId') {
 			await bot.sendMessage(message.chat.id, 'Share user:', {
