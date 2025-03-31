@@ -436,7 +436,7 @@ have no payments for next month.`,
 			await this.getPossiblePayers(message);
 		} else {
 			await bot.sendPoll(message.chat.id, `Select ${context.prop}`, pollOptions[context.prop], {
-				allows_multiple_answers: true,
+				allows_multiple_answers: context.prop !== 'bank',
 			});
 		}
 	}
