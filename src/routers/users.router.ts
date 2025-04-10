@@ -4,10 +4,7 @@ import bot from '../core/bot';
 import { findUserButtons, userButtons } from '../core/buttons';
 import { CommandScope, VPNUserCommand } from '../core/enums';
 import { globalHandler } from '../core/globalHandler';
-import { UsersRepository } from '../entities/users/users.repository';
-import { UsersService } from '../entities/users/users.service';
-
-const usersService = new UsersService(new UsersRepository());
+import { usersService } from '../entities/users/users.service';
 
 bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {

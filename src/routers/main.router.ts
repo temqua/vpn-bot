@@ -1,13 +1,15 @@
 import type { Message } from 'node-telegram-bot-api';
-import { isAdmin } from '../core';
+import { formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
 import { UserRequest, VPNProtocol } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
+import { paymentsService } from '../entities/users/payments.service';
 import { PlanRepository } from '../entities/users/plans.repository';
 import { PlansService } from '../entities/users/plans.service';
+import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
 
 const keysHelpMessage = Object.values(VPNProtocol)
 	.filter(p => p !== VPNProtocol.Outline)
@@ -23,7 +25,7 @@ const keysHelpMessage = Object.values(VPNProtocol)
 		return acc + current;
 	}, '');
 
-const startMessage = `
+const adminStartMessage = `
 /keys
 /key
 /key create
@@ -37,17 +39,30 @@ ${keysHelpMessage}
 /user pay
 /users
 /users sync
+/payments
 `;
+
+const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
+/me — для просмотра информации, которая хранится о вас
+/payments — для просмотра истории ваших платежей
+`;
+
+const usersRepository = new UsersRepository();
 
 const plansService = new PlansService(new PlanRepository());
 
 bot.onText(/\/start/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
 	logger.success('Ready');
-	await bot.sendMessage(msg.chat.id, '✅ Ready');
-	await bot.sendMessage(msg.chat.id, startMessage);
+	if (isAdmin(msg)) {
+		await bot.sendMessage(msg.chat.id, '✅ Ready');
+		await bot.sendMessage(msg.chat.id, adminStartMessage);
+	} else {
+		const user = await usersRepository.getByTelegramId(msg.from.id.toString());
+		if (user) {
+			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${user.firstName}!`);
+		}
+		await bot.sendMessage(msg.chat.id, userStartMessage);
+	}
 });
 
 bot.on('message', async (msg: Message) => {
@@ -121,3 +136,44 @@ bot.on('callback_query', async query => {
 	};
 	globalHandler.execute(data, query.message);
 });
+
+bot.onText(/\/me/, async (msg: Message) => {
+	const user = await usersRepository.getByTelegramId(msg.from.id.toString());
+	if (user) {
+		bot.sendMessage(msg.chat.id, formatUserInfo(user));
+	} else {
+		bot.sendMessage(msg.chat.id, 'Вы не зарегистрированы в системе');
+	}
+});
+
+bot.onText(/\/payments/, async (msg: Message) => {
+	if (isAdmin(msg)) {
+		await paymentsService.showAll(msg);
+		return;
+	}
+	const user = await usersRepository.getByTelegramId(msg.from.id.toString());
+	if (!user) {
+		await bot.sendMessage(msg.chat.id, 'Вы не зарегистрированы в системе');
+		return;
+	}
+	await paymentsService.showPayments(msg, {
+		id: user.id,
+	});
+});
+
+function formatUserInfo(user: VPNUser) {
+	return `
+О вас хранится следующая информация:
+Username: ${user.username}
+First Name: ${user.firstName}
+Last Name: ${user.lastName}
+Telegram Link: ${user.telegramLink}
+Telegram Id: ${user.telegramId}
+Devices: ${user.devices.join(', ')}
+Protocols: ${user.protocols.join(', ')}
+Created At: ${formatDate(user.createdAt)}
+${user.bank ? 'Bank: ' + user.bank : ''}
+${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}
+${user.active ? '' : 'Inactive'}
+	`;
+}

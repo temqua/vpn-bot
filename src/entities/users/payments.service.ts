@@ -9,10 +9,10 @@ import { UserRequest } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import logger from '../../core/logger';
 import { NalogService } from './nalog.service';
-import type { PaymentsRepository } from './payments.repository';
-import type { PlanRepository } from './plans.repository';
+import { PaymentsRepository } from './payments.repository';
+import { PlanRepository } from './plans.repository';
 import type { UsersContext } from './users.handler';
-import type { UsersRepository, VPNUser } from './users.repository';
+import { UsersRepository, type VPNUser } from './users.repository';
 
 export class PaymentsService {
 	constructor(
@@ -38,29 +38,10 @@ export class PaymentsService {
 	async showPayments(message: Message, context: UsersContext) {
 		const payments = await this.repository.getAllByUserId(Number(context.id));
 		if (!payments.length) {
-			await bot.sendMessage(message.chat.id, 'No payments found for user');
+			await bot.sendMessage(message.chat.id, 'Не найдено платежей для данного пользователя');
 		}
 		for (const p of payments) {
-			if (!p.parentPaymentId) {
-				await bot.sendMessage(message.chat.id, this.formatPayment(p));
-				continue;
-			}
-			await bot.sendMessage(
-				message.chat.id,
-				`Child payment ${p.id}
-Expires On: ${formatDate(p.expiresOn)}`,
-			);
-			const parentPayment = await this.repository.getById(p.parentPaymentId);
-			if (parentPayment) {
-				await bot.sendMessage(
-					message.chat.id,
-					`Parent payment ${parentPayment.id}
-Payment Date: ${formatDate(parentPayment.paymentDate)}
-Months Count: ${parentPayment.monthsCount}
-Expires On: ${formatDate(parentPayment.expiresOn)}
-Amount: ${parentPayment.amount} ${parentPayment.currency}`,
-				);
-			}
+			await this.showPaymentInfo(message, p);
 		}
 		globalHandler.finishCommand();
 	}
@@ -162,6 +143,13 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 			this.state.params.set('dependants', Boolean(context?.accept));
 		}
 		await this.executePayment(message.chat.id, user);
+	}
+
+	async showAll(msg: Message) {
+		const payments = await this.repository.getAll();
+		for (const p of payments) {
+			await this.showPaymentInfo(msg, p);
+		}
 	}
 
 	private async addPaymentNalog(chatId: number, username: string, amount: number) {
@@ -309,6 +297,29 @@ ID платежа ${result.id}`;
 		}
 	}
 
+	private async showPaymentInfo(message: Message, p: Payment) {
+		if (!p.parentPaymentId) {
+			await bot.sendMessage(message.chat.id, this.formatPayment(p));
+			return;
+		}
+		await bot.sendMessage(
+			message.chat.id,
+			`Child payment ${p.id}
+Expires On: ${formatDate(p.expiresOn)}`,
+		);
+		const parentPayment = await this.repository.getById(p.parentPaymentId);
+		if (parentPayment) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Parent payment ${parentPayment.id}
+Payment Date: ${formatDate(parentPayment.paymentDate)}
+Months Count: ${parentPayment.monthsCount}
+Expires On: ${formatDate(parentPayment.expiresOn)}
+Amount: ${parentPayment.amount} ${parentPayment.currency}`,
+			);
+		}
+	}
+
 	private setPaymentStep(current: string) {
 		this.setActiveStep(current, this.state.paymentSteps);
 	}
@@ -332,3 +343,9 @@ ID платежа ${result.id}`;
 		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
 }
+
+export const paymentsService = new PaymentsService(
+	new PaymentsRepository(),
+	new PlanRepository(),
+	new UsersRepository(),
+);

@@ -580,3 +580,5 @@ ${user.active ? '' : 'Inactive'}
 		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
 }
+
+export const usersService = new UsersService(new UsersRepository());

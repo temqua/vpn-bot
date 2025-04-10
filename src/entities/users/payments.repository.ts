@@ -54,4 +54,8 @@ export class PaymentsRepository {
 			},
 		});
 	}
+
+	async getAll(): Promise<Payment[]> {
+		return await prisma.payment.findMany();
+	}
 }
