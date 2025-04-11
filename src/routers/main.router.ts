@@ -67,10 +67,6 @@ bot.onText(/\/start/, async (msg: Message) => {
 
 bot.on('message', async (msg: Message) => {
 	logger.log(`${msg.from.id} (${msg.from.first_name}) — ${msg.text}`);
-	if (!isAdmin(msg)) {
-		await bot.sendMessage(msg.chat.id, 'Forbidden');
-		return;
-	}
 
 	if (msg.text && ['cancel', 'Cancel'].includes(msg.text)) {
 		await bot.sendMessage(msg.chat.id, 'Отправлена команда отмены всех других команд');
