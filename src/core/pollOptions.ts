@@ -1,4 +1,4 @@
-import { Device, VPNProtocol } from '@prisma/client';
+import { Device, SpendingCategory, VPNProtocol } from '@prisma/client';
 import { Bank, BoolFieldState } from './enums';
 
 export default {
@@ -6,4 +6,5 @@ export default {
 	protocols: Object.values(VPNProtocol),
 	bank: Object.values(Bank),
 	boolFieldState: Object.values(BoolFieldState),
+	spendCategories: Object.values(SpendingCategory),
 };

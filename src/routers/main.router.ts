@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import { formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
-import { UserRequest, VPNProtocol } from '../core/enums';
+import { CommandScope, UserRequest, VPNProtocol } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
@@ -10,6 +10,7 @@ import { paymentsService } from '../entities/users/payments.service';
 import { PlanRepository } from '../entities/users/plans.repository';
 import { PlansService } from '../entities/users/plans.service';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
+import { SpendingCategory } from '@prisma/client';
 
 const keysHelpMessage = Object.values(VPNProtocol)
 	.filter(p => p !== VPNProtocol.Outline)
@@ -155,6 +156,49 @@ bot.onText(/\/payments/, async (msg: Message) => {
 	await paymentsService.showPayments(msg, {
 		id: user.id,
 	});
+});
+
+bot.onText(/\/spending$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Spendings,
+			context: {},
+		},
+		msg,
+	);
+});
+
+bot.onText(/\/spending\s+nalog/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Spendings,
+			context: {
+				category: SpendingCategory.Nalog,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(/\/spending\s+servers/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Spendings,
+			context: {
+				category: SpendingCategory.Servers,
+			},
+		},
+		msg,
+	);
 });
 
 function formatUserInfo(user: VPNUser) {

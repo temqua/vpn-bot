@@ -1,7 +1,7 @@
 import type { Device, User, VPNProtocol } from '@prisma/client';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
-import { formatDate } from '../../core';
+import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
 import { createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
 import { Bank, BoolFieldState, CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
@@ -407,14 +407,7 @@ have no payments for next month.`,
 	}
 
 	private setCreateStep(current: string) {
-		this.setActiveStep(current, this.state.createSteps);
-	}
-
-	private setActiveStep(current: string, steps) {
-		Object.keys(steps).forEach(k => {
-			steps[k] = false;
-			steps[current] = true;
-		});
+		setActiveStep(current, this.state.createSteps);
 	}
 
 	private async initUpdate(message: Message, context: UsersContext) {

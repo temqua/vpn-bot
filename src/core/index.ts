@@ -9,3 +9,10 @@ export const isAdmin = (msg: Message): boolean => {
 export const formatDate = (date: Date, dateFormat = 'dd.MM.yyyy'): string => {
 	return format(date, dateFormat);
 };
+
+export function setActiveStep(current: string, steps: object) {
+	Object.keys(steps).forEach(k => {
+		steps[k] = false;
+		steps[current] = true;
+	});
+}

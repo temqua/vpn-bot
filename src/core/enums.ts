@@ -32,6 +32,7 @@ export enum VPNUserCommand {
 export enum CommandScope {
 	Keys = 'keys',
 	Users = 'users',
+	Spendings = 'spendings',
 }
 
 export enum UserRequest {

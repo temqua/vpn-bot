@@ -55,6 +55,17 @@ model Payment {
   @@map("payments")
 }
 
+model Spending {
+  id          String   @id @default(uuid())
+  paymentDate DateTime @default(now()) @map(name: "payment_date")
+  amount      Decimal
+  currency    String   @default("RUB")
+  category    SpendingCategory
+  description String?
+
+  @@map("spendings")
+}
+
 model Plan {
   id          Int       @id @default(autoincrement())
   name        String
@@ -85,4 +96,9 @@ enum VPNProtocol {
   IKEv2
   Outline
   VLess
+}
+
+enum SpendingCategory {
+  Nalog
+  Servers
 }

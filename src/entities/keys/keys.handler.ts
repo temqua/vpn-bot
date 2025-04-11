@@ -1,12 +1,12 @@
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
+import { getProtocolButtons } from '../../core/buttons';
 import type { ICommandHandler } from '../../core/contracts';
 import { VPNKeyCommand, VPNProtocol } from '../../core/enums';
 import { globalHandler } from '../../core/globalHandler';
 import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
 import { outlineCommandsHandler } from './outline.handler';
-import { getProtocolButtons } from '../../core/buttons';
 
 export interface KeysContext {
 	pr: VPNProtocol;

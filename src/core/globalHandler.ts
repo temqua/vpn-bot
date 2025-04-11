@@ -1,5 +1,6 @@
 import type { Message, Poll } from 'node-telegram-bot-api';
 import { keysCommandsHandler, type KeysContext } from '../entities/keys/keys.handler';
+import { spendingsCommandsHandler, type SpendingsContext } from '../entities/spendings/handler';
 import { userCommandsHandler, type UsersContext } from '../entities/users/users.handler';
 import type { ICommandHandler } from './contracts';
 import { CommandScope } from './enums';
@@ -17,7 +18,7 @@ export type CommandDetailCompressed = {
 	c: CommandContext;
 };
 
-export type CommandContext = UsersContext | KeysContext;
+export type CommandContext = UsersContext | KeysContext | SpendingsContext;
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
 
@@ -35,7 +36,11 @@ class GlobalHandler {
 			return;
 		}
 		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
-		userCommandsHandler.handlePoll(this.activeCommand.context as UsersContext, poll);
+		if (this.activeCommand.scope === CommandScope.Spendings) {
+			spendingsCommandsHandler.handlePoll(this.activeCommand.context as SpendingsContext, poll);
+		} else {
+			userCommandsHandler.handlePoll(this.activeCommand.context as UsersContext, poll);
+		}
 	}
 
 	async handleNewMessage(message: Message) {
@@ -43,16 +48,34 @@ class GlobalHandler {
 			return;
 		}
 		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
-		const handler: ICommandHandler =
-			this.activeCommand.scope === CommandScope.Keys ? keysCommandsHandler : userCommandsHandler;
+		let handler: ICommandHandler = keysCommandsHandler;
+		switch (this.activeCommand.scope) {
+			case CommandScope.Users:
+				handler = userCommandsHandler;
+				break;
+			case CommandScope.Keys:
+				handler = keysCommandsHandler;
+				break;
+			default:
+				handler = spendingsCommandsHandler;
+		}
 		handler.handle(this.activeCommand.context, message);
 	}
 
 	async execute(command: CommandDetails, message: Message) {
 		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command?.context?.cmd} command`);
 		this.activeCommand = command;
-		const handler: ICommandHandler =
-			this.activeCommand.scope === CommandScope.Keys ? keysCommandsHandler : userCommandsHandler;
+		let handler: ICommandHandler = keysCommandsHandler;
+		switch (this.activeCommand.scope) {
+			case CommandScope.Users:
+				handler = userCommandsHandler;
+				break;
+			case CommandScope.Keys:
+				handler = keysCommandsHandler;
+				break;
+			default:
+				handler = spendingsCommandsHandler;
+		}
 		handler.handle(this.activeCommand.context, message, !command.processing);
 	}
 }

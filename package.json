@@ -1,6 +1,6 @@
 {
 	"name": "vpn-bot",
-	"version": "2.9.3",
+	"version": "2.9.4",
 	"description": "Simple Telegram bot for Tesseract VPN management",
 	"main": "src/main.ts",
 	"scripts": {

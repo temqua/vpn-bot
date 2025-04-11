@@ -2,7 +2,7 @@ import type { Payment, Plan } from '@prisma/client';
 import { addMonths } from 'date-fns';
 import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
-import { formatDate } from '../../core';
+import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
 import { acceptKeyboard, yesNoKeyboard } from '../../core/buttons';
 import { UserRequest } from '../../core/enums';
@@ -49,7 +49,7 @@ export class PaymentsService {
 	async pay(message: Message, context: UsersContext, start: boolean) {
 		this.log(`pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`);
 		if (start) {
-			this.setActiveStep('user', this.state.paymentSteps);
+			setActiveStep('user', this.state.paymentSteps);
 			if (!context.id) {
 				await bot.sendMessage(message.chat.id, 'Share user or enter username', {
 					reply_markup: {
@@ -93,7 +93,7 @@ export class PaymentsService {
 				message.chat.id,
 				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях`,
 			);
-			this.setActiveStep('amount', this.state.paymentSteps);
+			setActiveStep('amount', this.state.paymentSteps);
 			return;
 		}
 
@@ -321,14 +321,7 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 	}
 
 	private setPaymentStep(current: string) {
-		this.setActiveStep(current, this.state.paymentSteps);
-	}
-
-	private setActiveStep(current: string, steps) {
-		Object.keys(steps).forEach(k => {
-			steps[k] = false;
-			steps[current] = true;
-		});
+		setActiveStep(current, this.state.paymentSteps);
 	}
 
 	private getActiveStep(steps) {
