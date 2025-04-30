@@ -6,7 +6,7 @@ import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
 import { acceptKeyboard, yesNoKeyboard } from '../../core/buttons';
 import { UserRequest } from '../../core/enums';
-import { globalHandler } from '../../core/globalHandler';
+import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
 import { NalogService } from './nalog.service';
 import { PaymentsRepository } from './payments.repository';

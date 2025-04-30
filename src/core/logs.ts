@@ -32,9 +32,9 @@ export class LogsService {
 		}
 	}
 
-	async wg(msg: Message) {
+	async wg(msg: Message, command: string) {
 		try {
-			const { stdout, stderr } = await exec('wg');
+			const { stdout, stderr } = await exec(`wg${command}`);
 			if (stdout) {
 				await bot.sendMessage(msg.chat.id, stdout.toString());
 			}

@@ -5,13 +5,14 @@ import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
 import { createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
 import { Bank, BoolFieldState, CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
-import { globalHandler } from '../../core/globalHandler';
+import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
 import env from '../../env';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
+import { PaymentsRepository } from './payments.repository';
 
 export class UsersService {
 	constructor(private repository: UsersRepository) {}
@@ -351,8 +352,36 @@ export class UsersService {
 		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
-	async sync(message: Message) {
-		this.log('sync');
+	async exportPayments(message: Message) {
+		this.log('exportPayments');
+
+		const paymentsData = await new PaymentsRepository().getAllForSheet();
+		const preparedPaymentsData = paymentsData.map(row => {
+			return [
+				row.id ?? '',
+				row.user.username ?? '',
+				row.user.firstName ?? '',
+				row.user.lastName ?? '',
+				row.amount ?? 0,
+				row.paymentDate ? new Date(row.paymentDate).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
+				row.expiresOn ? new Date(row.expiresOn).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
+				row.monthsCount ?? 0,
+				row.plan?.name ?? '',
+				row.parentPaymentId ?? '',
+			];
+		});
+		try {
+			await exportToSheet(env.SHEET_ID, 'Payments!A2', preparedPaymentsData);
+			logger.success(`${basename(__filename)}}: Users payments data successfully exported to Google Sheets!`);
+			await bot.sendMessage(message.chat.id, '✅ Users payments data successfully exported to Google Sheets!');
+		} catch (error) {
+			logger.error(`[${basename(__filename)}]: Users payments sync process finished with error: ${error}`);
+			await bot.sendMessage(message.chat.id, `❌ Users payments sync process finished with error: ${error}`);
+		}
+	}
+
+	async export(message: Message) {
+		this.log('export');
 		const data = await this.repository.list();
 		const preparedData = data.map(row => {
 			return [
@@ -369,6 +398,7 @@ export class UsersService {
 				row.free ? true : false,
 			];
 		});
+
 		try {
 			await exportToSheet(env.SHEET_ID, 'Users!A2', preparedData);
 			logger.success(`${basename(__filename)}}: Users data successfully exported to Google Sheets!`);

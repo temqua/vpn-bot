@@ -58,4 +58,16 @@ export class PaymentsRepository {
 	async getAll(): Promise<Payment[]> {
 		return await prisma.payment.findMany();
 	}
+
+	async getAllForSheet() {
+		return await prisma.payment.findMany({
+			orderBy: {
+				paymentDate: 'desc',
+			},
+			include: {
+				user: {},
+				plan: {},
+			},
+		});
+	}
 }

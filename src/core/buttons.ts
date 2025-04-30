@@ -1,6 +1,6 @@
 import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
 import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
-import type { CommandDetailCompressed } from './globalHandler';
+import type { CommandDetailCompressed } from './global.handler';
 
 export const userButtons: InlineKeyboardButton[][] = [
 	[
@@ -34,15 +34,6 @@ export const userButtons: InlineKeyboardButton[][] = [
 	],
 	[
 		{
-			text: 'Sync',
-			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
-					cmd: VPNUserCommand.Sync,
-				},
-			}),
-		},
-		{
 			text: 'Pay',
 			callback_data: JSON.stringify({
 				s: CommandScope.Users,
@@ -57,6 +48,26 @@ export const userButtons: InlineKeyboardButton[][] = [
 				s: CommandScope.Users,
 				c: {
 					cmd: VPNUserCommand.ShowUnpaid,
+				},
+			}),
+		},
+	],
+	[
+		{
+			text: 'Export Users',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.Export,
+				},
+			}),
+		},
+		{
+			text: 'Export Payments',
+			callback_data: JSON.stringify({
+				s: CommandScope.Users,
+				c: {
+					cmd: VPNUserCommand.ExportPayments,
 				},
 			}),
 		},
@@ -97,7 +108,13 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 
 export const getProtocolButtons = (operation: VPNKeyCommand) => {
 	return Object.entries(VPNProtocol)
-		.filter(([_, protocol]) => !(operation === VPNKeyCommand.GetFile && protocol === VPNProtocol.Outline))
+		.filter(
+			([_, protocol]) =>
+				!(
+					[VPNKeyCommand.GetFile, VPNKeyCommand.Export].includes(operation) &&
+					protocol === VPNProtocol.Outline
+				),
+		)
 		.map(
 			([label, protocol]) =>
 				({
@@ -126,6 +143,16 @@ export const keyButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
+			text: 'Show',
+			callback_data: JSON.stringify({
+				s: CommandScope.Keys,
+				c: {
+					cmd: VPNKeyCommand.Expand,
+					subo: VPNKeyCommand.List,
+				},
+			}),
+		},
+		{
 			text: 'Delete',
 			callback_data: JSON.stringify({
 				s: CommandScope.Keys,
@@ -148,12 +175,12 @@ export const keyButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
-			text: 'Show',
+			text: 'Export',
 			callback_data: JSON.stringify({
 				s: CommandScope.Keys,
 				c: {
 					cmd: VPNKeyCommand.Expand,
-					subo: VPNKeyCommand.List,
+					subo: VPNKeyCommand.Export,
 				},
 			}),
 		},

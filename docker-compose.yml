@@ -18,6 +18,7 @@ services:
             - ./scripts:/app/scripts:ro
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh:ro
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
+            - /usr/bin/openvpn.sh:/usr/bin/openvpn.sh:ro
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
@@ -35,3 +36,12 @@ services:
             - /usr/lib/x86_64-linux-gnu/libqrencode.so.4.1.1:/usr/lib/x86_64-linux-gnu/libqrencode.so.4.1.1:ro
             - /usr/lib/x86_64-linux-gnu/libpng16.so.16:/usr/lib/x86_64-linux-gnu/libpng16.so.16:ro
             - /usr/lib/x86_64-linux-gnu/libpng16.so.16.39.0:/usr/lib/x86_64-linux-gnu/libpng16.so.16.39.0:ro
+            # Новые volumes для OpenVPN
+            - /etc/openvpn:/etc/openvpn
+            - /etc/openvpn/server:/etc/openvpn/server
+            - /etc/openvpn/client:/etc/openvpn/client
+            - /var/log/openvpn:/var/log/openvpn
+            - /usr/sbin/openvpn:/usr/sbin/openvpn:ro
+            - /usr/bin/openssl:/usr/bin/openssl:ro
+            # - /etc/ssl:/etc/ssl:ro
+            # - /etc/pki:/etc/pki:ro

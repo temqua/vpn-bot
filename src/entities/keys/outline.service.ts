@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../core/bot';
 import { CommandScope, VPNKeyCommand, VPNProtocol } from '../../core/enums';
-import { globalHandler } from '../../core/globalHandler';
+import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
 import type { KeysContext } from './keys.handler';
 import type { OutlineApiService } from './outline.api-service';

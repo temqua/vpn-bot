@@ -3,7 +3,7 @@ import { formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
 import { CommandScope, UserRequest, VPNProtocol } from '../core/enums';
-import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/globalHandler';
+import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/global.handler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
 import { paymentsService } from '../entities/users/payments.service';
@@ -97,7 +97,14 @@ bot.onText(/\/wg$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	await logsService.wg(msg);
+	await logsService.wg(msg, '');
+});
+
+bot.onText(/\/wg\s+(.*)/, async (msg: Message, match: RegExpMatchArray) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await logsService.wg(msg, ` ${match[1]}`);
 });
 
 bot.onText(/\/lookup/, async (msg: Message) => {

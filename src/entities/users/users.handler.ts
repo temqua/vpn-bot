@@ -2,7 +2,7 @@ import type { User } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../core/contracts';
 import { VPNUserCommand } from '../../core/enums';
-import { globalHandler } from '../../core/globalHandler';
+import { globalHandler } from '../../core/global.handler';
 import { paymentsService, PaymentsService } from './payments.service';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
@@ -36,8 +36,14 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.Sync) {
-			await this.service.sync(message);
+		if (context.cmd === VPNUserCommand.Export) {
+			await this.service.export(message);
+			this.state.init = false;
+			globalHandler.finishCommand();
+			return;
+		}
+		if (context.cmd === VPNUserCommand.ExportPayments) {
+			await this.service.exportPayments(message);
 			this.state.init = false;
 			globalHandler.finishCommand();
 			return;

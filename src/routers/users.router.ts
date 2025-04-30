@@ -3,8 +3,10 @@ import { isAdmin } from '../core';
 import bot from '../core/bot';
 import { findUserButtons, userButtons } from '../core/buttons';
 import { CommandScope, VPNUserCommand } from '../core/enums';
-import { globalHandler } from '../core/globalHandler';
+import { globalHandler } from '../core/global.handler';
 import { usersService } from '../entities/users/users.service';
+import env from '../env';
+import ms from 'ms';
 
 bot.onText(/\/user$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
@@ -88,7 +90,7 @@ bot.onText(/\/users\s+sync/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	await usersService.sync(msg);
+	await usersService.export(msg);
 });
 
 bot.onText(/\/user\s+pay/, async (msg: Message) => {
@@ -110,5 +112,29 @@ bot.onText(/\/user\s+unpaid/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	bot.sendMessage(msg.chat.id, 'Correct command is /users unpaid');
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.ShowUnpaid,
+			},
+		},
+		msg,
+	);
 });
+
+setInterval(() => {
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.ShowUnpaid,
+			},
+		},
+		{
+			chat: {
+				id: env.ADMIN_USER_ID,
+			},
+		} as Message,
+	);
+}, ms('1d'));
