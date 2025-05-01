@@ -7,6 +7,7 @@ import { globalHandler } from '../../core/global.handler';
 import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
 import { outlineCommandsHandler } from './outline.handler';
+import { xuiCommandsHandler } from './xui.handler';
 
 export interface KeysContext {
 	pr: VPNProtocol;
@@ -28,6 +29,10 @@ class KeysCommandsHandler implements ICommandHandler {
 		}
 		if (context?.pr === VPNProtocol.Outline) {
 			await outlineCommandsHandler.handle(context, message, start);
+			return;
+		}
+		if (context?.pr === VPNProtocol.VLess) {
+			await xuiCommandsHandler.handle(context, message, start);
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.List) {

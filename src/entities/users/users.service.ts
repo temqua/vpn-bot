@@ -3,7 +3,7 @@ import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-teleg
 import { basename } from 'path';
 import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
-import { createUserOperationsKeyboard, getUserContactKeyboard, skipKeyboard } from '../../core/buttons';
+import { createUserOperationsKeyboard, getUserContactKeyboard, getUserMenu, skipKeyboard } from '../../core/buttons';
 import { Bank, BoolFieldState, CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
@@ -423,6 +423,11 @@ export class UsersService {
 	Expires on: ${formatDate(lastPayment.expiresOn)}
 	Amount: ${lastPayment.amount}`,
 				);
+				await bot.sendMessage(message.chat.id, '', {
+					reply_markup: {
+						inline_keyboard: getUserMenu(user.id),
+					},
+				});
 			}
 		}
 		if (users.length) {
@@ -541,41 +546,7 @@ have no payments for next month.`,
 		await bot.sendMessage(chatId, this.formatUserInfo(user));
 		await bot.sendMessage(chatId, 'Select operation', {
 			reply_markup: {
-				inline_keyboard: [
-					[
-						{
-							text: 'Update',
-							callback_data: JSON.stringify({
-								s: CommandScope.Users,
-								c: {
-									cmd: VPNUserCommand.Expand,
-									id: user.id,
-									subo: VPNUserCommand.Update,
-								},
-							}),
-						},
-						{
-							text: 'Payments',
-							callback_data: JSON.stringify({
-								s: CommandScope.Users,
-								c: {
-									cmd: VPNUserCommand.ShowPayments,
-									id: user.id,
-								},
-							}),
-						},
-						{
-							text: 'Pay',
-							callback_data: JSON.stringify({
-								s: CommandScope.Users,
-								c: {
-									cmd: VPNUserCommand.Pay,
-									id: user.id,
-								},
-							}),
-						},
-					],
-				],
+				inline_keyboard: getUserMenu(user.id),
 			},
 		});
 	}

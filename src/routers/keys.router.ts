@@ -54,6 +54,19 @@ bot.onText(/\/key\s+delete$/, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, 'Select protocol:', inlineKeyboard);
 });
 
+bot.onText(/\/keys\s+online/, async (msg: Message) => {
+	globalHandler.execute(
+		{
+			scope: CommandScope.Keys,
+			context: {
+				cmd: VPNKeyCommand.GetOnline,
+				pr: VPNProtocol.VLess,
+			},
+		},
+		msg,
+	);
+});
+
 bot.onText(/\/key\s+create\s+wg$/, async (msg: Message) => {
 	globalHandler.execute(
 		{

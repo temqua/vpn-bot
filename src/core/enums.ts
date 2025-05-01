@@ -3,6 +3,7 @@ export enum VPNProtocol {
 	IKEv2 = 'ikev2',
 	Outline = 'outline',
 	OpenVPN = 'openvpn',
+	VLess = 'vless',
 }
 
 export enum VPNKeyCommand {
@@ -13,6 +14,7 @@ export enum VPNKeyCommand {
 	GetUser = 'get',
 	Expand = 'e',
 	Export = 'ex',
+	GetOnline = 'go',
 }
 
 export enum VPNUserCommand {

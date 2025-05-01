@@ -112,7 +112,7 @@ export const getProtocolButtons = (operation: VPNKeyCommand) => {
 			([_, protocol]) =>
 				!(
 					[VPNKeyCommand.GetFile, VPNKeyCommand.Export].includes(operation) &&
-					protocol === VPNProtocol.Outline
+					[VPNProtocol.Outline, VPNProtocol.VLess].includes(protocol)
 				),
 		)
 		.map(
@@ -332,4 +332,42 @@ export const yesNoKeyboard: SendBasicOptions = {
 			],
 		],
 	},
+};
+
+export const getUserMenu = (userId: number) => {
+	return [
+		[
+			{
+				text: 'Update',
+				callback_data: JSON.stringify({
+					s: CommandScope.Users,
+					c: {
+						cmd: VPNUserCommand.Expand,
+						id: userId,
+						subo: VPNUserCommand.Update,
+					},
+				}),
+			},
+			{
+				text: 'Payments',
+				callback_data: JSON.stringify({
+					s: CommandScope.Users,
+					c: {
+						cmd: VPNUserCommand.ShowPayments,
+						id: userId,
+					},
+				}),
+			},
+			{
+				text: 'Pay',
+				callback_data: JSON.stringify({
+					s: CommandScope.Users,
+					c: {
+						cmd: VPNUserCommand.Pay,
+						id: userId,
+					},
+				}),
+			},
+		],
+	];
 };

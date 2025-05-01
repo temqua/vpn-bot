@@ -230,7 +230,8 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 		await bot.sendMessage(
 			chatId,
 			`Вычисленная дата окончания работы: ${calculated.toISOString()}. 
-Можно отправить свою дату в ISO формате 2025-01-01 или 2025-02-02T22:59:24Z`,
+Можно отправить свою дату в ISO формате без времени: 2025-01-01 
+Или с временем 2025-02-02T22:59:24Z`,
 			acceptKeyboard,
 		);
 		this.state.params.set('expires', calculated);
