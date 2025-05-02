@@ -23,7 +23,6 @@ case $protocol in
     openvpn)
         # Удаление клиента OpenVPN
         openvpn.sh -y --revokeclient "$client"
-        openvpn.sh -y --deleteclient "$client"
         ;;
     *)
         echo "Error: Unknown protocol '$protocol'"
