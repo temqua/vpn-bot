@@ -3,7 +3,7 @@
 # Проверка наличия обязательных аргументов
 if [[ $# -lt 2 ]]; then
     echo "Usage: $0 <client_name> <protocol>"
-    echo "Available protocols: ikev2, wireguard, openvpn"
+    echo "Available protocols: ikev2, wg, openvpn"
     exit 1
 fi
 
@@ -16,7 +16,7 @@ case $protocol in
         ikev2.sh -y --revokeclient "$client"
         ikev2.sh -y --deleteclient "$client"
         ;;
-    wireguard)
+    wg)
         # Удаление клиента WireGuard
         wireguard.sh -y --removeclient "$client"
         ;;
@@ -27,7 +27,7 @@ case $protocol in
         ;;
     *)
         echo "Error: Unknown protocol '$protocol'"
-        echo "Available protocols: ikev2, wireguard, openvpn"
+        echo "Available protocols: ikev2, wg, openvpn"
         exit 1
         ;;
 esac
