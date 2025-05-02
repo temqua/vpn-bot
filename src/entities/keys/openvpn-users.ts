@@ -84,7 +84,7 @@ export class OpenVPNKeysService implements ICertificatesService {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			if (stderr) {
-				const errorMsg = `Error while creating OpenVPN client ${username}: ${stderr}`;
+				const errorMsg = `stderr content while creating OpenVPN client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 			}
@@ -104,7 +104,7 @@ export class OpenVPNKeysService implements ICertificatesService {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			if (stderr) {
-				const errorMsg = `Error while deleting OpenVPN client ${username}: ${stderr}`;
+				const errorMsg = `stderr content while deleting OpenVPN client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
