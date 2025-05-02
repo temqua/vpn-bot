@@ -4,7 +4,7 @@ export interface XUIBaseResponse {
 	obj: unknown;
 }
 
-export type XUINewClientSettings = {
+export type XClientSettings = {
 	id: string;
 	flow: string;
 	email: string;
@@ -12,9 +12,13 @@ export type XUINewClientSettings = {
 	totalGB: number;
 	expiryTime: number;
 	enable: boolean;
-	tgId: string;
-	subId: string;
 	reset: number;
+	subId?: string;
+	tgId: number | '';
+};
+
+export type XSettings = {
+	clients: XClientSettings[];
 };
 
 export type XUINewClient = {

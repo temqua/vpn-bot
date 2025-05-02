@@ -60,7 +60,7 @@ bot.onText(/\/keys\s+online/, async (msg: Message) => {
 			scope: CommandScope.Keys,
 			context: {
 				cmd: VPNKeyCommand.GetOnline,
-				pr: VPNProtocol.VLess,
+				pr: VPNProtocol.XUI,
 			},
 		},
 		msg,

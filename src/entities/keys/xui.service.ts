@@ -2,9 +2,105 @@ import { basename } from 'path';
 import bot from '../../core/bot';
 import logger from '../../core/logger';
 import type { XUIApiService } from './xui.api-service';
+import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../core/enums';
+import { setActiveStep } from '../../core';
+import type { InlineKeyboardButton, Message } from 'node-telegram-bot-api';
+import type { KeysContext } from './keys.handler';
+import { globalHandler } from '../../core/global.handler';
+import type { XInbound, XSettings } from './xui.types';
 
 export class XUIService {
 	constructor(private service: XUIApiService) {}
+
+	private params = new Map();
+	private createSteps = {
+		username: false,
+		telegramId: false,
+		inboundId: false,
+	};
+	private deleteSteps = {
+		user: false,
+		inboundId: false,
+	};
+	private inbounds: XInbound[] = [];
+
+	async create(message: Message, context: KeysContext, start = false) {
+		this.log('create');
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Share user. For skipping just send any text', {
+				reply_markup: {
+					keyboard: [
+						[
+							{
+								text: 'Share contact',
+								request_user: {
+									request_id: UserRequest.XUI,
+								},
+							},
+						],
+					],
+					one_time_keyboard: true, // The keyboard will hide after one use
+					resize_keyboard: true, // Fit the keyboard to the screen size
+				},
+			});
+			this.setCreateStep('telegramId');
+			return;
+		}
+		if (this.createSteps.telegramId) {
+			if (message?.user_shared) {
+				this.params.set('telegram_id', message.user_shared.user_id.toString());
+			}
+			await bot.sendMessage(message.chat.id, 'Enter new username');
+			this.setCreateStep('username');
+			return;
+		}
+		if (this.createSteps.username) {
+			this.params.set('username', message.text);
+			const result = await this.service.getAll(message.chat.id);
+			if (!result.success) {
+				await bot.sendMessage(message.chat.id, `Error while fetching X-UI inbounds: ${result.msg}`);
+				logger.error(`Error while fetching X-UI inbounds: ${result.msg}`);
+				this.params.set('inbound_id', 1);
+			} else {
+				await bot.sendMessage(message.chat.id, 'Choose inbound', {
+					reply_markup: {
+						inline_keyboard: [
+							...result.obj.map(inbound => [
+								{
+									text: `${inbound.id} (${inbound.protocol})`,
+									callback_data: JSON.stringify({
+										s: CommandScope.Keys,
+										c: {
+											cmd: VPNKeyCommand.Create,
+											pr: VPNProtocol.XUI,
+											id: inbound.id,
+										},
+										p: 1,
+									}),
+								} as InlineKeyboardButton,
+							]),
+						],
+					},
+				});
+			}
+
+			this.setCreateStep('inbound');
+			return;
+		}
+		if (this.createSteps.inboundId) {
+			if (context.id) {
+				this.params.set('inbound_id', context.id);
+			}
+		}
+		await this.service.create(
+			message.chat.id,
+			this.params.get('username'),
+			this.params.get('telegram_id'),
+			this.params.get('inbound_id'),
+		);
+		this.params.clear();
+		globalHandler.finishCommand();
+	}
 
 	async getAll(chatId: number) {
 		const result = await this.service.getAll(chatId);
@@ -24,13 +120,17 @@ enabled: ${inbound.enable}
 protocol: ${inbound.protocol}
                 `,
 			);
-			for (const client of inbound.clientStats) {
+			await bot.sendMessage(chatId, 'Inbound clients');
+			const settings: XSettings = JSON.parse(inbound.settings);
+			for (const client of settings.clients) {
 				await bot.sendMessage(
 					chatId,
 					`
 id: ${client.id}
 enabled: ${client.enable}
-email: ${client.email}                    
+username: ${client.email}  
+tg: ${client.tgId}
+flow: ${client.flow}       
                     `,
 				);
 			}
@@ -49,7 +149,71 @@ email: ${client.email}
 		await bot.sendMessage(chatId, `Online users: ${result.obj.join(', ')}`);
 	}
 
+	async delete(message: Message, context: KeysContext, start: boolean) {
+		this.log('delete');
+
+		if (start) {
+			const result = await this.service.getAll(message.chat.id);
+			if (!result.success) {
+				await bot.sendMessage(message.chat.id, `Error while fetching X-UI inbounds: ${result.msg}`);
+				logger.error(`Error while fetching X-UI inbounds: ${result.msg}`);
+				return;
+			}
+			this.inbounds = result.obj;
+			await bot.sendMessage(message.chat.id, 'Choose inbound', {
+				reply_markup: {
+					inline_keyboard: [
+						...result.obj.map(inbound => [
+							{
+								text: `${inbound.id} (${inbound.protocol})`,
+								callback_data: JSON.stringify({
+									s: CommandScope.Keys,
+									c: {
+										cmd: VPNKeyCommand.Delete,
+										pr: VPNProtocol.XUI,
+										id: inbound.id,
+									},
+									p: 1,
+								}),
+							} as InlineKeyboardButton,
+						]),
+					],
+				},
+			});
+			this.setDeleteStep('inboundId');
+			return;
+		}
+		if (this.deleteSteps.inboundId) {
+			this.params.set('inbound_id', context.id);
+			const selectedInbound = this.inbounds.find(i => i.id === Number(context.id));
+			const settings: XSettings = JSON.parse(selectedInbound.settings);
+			await bot.sendMessage(message.chat.id, 'Inbound clients. Enter UUID of user to delete');
+			for (const client of settings.clients) {
+				await bot.sendMessage(message.chat.id, `${client.email}`);
+				await bot.sendMessage(message.chat.id, client.id);
+			}
+			this.setDeleteStep('user');
+			return;
+		}
+		if (this.deleteSteps.user) {
+			this.params.set('uuid', message.text);
+		}
+
+		await this.service.delete(message.chat.id, this.params.get('uuid'), this.params.get('inbound_id'));
+		this.params.clear();
+		this.inbounds = [];
+		globalHandler.finishCommand();
+	}
+
 	private log(message: string) {
 		logger.log(`[${basename(__filename)}]: ${message}`);
+	}
+
+	private setCreateStep(current: string) {
+		setActiveStep(current, this.createSteps);
+	}
+
+	private setDeleteStep(current: string) {
+		setActiveStep(current, this.deleteSteps);
 	}
 }

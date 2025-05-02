@@ -31,7 +31,7 @@ class KeysCommandsHandler implements ICommandHandler {
 			await outlineCommandsHandler.handle(context, message, start);
 			return;
 		}
-		if (context?.pr === VPNProtocol.VLess) {
+		if (context?.pr === VPNProtocol.XUI) {
 			await xuiCommandsHandler.handle(context, message, start);
 			return;
 		}

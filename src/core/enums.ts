@@ -3,7 +3,7 @@ export enum VPNProtocol {
 	IKEv2 = 'ikev2',
 	Outline = 'outline',
 	OpenVPN = 'openvpn',
-	VLess = 'vless',
+	XUI = 'xui',
 }
 
 export enum VPNKeyCommand {
@@ -46,6 +46,7 @@ export enum UserRequest {
 	Pay,
 	Lookup,
 	Get,
+	XUI,
 }
 
 export enum Bank {
