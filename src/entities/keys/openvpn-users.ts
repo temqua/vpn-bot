@@ -58,9 +58,9 @@ export class OpenVPNKeysService implements ICertificatesService {
 	async getAll(message: Message) {
 		this.log('getAll');
 		try {
-			const { stdout, stderr } = await exec(`openvpn.sh --listclients`);
+			const { stdout, stderr } = await exec('openvpn.sh --listclients');
 			if (stderr) {
-				const errorMsg = `Error while getting OpenVPN clients: ${stderr}`;
+				const errorMsg = `stderr while getting OpenVPN clients: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
