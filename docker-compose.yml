@@ -1,6 +1,7 @@
 services:
     app:
         image: vpn-bot
+        container_name: vpn-bot
         build:
             context: .
             dockerfile: ./Dockerfile
