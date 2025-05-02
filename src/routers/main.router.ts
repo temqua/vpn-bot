@@ -13,7 +13,7 @@ import { UsersRepository, type VPNUser } from '../entities/users/users.repositor
 import { SpendingCategory } from '@prisma/client';
 
 const keysHelpMessage = Object.values(VPNProtocol)
-	.filter(p => p !== VPNProtocol.Outline)
+	.filter(p => ![VPNProtocol.Outline, VPNProtocol.XUI].includes(p))
 	.reduce((acc, curr) => {
 		const current = `
 /key create ${curr}
@@ -34,6 +34,7 @@ ${keysHelpMessage}
 /key create outline
 /key delete outline
 /keys outline
+/keys online
 /user
 /user create
 /user delete

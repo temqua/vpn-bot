@@ -15,6 +15,7 @@ services:
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
             - ${WG_CLIENTS_DIR}:${WG_CONTAINER_DIR:-/app/wg-clients}
+            - ${OVPN_CLIENTS_DIR}:${OVPN_CONTAINER_DIR:-/app/ovpn-clients}
             - ./scripts:/app/scripts:ro
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh:ro
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro

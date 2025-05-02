@@ -111,8 +111,9 @@ export const getProtocolButtons = (operation: VPNKeyCommand) => {
 		.filter(
 			([_, protocol]) =>
 				!(
-					[VPNKeyCommand.GetFile, VPNKeyCommand.Export].includes(operation) &&
-					[VPNProtocol.Outline, VPNProtocol.XUI].includes(protocol)
+					([VPNKeyCommand.GetFile, VPNKeyCommand.Export].includes(operation) &&
+						[VPNProtocol.Outline, VPNProtocol.XUI].includes(protocol)) ||
+					(operation === VPNKeyCommand.Export && ![VPNProtocol.IKEv2, VPNProtocol.OpenVPN].includes(protocol))
 				),
 		)
 		.map(

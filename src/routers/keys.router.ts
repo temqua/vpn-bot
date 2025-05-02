@@ -54,7 +54,26 @@ bot.onText(/\/key\s+delete$/, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, 'Select protocol:', inlineKeyboard);
 });
 
+bot.onText(/\/key\s+export$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Keys,
+			context: {
+				cmd: VPNKeyCommand.Create,
+				pr: VPNProtocol.OpenVPN,
+			},
+		},
+		msg,
+	);
+});
+
 bot.onText(/\/keys\s+online/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -68,6 +87,9 @@ bot.onText(/\/keys\s+online/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+create\s+wg$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -81,6 +103,9 @@ bot.onText(/\/key\s+create\s+wg$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+delete\s+wg$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -94,6 +119,9 @@ bot.onText(/\/key\s+delete\s+wg$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+create\s+ikev2$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -107,6 +135,9 @@ bot.onText(/\/key\s+create\s+ikev2$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+delete\s+ikev2$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -120,6 +151,9 @@ bot.onText(/\/key\s+delete\s+ikev2$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+create\s+outline$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -133,6 +167,9 @@ bot.onText(/\/key\s+create\s+outline$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+delete\s+outline$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -146,6 +183,9 @@ bot.onText(/\/key\s+delete\s+outline$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+create\s+openvpn$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
@@ -159,6 +199,9 @@ bot.onText(/\/key\s+create\s+openvpn$/, async (msg: Message) => {
 });
 
 bot.onText(/\/key\s+delete\s+openvpn$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	globalHandler.execute(
 		{
 			scope: CommandScope.Keys,
