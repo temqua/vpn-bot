@@ -32,4 +32,4 @@ case $protocol in
         ;;
 esac
 
-echo "Client '$client' successfully removed from
+echo "Client '$client' successfully removed from $protocol"
