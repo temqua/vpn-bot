@@ -410,7 +410,7 @@ export class UsersService {
 	}
 
 	async showUnpaid(message: Message) {
-		this.log('upaid');
+		this.log('unpaid');
 		const users = await this.repository.getUnpaidUsers();
 		for (const user of users) {
 			if (user.payments.length) {
