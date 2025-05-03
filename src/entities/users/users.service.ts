@@ -417,11 +417,14 @@ export class UsersService {
 				const lastPayment = user.payments[0];
 				await bot.sendMessage(
 					message.chat.id,
-					`User ${user.username} last payment UUID ${lastPayment.id}
-	Payment Date: ${formatDate(lastPayment.paymentDate)}
+					`User ${user.username} last payment UUID \`${lastPayment.id}\`
+	Payment Date: ${formatDate(lastPayment.paymentDate).replace(/-/g, '\\-')}
 	Months count: ${lastPayment.monthsCount}
-	Expires on: ${formatDate(lastPayment.expiresOn)}
+	Expires on: ${formatDate(lastPayment.expiresOn).replace(/-/g, '\\-')}
 	Amount: ${lastPayment.amount}`,
+					{
+						parse_mode: 'MarkdownV2',
+					},
 				);
 				await bot.sendMessage(message.chat.id, '', {
 					reply_markup: {

@@ -18,7 +18,7 @@ const httpsAgent = new https.Agent({
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export class XUIApiService {
-	async create(chatId: number, username: string, telegramId: number, inboundId = 1) {
+	async create(chatId: number, username: string, telegramId: number, inboundId = 1): Promise<string | null> {
 		const loginResponse = await this.login(chatId);
 		const loginResult: XUILoginResponse = await loginResponse.json();
 		if (!loginResult.success) {
@@ -26,8 +26,9 @@ export class XUIApiService {
 			logger.error(`Auth error 3X-UI. ${loginResult.msg}`);
 			return null;
 		}
+		const id = randomUUID();
 		const newClient: XClientSettings = {
-			id: randomUUID(),
+			id: id,
 			flow: 'xtls-rprx-vision',
 			email: username,
 			limitIp: 0,
@@ -63,7 +64,9 @@ export class XUIApiService {
 		const result: XUIBaseResponse = await response.json();
 		if (result) {
 			await bot.sendMessage(chatId, result.msg);
+			return id;
 		}
+		return null;
 	}
 	async delete(chatId: number, uuid: string, inboundId = 1) {
 		const loginResponse = await this.login(chatId);

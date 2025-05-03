@@ -49,6 +49,35 @@ export type XInbound = {
 	clientStats: XClientStat[];
 };
 
+export type StreamSettings = {
+	network: string;
+	security: string;
+	externalProxy: unknown[];
+	realitySettings: {
+		show: boolean;
+		xver: number;
+		dest: string;
+		serverNames: string[];
+		privateKey: string;
+		minClient: number | '';
+		maxClient: number | '';
+		maxTimediff: number;
+		shortIds: string[];
+		settings: {
+			publicKey: string;
+			fingerprint: string;
+			servername: string;
+			spiderX: string;
+		};
+	};
+	tcpSettings: {
+		acceptProxyProtocol: boolean;
+		header: {
+			type: string;
+		};
+	};
+};
+
 export type XClientStat = {
 	id: number;
 	inboundId: number;
@@ -68,3 +97,10 @@ export interface XUILoginResponse extends XUIBaseResponse {
 export interface XOnlineClientsResponse extends XUIBaseResponse {
 	obj: string[];
 }
+
+export type SniffingSettings = {
+	enabled: boolean;
+	destOverride: string[];
+	metadataOnly: boolean;
+	routeOnly: boolean;
+};

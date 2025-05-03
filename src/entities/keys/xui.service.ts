@@ -7,7 +7,8 @@ import { setActiveStep } from '../../core';
 import type { InlineKeyboardButton, Message } from 'node-telegram-bot-api';
 import type { KeysContext } from './keys.handler';
 import { globalHandler } from '../../core/global.handler';
-import type { XInbound, XSettings } from './xui.types';
+import type { SniffingSettings, StreamSettings, XInbound, XSettings } from './xui.types';
+import env from '../../env';
 
 export class XUIService {
 	constructor(private service: XUIApiService) {}
@@ -62,6 +63,7 @@ export class XUIService {
 				logger.error(`Error while fetching X-UI inbounds: ${result.msg}`);
 				this.params.set('inbound_id', 1);
 			} else {
+				this.inbounds = result.obj;
 				await bot.sendMessage(message.chat.id, 'Choose inbound', {
 					reply_markup: {
 						inline_keyboard: [
@@ -92,13 +94,22 @@ export class XUIService {
 				this.params.set('inbound_id', context.id);
 			}
 		}
-		await this.service.create(
+		const id = await this.service.create(
 			message.chat.id,
 			this.params.get('username'),
 			this.params.get('telegram_id'),
 			this.params.get('inbound_id'),
 		);
+		if (id) {
+			const inbound = this.inbounds.find(i => i.id == (this.params.get('inbound_id') ?? 1));
+			const streamSettings = JSON.parse(inbound.streamSettings);
+			await bot.sendMessage(
+				message.chat.id,
+				`vless://${id}@${env.XUI_ADDRESS}:443?type=${streamSettings.network}&security=${streamSettings.security}&pbk=${streamSettings.realitySettings.settings.publicKey}&fp=${streamSettings.realitySettings.settings.fingerprint}&sni=${streamSettings.realitySettings.serverNames[0]}&sid=${streamSettings.realitySettings.shortIds[0]}&spx=%2F&flow=xtls-rprx-vision#vless-${this.params.get('username')}`,
+			);
+		}
 		this.params.clear();
+		this.inbounds = [];
 		globalHandler.finishCommand();
 	}
 
@@ -112,12 +123,16 @@ export class XUIService {
 			logger.error(`Error while fetching X-UI inbounds: ${result.msg}`);
 		}
 		for (const inbound of result.obj) {
+			const streamSettings: StreamSettings = JSON.parse(inbound.streamSettings);
+			const sniffingSettings: SniffingSettings = JSON.parse(inbound.sniffing);
 			await bot.sendMessage(
 				chatId,
 				`Inbound params:
 id: ${inbound.id}
 enabled: ${inbound.enable}
 protocol: ${inbound.protocol}
+sniffing params: ${JSON.stringify(sniffingSettings)}
+stream settings: ${JSON.stringify(streamSettings)}
                 `,
 			);
 			await bot.sendMessage(chatId, 'Inbound clients');
@@ -126,12 +141,16 @@ protocol: ${inbound.protocol}
 				await bot.sendMessage(
 					chatId,
 					`
-id: ${client.id}
+id: \`${client.id.replace(/[-.*#_]/g, match => `\\${match}`)}\`					
 enabled: ${client.enable}
-username: ${client.email}  
+username: ${client.email.replace(/[-.*#_]/g, match => `\\${match}`)}  
 tg: ${client.tgId}
-flow: ${client.flow}       
+flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}       
+\`vless://${client.id.replace(/[-.*#_]/g, match => `\\${match}`)}@89.110.74.9:443?type=${streamSettings.network}&security=${streamSettings.security}&pbk=${streamSettings.realitySettings.settings.publicKey}&fp=${streamSettings.realitySettings.settings.fingerprint}&sni=${streamSettings.realitySettings.serverNames[0]}&sid=${streamSettings.realitySettings.shortIds[0]}&spx=%2F&flow=${client.flow}#vless-${client.email}\`
                     `,
+					{
+						parse_mode: 'MarkdownV2',
+					},
 				);
 			}
 		}
@@ -189,8 +208,13 @@ flow: ${client.flow}
 			const settings: XSettings = JSON.parse(selectedInbound.settings);
 			await bot.sendMessage(message.chat.id, 'Inbound clients. Enter UUID of user to delete');
 			for (const client of settings.clients) {
-				await bot.sendMessage(message.chat.id, `${client.email}`);
-				await bot.sendMessage(message.chat.id, client.id);
+				await bot.sendMessage(
+					message.chat.id,
+					`User ${client.email.replace(/[-.*#_]/g, match => `\\${match}`)} UUID \`${client.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
+					{
+						parse_mode: 'MarkdownV2',
+					},
+				);
 			}
 			this.setDeleteStep('user');
 			return;

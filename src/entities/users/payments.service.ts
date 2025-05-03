@@ -174,10 +174,10 @@ export class PaymentsService {
 	}
 
 	private formatPayment(p: Payment) {
-		return `UUID: ${p.id}				
-Payment Date: ${formatDate(p.paymentDate)}
+		return `UUID: \`${p.id}\`				
+Payment Date: ${formatDate(p.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)}
 Months Count: ${p.monthsCount}
-Expires On: ${formatDate(p.expiresOn)}
+Expires On: ${formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`)}
 Amount: ${p.amount} ${p.currency}
 ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 	}
@@ -300,23 +300,31 @@ ID платежа ${result.id}`;
 
 	private async showPaymentInfo(message: Message, p: Payment) {
 		if (!p.parentPaymentId) {
-			await bot.sendMessage(message.chat.id, this.formatPayment(p));
+			await bot.sendMessage(message.chat.id, this.formatPayment(p), {
+				parse_mode: 'MarkdownV2',
+			});
 			return;
 		}
 		await bot.sendMessage(
 			message.chat.id,
-			`Child payment ${p.id}
-Expires On: ${formatDate(p.expiresOn)}`,
+			`Child payment \`${p.id.replace(/[-.*#_]/g, match => `\\${match}`)}\`
+Expires On: ${formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`)}`,
+			{
+				parse_mode: 'MarkdownV2',
+			},
 		);
 		const parentPayment = await this.repository.getById(p.parentPaymentId);
 		if (parentPayment) {
 			await bot.sendMessage(
 				message.chat.id,
-				`Parent payment ${parentPayment.id}
-Payment Date: ${formatDate(parentPayment.paymentDate)}
+				`Parent payment \`${parentPayment.id.replace(/[-.*#_]/g, match => `\\${match}`)}\`
+Payment Date: ${formatDate(parentPayment.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)}
 Months Count: ${parentPayment.monthsCount}
-Expires On: ${formatDate(parentPayment.expiresOn)}
+Expires On: ${formatDate(parentPayment.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`)}
 Amount: ${parentPayment.amount} ${parentPayment.currency}`,
+				{
+					parse_mode: 'MarkdownV2',
+				},
 			);
 		}
 	}
