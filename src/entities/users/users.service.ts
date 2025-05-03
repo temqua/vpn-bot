@@ -426,7 +426,7 @@ export class UsersService {
 						parse_mode: 'MarkdownV2',
 					},
 				);
-				await bot.sendMessage(message.chat.id, '', {
+				await bot.sendMessage(message.chat.id, 'Possible operations with user', {
 					reply_markup: {
 						inline_keyboard: getUserMenu(user.id),
 					},
