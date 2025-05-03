@@ -1,14 +1,14 @@
-import { basename } from 'path';
-import bot from '../../core/bot';
-import logger from '../../core/logger';
-import type { XUIApiService } from './xui.api-service';
-import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../core/enums';
-import { setActiveStep } from '../../core';
 import type { InlineKeyboardButton, Message } from 'node-telegram-bot-api';
-import type { KeysContext } from './keys.handler';
+import { basename } from 'path';
+import { setActiveStep } from '../../core';
+import bot from '../../core/bot';
+import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
-import type { SniffingSettings, StreamSettings, XInbound, XSettings } from './xui.types';
+import logger from '../../core/logger';
 import env from '../../env';
+import type { KeysContext } from './keys.handler';
+import type { XUIApiService } from './xui.api-service';
+import type { SniffingSettings, StreamSettings, XInbound, XSettings } from './xui.types';
 
 export class XUIService {
 	constructor(private service: XUIApiService) {}
@@ -146,7 +146,7 @@ enabled: ${client.enable}
 username: ${client.email.replace(/[-.*#_]/g, match => `\\${match}`)}  
 tg: ${client.tgId}
 flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}       
-\`vless://${client.id.replace(/[-.*#_]/g, match => `\\${match}`)}@89.110.74.9:443?type=${streamSettings.network}&security=${streamSettings.security}&pbk=${streamSettings.realitySettings.settings.publicKey}&fp=${streamSettings.realitySettings.settings.fingerprint}&sni=${streamSettings.realitySettings.serverNames[0]}&sid=${streamSettings.realitySettings.shortIds[0]}&spx=%2F&flow=${client.flow}#vless-${client.email}\`
+\`vless://${client.id.replace(/[-.*#_]/g, match => `\\${match}`)}@${env.XUI_ADDRESS}:443?type=${streamSettings.network}&security=${streamSettings.security}&pbk=${streamSettings.realitySettings.settings.publicKey}&fp=${streamSettings.realitySettings.settings.fingerprint}&sni=${streamSettings.realitySettings.serverNames[0]}&sid=${streamSettings.realitySettings.shortIds[0]}&spx=%2F&flow=${client.flow}#vless-${client.email}\`
                     `,
 					{
 						parse_mode: 'MarkdownV2',
