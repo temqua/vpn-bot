@@ -18,5 +18,4 @@ jobs:
                   ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
                     cd vpn-bot
                     git pull origin main
-                    docker-compose up --build -d
                   EOF

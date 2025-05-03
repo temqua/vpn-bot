@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../core/bot';
 import { CommandScope, VPNKeyCommand, VPNProtocol } from '../../core/enums';
-import { globalHandler } from '../../core/globalHandler';
+import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
 import type { KeysContext } from './keys.handler';
 import type { OutlineApiService } from './outline.api-service';
@@ -10,12 +10,12 @@ export class OutlineService {
 	constructor(private service: OutlineApiService) {}
 
 	async create(message: Message, username: string) {
-		logger.log(`[${basename(__filename)}]: create`);
+		this.log('create');
 		await this.service.create(message, username);
 	}
 
 	async getAll(message: Message) {
-		logger.log(`[${basename(__filename)}]: getAll`);
+		this.log('getAll');
 		try {
 			const users = await this.service.getAll(message);
 			const buttons = users.accessKeys.map(({ name, id }) => [
@@ -78,7 +78,7 @@ export class OutlineService {
 	}
 
 	async getUser(context: KeysContext, message: Message) {
-		logger.log(`[${basename(__filename)}]: getUser`);
+		this.log('getUser');
 		try {
 			const key = await this.service.getUser(message, context.id);
 			if (!key) {
@@ -102,5 +102,9 @@ export class OutlineService {
 			logger.error(`Outline user ${context.id} fetching finished with error: ${err}`);
 			await bot.sendMessage(message.chat.id, `Error while fetching outline user ${context.id}: ${err}`);
 		}
+	}
+
+	private log(message: string) {
+		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
 }

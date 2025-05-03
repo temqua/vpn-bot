@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import childProcess from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
-import path from 'node:path';
+import path, { basename } from 'node:path';
 import util from 'node:util';
 import bot from '../../core/bot';
 import type { ICertificatesService } from '../../core/contracts';
@@ -11,8 +11,31 @@ import env from '../../env';
 
 const exec = util.promisify(childProcess.exec);
 export class IKEv2KeysService implements ICertificatesService {
+	private log(message: string) {
+		logger.log(`[${basename(__filename)}]: ${message}`);
+	}
+
+	async export(message: Message, username: string) {
+		this.log(`export ${username}`);
+		try {
+			const { stdout, stderr } = await exec(`ikev2.sh --exportclient ${username}`);
+			if (stderr) {
+				const errorMsg = `Error while exporting IKEv2 client: ${stderr}`;
+				logger.error(errorMsg);
+				await bot.sendMessage(message.chat.id, errorMsg);
+				return;
+			}
+			await bot.sendMessage(message.chat.id, stdout);
+			logger.success(`IKEv2 user ${username} has been successfully exported`);
+		} catch (error) {
+			const errorMsg = `Error while exporting IKEv2 client: ${error}`;
+			logger.error(errorMsg);
+			await bot.sendMessage(message.chat.id, errorMsg);
+		}
+	}
+
 	async getFile(message: Message, username: string) {
-		logger.log(`[${__filename}]: getFile ${username}`);
+		this.log(`getFile ${username}`);
 		const filePath = path.resolve(env.IKE_CONTAINER_DIR, `${username}/`, `${username}.zip`);
 		try {
 			await access(filePath, constants.F_OK);
@@ -33,7 +56,7 @@ export class IKEv2KeysService implements ICertificatesService {
 	}
 
 	async getAll(message: Message) {
-		logger.log(`[${__filename}]: getAll`);
+		this.log('getAll');
 		try {
 			const { stdout, stderr } = await exec(`ikev2.sh --listclients`);
 			if (stdout) {
@@ -54,7 +77,7 @@ export class IKEv2KeysService implements ICertificatesService {
 	}
 
 	async create(message: Message, username: string) {
-		logger.log(`[${__filename}]: create ${username}`);
+		this.log(`create ${username}`);
 		try {
 			const command = `bash ${env.CREATE_PATH} ${username.toString()} ikev2`;
 			logger.log(command);
@@ -78,7 +101,7 @@ export class IKEv2KeysService implements ICertificatesService {
 	}
 
 	async delete(message: Message, username: string) {
-		logger.log(`[${__filename}]: delete ${username}`);
+		this.log(`delete ${username}`);
 		try {
 			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} ikev2`);
 			if (stdout) {

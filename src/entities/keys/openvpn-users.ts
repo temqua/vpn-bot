@@ -11,25 +11,24 @@ import logger from '../../core/logger';
 import env from '../../env';
 
 const exec = util.promisify(childProcess.exec);
-export class WireguardKeysService implements ICertificatesService {
+export class OpenVPNKeysService implements ICertificatesService {
 	private log(message: string) {
 		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
-
 	async export(message: Message, username: string) {
 		this.log(`export ${username}`);
 		try {
-			const { stdout, stderr } = await exec(`wireguard.sh --exportclient ${username}`);
+			const { stdout, stderr } = await exec(`openvpn.sh --exportclient ${username}`);
 			if (stderr) {
-				const errorMsg = `Error while exporting WireGuard client: ${stderr}`;
+				const errorMsg = `Error while exporting OpenVPN client: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
 			}
 			await bot.sendMessage(message.chat.id, stdout);
-			logger.success(`WireGuard user ${username} has been successfully exported`);
+			logger.success(`OpenVPN user ${username} has been successfully exported`);
 		} catch (error) {
-			const errorMsg = `Error while exporting WireGuard client: ${error}`;
+			const errorMsg = `Error while exporting OpenVPN client: ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(message.chat.id, errorMsg);
 		}
@@ -37,7 +36,7 @@ export class WireguardKeysService implements ICertificatesService {
 
 	async getFile(message: Message, username: string) {
 		this.log(`getFile ${username}`);
-		const filePath = path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.conf`);
+		const filePath = path.resolve(homedir(), env.OVPN_CONTAINER_DIR, `${username}.ovpn`);
 		try {
 			await access(filePath, constants.F_OK);
 			await bot.sendDocument(
@@ -45,12 +44,12 @@ export class WireguardKeysService implements ICertificatesService {
 				createReadStream(filePath),
 				{},
 				{
-					filename: `${username}.conf`,
+					filename: `${username}.ovpn`,
 					contentType: 'application/octet-stream',
 				},
 			);
 		} catch (error) {
-			const errorMsg = `Error while getting WireGuard file for ${username} (${filePath}) ${error}`;
+			const errorMsg = `Error while getting OpenVPN file for ${username} (${filePath}) ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(message.chat.id, errorMsg);
 		}
@@ -59,17 +58,17 @@ export class WireguardKeysService implements ICertificatesService {
 	async getAll(message: Message) {
 		this.log('getAll');
 		try {
-			const { stdout, stderr } = await exec(`wireguard.sh --listclients`);
+			const { stdout, stderr } = await exec('openvpn.sh --listclients');
 			if (stderr) {
-				const errorMsg = `Error while getting WireGuard clients: ${stderr}`;
+				const errorMsg = `stderr while getting OpenVPN clients: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
 			}
 			await bot.sendMessage(message.chat.id, stdout);
-			logger.success('WireGuard user list was handled');
+			logger.success('OpenVPN clients list was handled');
 		} catch (error) {
-			const errorMsg = `Error while getting WireGuard clients: ${error}`;
+			const errorMsg = `Error while getting OpenVPN clients: ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(message.chat.id, errorMsg);
 		}
@@ -78,21 +77,21 @@ export class WireguardKeysService implements ICertificatesService {
 	async create(message: Message, username: string) {
 		this.log(`create ${username}`);
 		try {
-			const command = `bash ${env.CREATE_PATH} ${username.toString()} wg`;
+			const command = `bash ${env.CREATE_PATH} ${username.toString()} openvpn`;
 			logger.log(command);
 			const { stdout, stderr } = await exec(command);
 			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			if (stderr) {
-				const errorMsg = `Error while creating wireguard client ${username}: ${stderr}`;
+				const errorMsg = `stderr content while creating OpenVPN client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 			}
-			logger.success(`WireGuard user ${username} creation was handled`);
+			logger.success(`OpenVPN user ${username} creation was handled`);
 			await this.getFile(message, username);
 		} catch (error) {
-			const errorMsg = `Error while creating wireguard client ${username}: ${error}`;
+			const errorMsg = `Error while creating OpenVPN client ${username}: ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(message.chat.id, errorMsg);
 		}
@@ -100,19 +99,19 @@ export class WireguardKeysService implements ICertificatesService {
 	async delete(message: Message, username: string) {
 		this.log(`delete ${username}`);
 		try {
-			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} wg`);
+			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} openvpn`);
 			if (stdout) {
 				await bot.sendMessage(message.chat.id, stdout.toString());
 			}
 			if (stderr) {
-				const errorMsg = `Error while deleting wireguard client ${username}: ${stderr}`;
+				const errorMsg = `stderr content while deleting OpenVPN client ${username}: ${stderr}`;
 				logger.error(errorMsg);
 				await bot.sendMessage(message.chat.id, errorMsg);
 				return;
 			}
-			logger.success(`WireGuard user ${username} deletion was handled`);
+			logger.success(`OpenVPN user ${username} deletion was handled`);
 		} catch (error) {
-			const errorMsg = `Error while deleting wireguard client ${username}: ${error}`;
+			const errorMsg = `Error while deleting OpenVPN client ${username}: ${error}`;
 			logger.error(errorMsg);
 			await bot.sendMessage(message.chat.id, errorMsg);
 			return;

@@ -6,4 +6,5 @@ export default {
 	[VPNKeyCommand.Delete]: 'delete',
 	[VPNKeyCommand.GetFile]: 'getFile',
 	[VPNKeyCommand.GetUser]: 'getUser',
+	[VPNKeyCommand.Export]: 'export',
 };

@@ -2,6 +2,8 @@ export enum VPNProtocol {
 	WG = 'wg',
 	IKEv2 = 'ikev2',
 	Outline = 'outline',
+	OpenVPN = 'openvpn',
+	XUI = 'xui',
 }
 
 export enum VPNKeyCommand {
@@ -11,6 +13,8 @@ export enum VPNKeyCommand {
 	GetFile = 'f',
 	GetUser = 'get',
 	Expand = 'e',
+	Export = 'ex',
+	GetOnline = 'go',
 }
 
 export enum VPNUserCommand {
@@ -23,7 +27,8 @@ export enum VPNUserCommand {
 	FindByFirstName = 'findfn',
 	Update = 'u',
 	Pay = 'pay',
-	Sync = 'sync',
+	Export = 'ex',
+	ExportPayments = 'exp',
 	Expand = 'e',
 	ShowPayments = 'sp',
 	ShowUnpaid = 'su',
@@ -41,6 +46,7 @@ export enum UserRequest {
 	Pay,
 	Lookup,
 	Get,
+	XUI,
 }
 
 export enum Bank {

@@ -7,7 +7,7 @@ import pollOptions from '../../core/pollOptions';
 import { SpendingsRepository } from './repository';
 import logger from '../../core/logger';
 import { basename } from 'path';
-import { globalHandler } from '../../core/globalHandler';
+import { globalHandler } from '../../core/global.handler';
 
 export interface SpendingsContext {
 	category?: SpendingCategory;

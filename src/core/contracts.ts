@@ -1,5 +1,5 @@
 import type { Message } from 'node-telegram-bot-api';
-import type { CommandContext } from './globalHandler';
+import type { CommandContext } from './global.handler';
 
 export interface IKeysService {
 	create(message: Message, username: string);
@@ -9,6 +9,7 @@ export interface IKeysService {
 
 export interface ICertificatesService extends IKeysService {
 	getFile(message: Message, username: string);
+	export(message: Message, username: string);
 }
 
 export interface ICommandHandler {
