@@ -13,12 +13,16 @@ const bot = new TelegramBot(env.BACKUPS_BOT_TOKEN, { polling: true });
 const exec = util.promisify(childProcess.exec);
 
 setInterval(() => {
+	sendDump();
+}, ms('2d'));
+
+async function sendDump() {
 	const date = new Date();
 	const fileName = `vpn_db_${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}_${date.getHours()}_${date.getMinutes()}.backup`;
 	dump(fileName).then(() => {
 		send(fileName);
 	});
-}, ms('2d'));
+}
 
 async function dump(fileName: string) {
 	try {
@@ -62,6 +66,7 @@ async function send(fileName: string) {
 
 bot.onText(/\/start/, async (msg: Message) => {
 	logger.success('Ready');
+	await bot.sendMessage(msg.chat.id, '✅ Ready');
 });
 
 bot.onText(/\/ping$/, async (msg: Message) => {
@@ -70,4 +75,11 @@ bot.onText(/\/ping$/, async (msg: Message) => {
 	}
 	logger.success('PONG');
 	await bot.sendMessage(msg.chat.id, '✅ PONG');
+});
+
+bot.onText(/\/create/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	sendDump();
 });
