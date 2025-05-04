@@ -19,6 +19,23 @@ services:
             interval: 5s
             timeout: 45s
             retries: 5
+    backups-bot:
+        image: backups-bot
+        container_name: backups-bot
+        build:
+            context: .
+            dockerfile: ./Dockerfile.backups
+        env_file: .env
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+        devices:
+            - /dev/net/tun
+        privileged: true
+        restart: unless-stopped
+        volumes:
+            - backups:/home/vpnadmin/backups
 
 volumes:
     vpn-data:
+    backups:

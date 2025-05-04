@@ -16,10 +16,16 @@ const env = cleanEnv(process.env, {
 	XUI_PASSWORD: str({ default: '' }),
 	XUI_ADDRESS: str({ default: '' }),
 	BOT_TOKEN: str({ default: '' }),
+	BACKUPS_BOT_TOKEN: str({ default: '' }),
 	SHEET_ID: str({ default: '' }),
 	NALOG_USERNAME: str({ default: '' }),
 	NALOG_PASSWORD: str({ default: '' }),
 	NALOG_DEVICE_ID: str({ default: '' }),
+	DB_HOST: str({ default: '' }),
+	DB_PORT: str({ default: '' }),
+	DB_NAME: str({ default: '' }),
+	DB_USER: str({ default: '' }),
+	DB_PWD: str({ default: '' }),
 });
 
 export default env;

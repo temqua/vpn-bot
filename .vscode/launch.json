@@ -9,6 +9,12 @@
 			"request": "launch",
 			"name": "Launch Bot Bun",
 			"program": "${workspaceFolder}/src/main.ts"
+		},
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Launch Backups Bot Bun",
+			"program": "${workspaceFolder}/src/backup.ts"
 		}
 	]
 }
