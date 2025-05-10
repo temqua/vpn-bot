@@ -19,7 +19,8 @@ export class XUICommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.List) {
-			await this.service.getAll(message.chat.id);
+			await this.service.getAll(message, context, start);
+			return;
 		}
 		if (context.cmd === VPNKeyCommand.GetOnline) {
 			await this.service.getOnline(message.chat.id);

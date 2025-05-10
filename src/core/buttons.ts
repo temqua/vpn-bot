@@ -1,5 +1,5 @@
 import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
-import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
+import { CmdCode, CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './global.handler';
 
 export const userButtons: InlineKeyboardButton[][] = [
@@ -7,8 +7,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Create',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.Create,
 				},
 			}),
@@ -16,8 +16,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'All Users',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.List,
 				},
 			}),
@@ -25,8 +25,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Delete',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.Delete,
 				},
 			}),
@@ -36,8 +36,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Pay',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.Pay,
 				},
 			}),
@@ -45,8 +45,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Unpaid',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.ShowUnpaid,
 				},
 			}),
@@ -56,8 +56,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Export Users',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.Export,
 				},
 			}),
@@ -65,8 +65,8 @@ export const userButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Export Payments',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.ExportPayments,
 				},
 			}),
@@ -79,8 +79,8 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Username',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.FindByUsername,
 				},
 			}),
@@ -88,8 +88,8 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Contact',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.GetByTelegramId,
 				},
 			}),
@@ -97,8 +97,8 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'First name',
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
 					cmd: VPNUserCommand.FindByFirstName,
 				},
 			}),
@@ -121,8 +121,8 @@ export const getProtocolButtons = (operation: VPNKeyCommand) => {
 				({
 					text: label,
 					callback_data: JSON.stringify({
-						s: CommandScope.Keys,
-						c: {
+						[CmdCode.Scope]: CommandScope.Keys,
+						[CmdCode.Context]: {
 							cmd: operation,
 							pr: protocol,
 						},
@@ -136,8 +136,8 @@ export const keyButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Create',
 			callback_data: JSON.stringify({
-				s: CommandScope.Keys,
-				c: {
+				[CmdCode.Scope]: CommandScope.Keys,
+				[CmdCode.Context]: {
 					cmd: VPNKeyCommand.Expand,
 					subo: VPNKeyCommand.Create,
 				},
@@ -146,8 +146,8 @@ export const keyButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Show',
 			callback_data: JSON.stringify({
-				s: CommandScope.Keys,
-				c: {
+				[CmdCode.Scope]: CommandScope.Keys,
+				[CmdCode.Context]: {
 					cmd: VPNKeyCommand.Expand,
 					subo: VPNKeyCommand.List,
 				},
@@ -156,8 +156,8 @@ export const keyButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Delete',
 			callback_data: JSON.stringify({
-				s: CommandScope.Keys,
-				c: {
+				[CmdCode.Scope]: CommandScope.Keys,
+				[CmdCode.Context]: {
 					cmd: VPNKeyCommand.Expand,
 					subo: VPNKeyCommand.Delete,
 				},
@@ -168,8 +168,8 @@ export const keyButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Get File',
 			callback_data: JSON.stringify({
-				s: CommandScope.Keys,
-				c: {
+				[CmdCode.Scope]: CommandScope.Keys,
+				[CmdCode.Context]: {
 					cmd: VPNKeyCommand.Expand,
 					subo: VPNKeyCommand.GetFile,
 				},
@@ -178,8 +178,8 @@ export const keyButtons: InlineKeyboardButton[][] = [
 		{
 			text: 'Export',
 			callback_data: JSON.stringify({
-				s: CommandScope.Keys,
-				c: {
+				[CmdCode.Scope]: CommandScope.Keys,
+				[CmdCode.Context]: {
 					cmd: VPNKeyCommand.Expand,
 					subo: VPNKeyCommand.Export,
 				},
@@ -232,24 +232,24 @@ export function getUserCreateKeyboard(): ReplyKeyboardMarkup {
 export const skipButton: InlineKeyboardButton = {
 	text: 'Skip',
 	callback_data: JSON.stringify({
-		s: CommandScope.Users,
-		c: {
-			cmd: VPNUserCommand.Create,
+		[CmdCode.Scope]: CommandScope.Users,
+		[CmdCode.Context]: {
+			[CmdCode.Command]: VPNUserCommand.Create,
 			skip: 1,
 		},
-		p: 1,
+		[CmdCode.Processing]: 1,
 	} as CommandDetailCompressed),
 };
 
 export const acceptButton: InlineKeyboardButton = {
 	text: 'Accept',
 	callback_data: JSON.stringify({
-		s: CommandScope.Users,
-		c: {
-			cmd: VPNUserCommand.Pay,
+		[CmdCode.Scope]: CommandScope.Users,
+		[CmdCode.Context]: {
+			[CmdCode.Command]: VPNUserCommand.Pay,
 			accept: 1,
 		},
-		p: 1,
+		[CmdCode.Processing]: 1,
 	} as CommandDetailCompressed),
 };
 
@@ -285,9 +285,9 @@ const createUserOperationsInlineKeyboard = (id: number) => {
 		{
 			text: `${prop}`,
 			callback_data: JSON.stringify({
-				s: CommandScope.Users,
-				c: {
-					cmd: VPNUserCommand.Update,
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					[CmdCode.Command]: VPNUserCommand.Update,
 					prop,
 					id,
 				},
@@ -311,23 +311,23 @@ export const yesNoKeyboard: SendBasicOptions = {
 				{
 					text: 'Yes',
 					callback_data: JSON.stringify({
-						s: CommandScope.Users,
-						c: {
-							cmd: VPNUserCommand.Pay,
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.Pay,
 							accept: 1,
 						},
-						p: 1,
+						[CmdCode.Processing]: 1,
 					} as CommandDetailCompressed),
 				},
 				{
 					text: 'No',
 					callback_data: JSON.stringify({
-						s: CommandScope.Users,
-						c: {
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
 							cmd: VPNUserCommand.Pay,
 							accept: 0,
 						},
-						p: 1,
+						[CmdCode.Processing]: 1,
 					} as CommandDetailCompressed),
 				},
 			],
@@ -341,20 +341,20 @@ export const getUserMenu = (userId: number) => {
 			{
 				text: 'Update',
 				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
-						cmd: VPNUserCommand.Expand,
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.Expand,
 						id: userId,
-						subo: VPNUserCommand.Update,
+						[CmdCode.SubOperation]: VPNUserCommand.Update,
 					},
 				}),
 			},
 			{
 				text: 'Payments',
 				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
-						cmd: VPNUserCommand.ShowPayments,
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.ShowPayments,
 						id: userId,
 					},
 				}),
@@ -362,13 +362,113 @@ export const getUserMenu = (userId: number) => {
 			{
 				text: 'Pay',
 				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
-						cmd: VPNUserCommand.Pay,
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.Pay,
 						id: userId,
 					},
 				}),
 			},
 		],
 	];
+};
+
+export const getOutlineOperations = (id: string): SendBasicOptions => {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						text: 'Set Data Limit',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Keys,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNKeyCommand.SetDataLimit,
+								[CmdCode.Protocol]: VPNProtocol.Outline,
+								id,
+							},
+						}),
+					},
+					{
+						text: 'Remove Data Limit',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Keys,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNKeyCommand.RemoveDataLimit,
+								[CmdCode.Protocol]: VPNProtocol.Outline,
+								id,
+							},
+						}),
+					},
+				],
+				[
+					{
+						text: 'Rename',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Keys,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNKeyCommand.Rename,
+								[CmdCode.Protocol]: VPNProtocol.Outline,
+								id,
+							},
+						}),
+					},
+					{
+						text: 'Delete',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Keys,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNKeyCommand.Delete,
+								[CmdCode.Protocol]: VPNProtocol.Outline,
+								id,
+							},
+							[CmdCode.Processing]: 1,
+						}),
+					},
+				],
+			],
+		},
+	};
+};
+
+export const outlineListKeyboard: SendBasicOptions = {
+	reply_markup: {
+		inline_keyboard: [
+			[
+				{
+					text: 'Show all',
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Keys,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNKeyCommand.List,
+							[CmdCode.Protocol]: VPNProtocol.Outline,
+							accept: 1,
+						},
+						[CmdCode.Processing]: 1,
+					}),
+				},
+			],
+		],
+	},
+};
+
+export const xuiListKeyboard: SendBasicOptions = {
+	reply_markup: {
+		inline_keyboard: [
+			[
+				{
+					text: 'Show all',
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Keys,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNKeyCommand.List,
+							[CmdCode.Protocol]: VPNProtocol.XUI,
+							accept: 1,
+						},
+						[CmdCode.Processing]: 1,
+					}),
+				},
+			],
+		],
+	},
 };

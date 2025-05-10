@@ -6,6 +6,15 @@ export enum VPNProtocol {
 	XUI = 'xui',
 }
 
+export enum CmdCode {
+	Processing = 'p',
+	Context = 'c',
+	Scope = 's',
+	Command = 'cmd',
+	Protocol = 'pr',
+	SubOperation = 'subo',
+}
+
 export enum VPNKeyCommand {
 	Create = 'cr',
 	List = 'list',
@@ -15,6 +24,9 @@ export enum VPNKeyCommand {
 	Expand = 'e',
 	Export = 'ex',
 	GetOnline = 'go',
+	SetDataLimit = 'sdl',
+	RemoveDataLimit = 'rdl',
+	Rename = 'ren',
 }
 
 export enum VPNUserCommand {

@@ -1,30 +1,12 @@
-import https from 'https';
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
-import type { IKeysService } from '../../core/contracts';
+import { getOutlineOperations } from '../../core/buttons';
+import client from '../../core/client';
 import logger from '../../core/logger';
 import env from '../../env';
+import type { OutlineKey, OutlineMetricsTransfer, OutlineResponse } from './outline.types';
 
-export type OutlineResponse = {
-	accessKeys: OutlineKey[];
-};
-
-export type OutlineKey = {
-	id: string;
-	name: string;
-	password: string;
-	port: number;
-	method: string;
-	accessUrl: string;
-};
-
-const httpsAgent = new https.Agent({
-	rejectUnauthorized: false, // Ignore self-signed certificates
-});
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-export class OutlineApiService implements IKeysService {
+export class OutlineApiService {
 	private formatUserInfo(key: OutlineKey) {
 		return `
 id: ${key.id}
@@ -33,13 +15,11 @@ accessUrl: \`${key.accessUrl}\`
 `;
 	}
 
-	async getAll(message: Message): Promise<OutlineResponse | null> {
-		const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys`, {
-			dispatcher: httpsAgent,
-		});
+	async getAll(chatId: number): Promise<OutlineResponse | null> {
+		const response = await client.get(`${env.OUTLINE_API_ROOT}/access-keys`);
 		if (!response.ok) {
 			await bot.sendMessage(
-				message.chat.id,
+				chatId,
 				`Error while fetching Outline users: ${response.status} ${response.statusText}`,
 			);
 			logger.error(`Outline users list fetching finished with error: ${response.status} ${response.statusText}`);
@@ -48,13 +28,11 @@ accessUrl: \`${key.accessUrl}\`
 		return await response.json();
 	}
 
-	async getUser(message: Message, id: string): Promise<OutlineKey | null> {
-		const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys/${id}`, {
-			dispatcher: httpsAgent,
-		});
+	async getUser(id: string, chatId: number): Promise<OutlineKey | null> {
+		const response = await client.get(`${env.OUTLINE_API_ROOT}/access-keys/${id}`);
 		if (!response.ok) {
 			await bot.sendMessage(
-				message.chat.id,
+				chatId,
 				`Error while fetching outline user ${id}: ${response.status} ${response.statusText}`,
 			);
 			logger.error(`Outline user ${id} fetching finished with error: ${response.status} ${response.statusText}`);
@@ -63,17 +41,23 @@ accessUrl: \`${key.accessUrl}\`
 		return await response.json();
 	}
 
+	async getTransferredMetrics(chatId: number): Promise<OutlineMetricsTransfer> {
+		const response = await client.get(`${env.OUTLINE_API_ROOT}/metrics/transfer`);
+		if (!response.ok) {
+			const errMsg = `Error while fetching outline users transfer metrics: ${response.status} ${response.statusText}`;
+			await bot.sendMessage(chatId, errMsg);
+			logger.error(errMsg);
+			return null;
+		}
+		return await response.json();
+	}
+
 	async create(message: Message, username: string) {
 		try {
-			const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys`, {
-				method: 'POST',
+			const response = await client.post(`${env.OUTLINE_API_ROOT}/access-keys`, {
 				body: JSON.stringify({
 					name: username,
 				}),
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				dispatcher: httpsAgent,
 			});
 			if (!response.ok) {
 				await bot.sendMessage(
@@ -86,8 +70,7 @@ accessUrl: \`${key.accessUrl}\`
 			if (key?.id) {
 				await bot.sendMessage(
 					message.chat.id,
-					`
-id: ${key.id}
+					`id: ${key.id}
 name: \`${key.name}\`
 password: \`${key.password}\`
 port: ${key.port}
@@ -97,6 +80,8 @@ accessUrl: \`${key.accessUrl}\``,
 						parse_mode: 'MarkdownV2',
 					},
 				);
+				await bot.sendMessage(message.chat.id, 'Available operations', getOutlineOperations(key.id));
+
 				logger.success(`Outline user ${username} has been successfully created`);
 			} else {
 				const errorMessage = `Outline user ${username} was not created correctly`;
@@ -110,25 +95,90 @@ accessUrl: \`${key.accessUrl}\``,
 		}
 	}
 
-	async delete(message: Message, id: string) {
+	async delete(id: string, chatId: number) {
 		try {
-			const response = await fetch(`${env.OUTLINE_API_ROOT}/access-keys/${id}`, {
-				method: 'DELETE',
-				dispatcher: httpsAgent,
-			});
+			const response = await client.delete(`${env.OUTLINE_API_ROOT}/access-keys/${id}`);
 			if (!response.ok) {
 				await bot.sendMessage(
-					message.chat.id,
+					chatId,
 					`Outline user ${id} was not deleted correctly: ${response.status} ${response.statusText}`,
 				);
 				return;
 			}
 			const successMessage = `Outline user ${id} has been successfully deleted`;
 			logger.success(successMessage);
-			await bot.sendMessage(message.chat.id, successMessage);
+			await bot.sendMessage(chatId, successMessage);
 		} catch (error) {
-			logger.error(`Outline user ${id} was not deleted correctly: ${error}`);
-			await bot.sendMessage(message.chat.id, `Outline user ${id} was not deleted correctly ${error}`);
+			const errMsg = `Outline user ${id} was not deleted correctly: ${error}`;
+			logger.error(errMsg);
+			await bot.sendMessage(chatId, errMsg);
+		}
+	}
+
+	async rename(id: string, chatId: number, username: string) {
+		try {
+			const response = await client.put(`${env.OUTLINE_API_ROOT}/access-keys/${id}/name`, {
+				body: JSON.stringify({
+					name: username,
+				}),
+			});
+			if (!response.ok) {
+				await bot.sendMessage(
+					chatId,
+					`Outline user ${id} was not renamed correctly: ${response.status} ${response.statusText}`,
+				);
+				return;
+			}
+		} catch (err) {
+			const errMsg = `Outline user ${id} was not renamed correctly: ${err}`;
+			logger.error(errMsg);
+			await bot.sendMessage(chatId, errMsg);
+		}
+	}
+
+	async setDataLimit(id: string, chatId: number, dataLimit: number) {
+		try {
+			const response = await client.put(`${env.OUTLINE_API_ROOT}/access-keys/${id}/data-limit`, {
+				body: JSON.stringify({
+					limit: {
+						bytes: dataLimit,
+					},
+				}),
+			});
+			if (!response.ok) {
+				await bot.sendMessage(
+					chatId,
+					`Outline user ${id} data limit was not set correctly: ${response.status} ${response.statusText}`,
+				);
+				return;
+			}
+			const successMessage = `Outline user ${id} data limit has been successfully set to ${dataLimit / (1024 * 1024 * 1024)} GB`;
+			logger.success(successMessage);
+			await bot.sendMessage(chatId, successMessage);
+		} catch (error) {
+			const errMsg = `Outline user ${id} data limit was not set correctly: ${error}`;
+			logger.error(errMsg);
+			await bot.sendMessage(chatId, errMsg);
+		}
+	}
+
+	async removeDataLimit(id: string, chatId: number) {
+		try {
+			const response = await client.delete(`${env.OUTLINE_API_ROOT}/access-keys/${id}/data-limit`);
+			if (!response.ok) {
+				await bot.sendMessage(
+					chatId,
+					`Outline user ${id} data limit was not removed correctly: ${response.status} ${response.statusText}`,
+				);
+				return;
+			}
+			const successMessage = `Outline user ${id} data limit has been successfully removed`;
+			logger.success(successMessage);
+			await bot.sendMessage(chatId, successMessage);
+		} catch (error) {
+			const errMsg = `Outline user ${id} data limit was not removed correctly: ${error}`;
+			logger.error(errMsg);
+			await bot.sendMessage(chatId, errMsg);
 		}
 	}
 }

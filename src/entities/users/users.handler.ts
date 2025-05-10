@@ -1,21 +1,21 @@
 import type { User } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../core/contracts';
-import { VPNUserCommand } from '../../core/enums';
+import { CmdCode, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import { paymentsService, PaymentsService } from './payments.service';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
 
 export interface UsersContext {
-	cmd: VPNUserCommand;
+	[CmdCode.Command]: VPNUserCommand;
 	id?: string;
 	skip?: 1 | 0;
 	accept?: 1 | 0;
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;
-	subo?: VPNUserCommand;
+	[CmdCode.SubOperation]?: VPNUserCommand;
 }
 
 class UsersCommandsHandler implements ICommandHandler {

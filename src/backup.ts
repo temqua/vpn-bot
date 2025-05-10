@@ -14,7 +14,7 @@ const exec = util.promisify(childProcess.exec);
 
 setInterval(() => {
 	sendDump();
-}, ms('2d'));
+}, ms('5d'));
 
 async function sendDump() {
 	const date = new Date();

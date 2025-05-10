@@ -1,21 +1,16 @@
-import https from 'https';
+import { randomUUID } from 'crypto';
 import bot from '../../core/bot';
+import client from '../../core/client';
 import logger from '../../core/logger';
 import env from '../../env';
 import type {
+	XClientSettings,
 	XOnlineClientsResponse,
 	XUIBaseResponse,
 	XUIInboundsResponse,
 	XUILoginResponse,
 	XUINewClient,
-	XClientSettings,
 } from './xui.types';
-import { randomUUID } from 'crypto';
-const httpsAgent = new https.Agent({
-	rejectUnauthorized: false, // Ignore self-signed certificates
-});
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export class XUIApiService {
 	async create(chatId: number, username: string, telegramId: number, inboundId = 1): Promise<string | null> {
@@ -44,14 +39,11 @@ export class XUIApiService {
 				clients: [newClient],
 			}),
 		};
-		const response = await fetch(`${env.XUI_API_ROOT}/panel/api/inbounds/addClient`, {
-			method: 'POST',
+		const response = await client.post(`${env.XUI_API_ROOT}/panel/api/inbounds/addClient`, {
 			headers: {
-				'Content-Type': 'application/json',
 				'Cookie': this.getCookie(loginResponse.headers),
 			},
 			body: JSON.stringify(body),
-			dispatcher: httpsAgent,
 		});
 		if (!response.ok) {
 			await bot.sendMessage(
@@ -76,12 +68,10 @@ export class XUIApiService {
 			logger.error(`Auth error 3X-UI. ${loginResult.msg}`);
 			return null;
 		}
-		const response = await fetch(`${env.XUI_API_ROOT}/panel/api/inbounds/${inboundId}/delClient/${uuid}`, {
-			method: 'POST',
+		const response = await client.post(`${env.XUI_API_ROOT}/panel/api/inbounds/${inboundId}/delClient/${uuid}`, {
 			headers: {
 				'Cookie': this.getCookie(loginResponse.headers),
 			},
-			dispatcher: httpsAgent,
 		});
 		if (!response.ok) {
 			await bot.sendMessage(
@@ -107,12 +97,10 @@ export class XUIApiService {
 			logger.error(`Auth error 3X-UI. ${loginResult.msg}`);
 			return null;
 		}
-		const response = await fetch(`${env.XUI_API_ROOT}/panel/api/inbounds/list`, {
-			method: 'GET',
+		const response = await client.get(`${env.XUI_API_ROOT}/panel/api/inbounds/list`, {
 			headers: {
 				'Cookie': this.getCookie(loginResponse.headers),
 			},
-			dispatcher: httpsAgent,
 		});
 		if (!response.ok) {
 			await bot.sendMessage(chatId, `Error while fetching X-UI users: ${response.status} ${response.statusText}`);
@@ -132,12 +120,10 @@ export class XUIApiService {
 			logger.error(`Auth error 3X-UI. ${loginResult.msg}`);
 			return null;
 		}
-		const response = await fetch(`${env.XUI_API_ROOT}/panel/api/inbounds/onlines`, {
-			method: 'POST',
+		const response = await client.post(`${env.XUI_API_ROOT}/panel/api/inbounds/onlines`, {
 			headers: {
 				'Cookie': this.getCookie(loginResponse.headers),
 			},
-			dispatcher: httpsAgent,
 		});
 		if (!response.ok) {
 			await bot.sendMessage(
@@ -158,13 +144,11 @@ export class XUIApiService {
 			username: env.XUI_USERNAME,
 			password: env.XUI_PASSWORD,
 		});
-		const response = await fetch(`${env.XUI_API_ROOT}/login`, {
-			method: 'POST',
+		const response = await client.post(`${env.XUI_API_ROOT}/login`, {
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
 			body,
-			dispatcher: httpsAgent,
 		});
 		if (!response.ok) {
 			await bot.sendMessage(chatId, `Auth error to 3X-UI: ${response.status} ${response.statusText}`);

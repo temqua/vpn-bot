@@ -13,6 +13,10 @@ export class PlanRepository {
 	}
 
 	async getAll(): Promise<Plan[]> {
-		return await prisma.plan.findMany();
+		return await prisma.plan.findMany({
+			orderBy: {
+				price: 'desc',
+			},
+		});
 	}
 }

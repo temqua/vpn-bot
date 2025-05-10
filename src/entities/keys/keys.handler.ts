@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import bot from '../../core/bot';
 import { getProtocolButtons } from '../../core/buttons';
 import type { ICommandHandler } from '../../core/contracts';
-import { VPNKeyCommand, VPNProtocol } from '../../core/enums';
+import { CmdCode, VPNKeyCommand, VPNProtocol } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
@@ -10,10 +10,11 @@ import { outlineCommandsHandler } from './outline.handler';
 import { xuiCommandsHandler } from './xui.handler';
 
 export interface KeysContext {
-	pr: VPNProtocol;
-	cmd: VPNKeyCommand;
-	subo?: VPNKeyCommand;
+	[CmdCode.Protocol]: VPNProtocol;
+	[CmdCode.Command]: VPNKeyCommand;
+	[CmdCode.SubOperation]?: VPNKeyCommand;
 	id?: string;
+	accept?: 1 | 0;
 }
 
 class KeysCommandsHandler implements ICommandHandler {
@@ -36,7 +37,7 @@ class KeysCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.List) {
-			await new CertificatesService(context.pr).getAll(message);
+			await new CertificatesService(context[CmdCode.Protocol]).getAll(message);
 			globalHandler.finishCommand();
 			return;
 		}
@@ -45,7 +46,7 @@ class KeysCommandsHandler implements ICommandHandler {
 			return;
 		}
 		const method = commandsMap[context.cmd];
-		const service = new CertificatesService(context.pr);
+		const service = new CertificatesService(context[CmdCode.Protocol]);
 		await service[method](message, message.text);
 		globalHandler.finishCommand();
 	}

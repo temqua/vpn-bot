@@ -9,6 +9,7 @@ import env from '../../env';
 import type { KeysContext } from './keys.handler';
 import type { XUIApiService } from './xui.api-service';
 import type { SniffingSettings, StreamSettings, XInbound, XSettings } from './xui.types';
+import { xuiListKeyboard } from '../../core/buttons';
 
 export class XUIService {
 	constructor(private service: XUIApiService) {}
@@ -113,14 +114,26 @@ export class XUIService {
 		globalHandler.finishCommand();
 	}
 
-	async getAll(chatId: number) {
+	async getAll(message: Message, context: KeysContext, start: boolean) {
+		const chatId = message.chat.id;
+		if (start) {
+			await bot.sendMessage(
+				message.chat.id,
+				'Send start of username for user searching or click on the button to show all users',
+				xuiListKeyboard,
+			);
+			return;
+		}
+
 		const result = await this.service.getAll(chatId);
 		if (!result) {
+			globalHandler.finishCommand();
 			return;
 		}
 		if (!result.success) {
 			await bot.sendMessage(chatId, `Error while fetching X-UI inbounds: ${result.msg}`);
 			logger.error(`Error while fetching X-UI inbounds: ${result.msg}`);
+			globalHandler.finishCommand();
 		}
 		for (const inbound of result.obj) {
 			const streamSettings: StreamSettings = JSON.parse(inbound.streamSettings);
@@ -137,7 +150,10 @@ stream settings: ${JSON.stringify(streamSettings)}
 			);
 			await bot.sendMessage(chatId, 'Inbound clients');
 			const settings: XSettings = JSON.parse(inbound.settings);
-			for (const client of settings.clients) {
+			const clients = context.accept
+				? settings.clients
+				: settings.clients.filter(client => client.email.startsWith(message.text));
+			for (const client of clients) {
 				await bot.sendMessage(
 					chatId,
 					`
@@ -154,6 +170,7 @@ flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}
 				);
 			}
 		}
+		globalHandler.finishCommand();
 	}
 
 	async getOnline(chatId: number) {

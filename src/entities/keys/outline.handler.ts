@@ -18,18 +18,30 @@ class OutlineCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.Delete) {
-			await this.service.delete(context, message, this.init);
+			await this.service.delete(context.id, message.chat.id, this.init);
 			this.init = false;
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.List) {
-			await this.service.getAll(message);
+			await this.service.getAll(context, message, start);
+			return;
 		}
 		if (context.cmd === VPNKeyCommand.GetUser) {
-			await this.service.getUser(context, message);
+			await this.service.getUser(context.id, message.chat.id);
 		}
 		if (context.cmd === VPNKeyCommand.Create) {
 			await this.service.create(message, message.text);
+		}
+		if (context.cmd === VPNKeyCommand.Rename) {
+			await this.service.rename(context.id, message, start);
+			return;
+		}
+		if (context.cmd === VPNKeyCommand.SetDataLimit) {
+			await this.service.setDataLimit(context.id, message, start);
+			return;
+		}
+		if (context.cmd === VPNKeyCommand.RemoveDataLimit) {
+			await this.service.removeDataLimit(context.id, message);
 		}
 		globalHandler.finishCommand();
 	}

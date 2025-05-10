@@ -1,3 +1,4 @@
+import client from '../../core/client';
 import env from '../../env';
 
 export type NalogAuthResponse = {
@@ -55,12 +56,8 @@ export class NalogService {
 				},
 			},
 		};
-		const response = await fetch(`${this.apiRoot}/auth/lkfl`, {
+		const response = await client.post(`${this.apiRoot}/auth/lkfl`, {
 			body: JSON.stringify(body),
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
 		});
 		const responseBody: NalogAuthResponse & NalogErrorMessage = await response.json();
 		if (!response.ok) {
@@ -91,9 +88,8 @@ export class NalogService {
 			paymentType: 'CASH',
 			ignoreMaxTotalIncomeRestriction: false,
 		};
-		const response = await fetch(`${this.apiRoot}/income`, {
+		const response = await client.post(`${this.apiRoot}/income`, {
 			body: JSON.stringify(body),
-			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${token}`,
 				'Content-Type': 'application/json',

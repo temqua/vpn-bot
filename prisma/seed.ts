@@ -80,6 +80,27 @@ async function main() {
 				peopleCount: 2,
 				price: 80,
 			},
+			{
+				amount: 2200,
+				months: 6,
+				name: 'полгода за троих c 2025',
+				peopleCount: 3,
+				price: 150,
+			},
+			{
+				amount: 2500,
+				months: 6,
+				name: 'полгода за четверых',
+				peopleCount: 4,
+				price: 150,
+			},
+			{
+				amount: 500,
+				months: 1,
+				name: 'месяц за четверых',
+				peopleCount: 4,
+				price: 150,
+			},
 		],
 	});
 }
