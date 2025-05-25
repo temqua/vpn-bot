@@ -417,7 +417,7 @@ export class UsersService {
 				const lastPayment = user.payments[0];
 				await bot.sendMessage(
 					message.chat.id,
-					`User ${user.username.replace(/[-.*#_]/g, match => `\\${match}`)} last payment UUID \`${lastPayment.id}\`
+					`User ${user.username.replace(/[-.*#_]/g, match => `\\${match}`)} (ID ${user.id}) last payment UUID \`${lastPayment.id}\`
 	Payment Date: ${formatDate(lastPayment.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)}
 	Months count: ${lastPayment.monthsCount}
 	Expires on: ${formatDate(lastPayment.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`)}
@@ -437,7 +437,7 @@ export class UsersService {
 			await bot.sendMessage(
 				message.chat.id,
 				`Users 
-${users.map(u => u.username).join('\n')} 
+${users.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
 have no payments for next month.`,
 			);
 		}
