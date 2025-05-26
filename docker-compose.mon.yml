@@ -1,49 +1,46 @@
 services:
-  prometheus:
-    image: prom/prometheus                            
-    container_name: prometheus                        
-    network_mode: host                                
-    volumes:                  
-      - ./prometheus/config:/etc/prometheus     
-      - ./prometheus/data:/prometheus                 
-    command: [
-      "--config.file=/etc/prometheus/prometheus.yml",
-      "--web.listen-address=:9099"
-    ]
-    restart: unless-stopped
+    prometheus:
+        image: prom/prometheus
+        container_name: prometheus
+        network_mode: host
+        volumes:
+            - ./prometheus/config:/etc/prometheus
+            - ./prometheus/data:/prometheus
+        command: ['--config.file=/etc/prometheus/prometheus.yml', '--web.listen-address=:9099']
+        restart: unless-stopped
 
-  node_exporter:
-    image: quay.io/prometheus/node-exporter
-    container_name: node-exporter                       
-    network_mode: host
-    pid: host
-    volumes:
-      - "/:/host:ro,rslave"
-    command:
-      - '--path.rootfs=/host'
-    restart: unless-stopped
+    node_exporter:
+        image: quay.io/prometheus/node-exporter
+        container_name: node-exporter
+        network_mode: host
+        pid: host
+        volumes:
+            - '/:/host:ro,rslave'
+        command:
+            - '--path.rootfs=/host'
+        restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    network_mode: host  # Используем сеть хоста
-    volumes:
-      - grafana-storage:/var/lib/grafana           # Сохраняем данные Grafana
-      - /etc/grafana/ssl:/etc/grafana/ssl:ro       # Твои SSL-серты
-    environment:
-      - GF_SERVER_PROTOCOL=https
-      - GF_SERVER_CERT_FILE=/etc/grafana/ssl/grafana-cert.pem
-      - GF_SERVER_CERT_KEY=/etc/grafana/ssl/grafana-key.pem
-    restart: unless-stopped
+    grafana:
+        image: grafana/grafana
+        container_name: grafana
+        network_mode: host # Используем сеть хоста
+        volumes:
+            - grafana-storage:/var/lib/grafana # Сохраняем данные Grafana
+            - /etc/grafana/ssl:/etc/grafana/ssl:ro # Твои SSL-серты
+        environment:
+            - GF_SERVER_PROTOCOL=https
+            - GF_SERVER_CERT_FILE=/etc/grafana/ssl/grafana-cert.pem
+            - GF_SERVER_CERT_KEY=/etc/grafana/ssl/grafana-key.pem
+        restart: unless-stopped
 
-  prometheus-wireguard-exporter:
-    image: mindflavor/prometheus-wireguard-exporter
-    container_name: wgexporter
-    network_mode: host
-    cap_add:
-      - NET_ADMIN
-    command: -a true
-    restart: unless-stopped
+    prometheus-wireguard-exporter:
+        image: mindflavor/prometheus-wireguard-exporter
+        container_name: wgexporter
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+        command: -a true
+        restart: unless-stopped
 
 volumes:
-  grafana-storage:
+    grafana-storage:

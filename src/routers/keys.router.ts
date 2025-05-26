@@ -2,7 +2,7 @@ import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
 import bot from '../core/bot';
 import { createButtons, deleteButtons, keyButtons, showKeysButtons } from '../core/buttons';
-import { CommandScope, VPNKeyCommand, VPNProtocol } from '../core/enums';
+import { CmdCode, CommandScope, VPNKeyCommand, VPNProtocol } from '../core/enums';
 import { globalHandler } from '../core/global.handler';
 import { CertificatesService } from '../entities/keys/certificates.service';
 
@@ -62,8 +62,8 @@ bot.onText(/\/key\s+export$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Create,
-				pr: VPNProtocol.OpenVPN,
+				[CmdCode.Command]: VPNKeyCommand.Create,
+				[CmdCode.Protocol]: VPNProtocol.OpenVPN,
 			},
 		},
 		msg,
@@ -78,8 +78,8 @@ bot.onText(/\/keys\s+online/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.GetOnline,
-				pr: VPNProtocol.XUI,
+				[CmdCode.Command]: VPNKeyCommand.GetOnline,
+				[CmdCode.Protocol]: VPNProtocol.XUI,
 			},
 		},
 		msg,
@@ -94,8 +94,8 @@ bot.onText(/\/key\s+create\s+wg$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Create,
-				pr: VPNProtocol.WG,
+				[CmdCode.Command]: VPNKeyCommand.Create,
+				[CmdCode.Protocol]: VPNProtocol.WG,
 			},
 		},
 		msg,
@@ -110,8 +110,8 @@ bot.onText(/\/key\s+delete\s+wg$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Delete,
-				pr: VPNProtocol.WG,
+				[CmdCode.Command]: VPNKeyCommand.Delete,
+				[CmdCode.Protocol]: VPNProtocol.WG,
 			},
 		},
 		msg,
@@ -126,8 +126,8 @@ bot.onText(/\/key\s+create\s+ikev2$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Create,
-				pr: VPNProtocol.IKEv2,
+				[CmdCode.Command]: VPNKeyCommand.Create,
+				[CmdCode.Protocol]: VPNProtocol.IKEv2,
 			},
 		},
 		msg,
@@ -142,8 +142,8 @@ bot.onText(/\/key\s+delete\s+ikev2$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Delete,
-				pr: VPNProtocol.IKEv2,
+				[CmdCode.Command]: VPNKeyCommand.Delete,
+				[CmdCode.Protocol]: VPNProtocol.IKEv2,
 			},
 		},
 		msg,
@@ -158,8 +158,8 @@ bot.onText(/\/key\s+create\s+outline$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Create,
-				pr: VPNProtocol.Outline,
+				[CmdCode.Command]: VPNKeyCommand.Create,
+				[CmdCode.Protocol]: VPNProtocol.Outline,
 			},
 		},
 		msg,
@@ -174,8 +174,8 @@ bot.onText(/\/key\s+delete\s+outline$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Delete,
-				pr: VPNProtocol.Outline,
+				[CmdCode.Command]: VPNKeyCommand.Delete,
+				[CmdCode.Protocol]: VPNProtocol.Outline,
 			},
 		},
 		msg,
@@ -190,8 +190,8 @@ bot.onText(/\/key\s+create\s+openvpn$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Create,
-				pr: VPNProtocol.OpenVPN,
+				[CmdCode.Command]: VPNKeyCommand.Create,
+				[CmdCode.Protocol]: VPNProtocol.OpenVPN,
 			},
 		},
 		msg,
@@ -206,8 +206,8 @@ bot.onText(/\/key\s+delete\s+openvpn$/, async (msg: Message) => {
 		{
 			scope: CommandScope.Keys,
 			context: {
-				cmd: VPNKeyCommand.Delete,
-				pr: VPNProtocol.OpenVPN,
+				[CmdCode.Command]: VPNKeyCommand.Delete,
+				[CmdCode.Protocol]: VPNProtocol.OpenVPN,
 			},
 		},
 		msg,
@@ -262,6 +262,21 @@ bot.onText(/\/keys\s+openvpn/, async (msg: Message, match: RegExpMatchArray | nu
 	await getClients(msg, match, VPNProtocol.OpenVPN);
 });
 
+bot.onText(/\/keys\s+outline/, async (msg: Message, match: RegExpMatchArray | null) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Keys,
+			context: {
+				[CmdCode.Command]: VPNKeyCommand.List,
+				[CmdCode.Protocol]: VPNProtocol.Outline,
+			},
+		},
+		msg,
+	);
+});
 async function createClient(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
 	if (!isAdmin(msg)) {
 		return;
