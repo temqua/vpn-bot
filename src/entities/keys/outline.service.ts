@@ -196,8 +196,8 @@ dataLimit: ${dataLimit.replace(/[-.*#_]/g, match => `\\${match}`)}`,
 				message.chat.id,
 				`
 Общий трафик: ${metricsResponse.server.dataTransferred.bytes / (1024 * 1024)} МБ
-Текущий трафик: ${current.data.bytes / (1024 * 1024)} МБ (${new Date(current.timestamp)})
-Максимальный трафик: ${peak.data.bytes / (1024 * 1024)} МБ (${new Date(peak.timestamp)})
+Текущий трафик: ${current.data.bytes / (1024 * 1024)} МБ (${new Date(current.timestamp * 1000)})
+Максимальный трафик: ${peak.data.bytes / (1024 * 1024)} МБ (${new Date(peak.timestamp * 1000)})
 Общее время подключения за последние 30 дней: ${metricsResponse.server.tunnelTime.seconds / (60 * 60)} ч
 
 				`,
