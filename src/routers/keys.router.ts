@@ -262,7 +262,7 @@ bot.onText(/\/keys\s+openvpn/, async (msg: Message, match: RegExpMatchArray | nu
 	await getClients(msg, match, VPNProtocol.OpenVPN);
 });
 
-bot.onText(/\/keys\s+outline/, async (msg: Message, match: RegExpMatchArray | null) => {
+bot.onText(/\/keys\s+outline/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}

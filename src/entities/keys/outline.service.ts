@@ -186,6 +186,41 @@ dataLimit: ${dataLimit.replace(/[-.*#_]/g, match => `\\${match}`)}`,
 		}
 	}
 
+	async getMetrics(message) {
+		try {
+			const metricsResponse = await this.service.getMetrics();
+			const current = metricsResponse.server.bandwidth.current;
+			const peak = metricsResponse.server.bandwidth.peak;
+
+			await bot.sendMessage(
+				message.chat.id,
+				`
+Общий трафик: ${metricsResponse.server.dataTransferred.bytes / (1024 * 1024)} МБ
+Текущий трафик: ${current.data.bytes / (1024 * 1024)} МБ (${new Date(current.timestamp)})
+Максимальный трафик: ${peak.data.bytes / (1024 * 1024)} МБ (${new Date(peak.timestamp)})
+Общее время подключения за последние 30 дней: ${metricsResponse.server.tunnelTime.seconds / (60 * 60)} ч
+
+				`,
+			);
+			const locations = metricsResponse.server.locations.map(
+				location => `
+Location: ${location.location}
+ASN: ${location.asn}
+ORG: ${location.asOrg}
+Общий трафик: ${location.dataTransferred.bytes / (1024 * 1024)} МБ
+Общее время подключения ${location.tunnelTime.seconds / (60 * 60)} ч
+			`,
+			);
+			for (const locationMsg of locations) {
+				await bot.sendMessage(message.chat.id, locationMsg);
+			}
+		} catch (error) {
+			const errMsg = `Outline server metrics fetching error: ${error}`;
+			logger.error(errMsg);
+			await bot.sendMessage(message.chat.id, errMsg);
+		}
+	}
+
 	private log(message: string) {
 		logger.log(`[${basename(__filename)}]: ${message}`);
 	}

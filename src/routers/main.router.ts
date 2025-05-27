@@ -11,6 +11,8 @@ import { PlanRepository } from '../entities/users/plans.repository';
 import { PlansService } from '../entities/users/plans.service';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
 import { SpendingCategory } from '@prisma/client';
+import { OutlineService } from '../entities/keys/outline.service';
+import { OutlineApiService } from '../entities/keys/outline.api-service';
 
 const keysHelpMessage = Object.values(VPNProtocol)
 	.filter(p => ![VPNProtocol.Outline, VPNProtocol.XUI].includes(p))
@@ -142,7 +144,7 @@ bot.on('callback_query', async query => {
 	globalHandler.execute(data, query.message);
 });
 
-bot.onText(/\/me/, async (msg: Message) => {
+bot.onText(/\/me$/, async (msg: Message) => {
 	const user = await usersRepository.getByTelegramId(msg.from.id.toString());
 	if (user) {
 		bot.sendMessage(msg.chat.id, formatUserInfo(user));
@@ -207,6 +209,14 @@ bot.onText(/\/spending\s+servers/, async (msg: Message) => {
 		},
 		msg,
 	);
+});
+
+bot.onText(/\/metrics$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const outlineService = new OutlineService(new OutlineApiService());
+	outlineService.getMetrics(msg);
 });
 
 function formatUserInfo(user: VPNUser) {

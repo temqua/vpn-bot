@@ -4,7 +4,12 @@ import { getOutlineOperations } from '../../core/buttons';
 import client from '../../core/client';
 import logger from '../../core/logger';
 import env from '../../env';
-import type { OutlineKey, OutlineMetricsTransfer, OutlineResponse } from './outline.types';
+import type {
+	OutlineKey,
+	OutlineMetricsTransfer,
+	OutlineResponse,
+	OutlineServerMetricsResponse,
+} from './outline.types';
 
 export class OutlineApiService {
 	private formatUserInfo(key: OutlineKey) {
@@ -180,5 +185,15 @@ accessUrl: \`${key.accessUrl}\``,
 			logger.error(errMsg);
 			await bot.sendMessage(chatId, errMsg);
 		}
+	}
+
+	async getMetrics(): Promise<OutlineServerMetricsResponse> {
+		const response = await client.get(`${env.OUTLINE_API_ROOT}/experimental/server/metrics?since=1d`);
+		if (!response.ok) {
+			throw new Error(
+				`Error while fetching experimental server metrics: ${response.status} ${response.statusText}`,
+			);
+		}
+		return await response.json();
 	}
 }
