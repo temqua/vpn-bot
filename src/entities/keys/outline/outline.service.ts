@@ -1,15 +1,19 @@
 import type { Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
-import bot from '../../core/bot';
-import { getOutlineOperations, outlineListKeyboard } from '../../core/buttons';
-import { CmdCode, CommandScope, VPNKeyCommand, VPNProtocol } from '../../core/enums';
-import { globalHandler } from '../../core/global.handler';
-import logger from '../../core/logger';
-import type { KeysContext } from './keys.handler';
-import type { OutlineApiService } from './outline.api-service';
+import bot from '../../../core/bot';
+import { getOutlineOperations, outlineDeleteKeyboard, outlineListKeyboard } from '../../../core/buttons';
+import { CmdCode, CommandScope, VPNKeyCommand, VPNProtocol } from '../../../core/enums';
+import { globalHandler } from '../../../core/global.handler';
+import logger from '../../../core/logger';
+import type { KeysContext } from '../keys.handler';
+import { OutlineApiService } from './outline.api-service';
 
 export class OutlineService {
-	constructor(private service: OutlineApiService) {}
+	constructor(private service: OutlineApiService = new OutlineApiService()) {}
+
+	deleteSteps = {
+		delete: false,
+	};
 
 	async create(message: Message, username: string) {
 		this.log('create');
@@ -29,7 +33,7 @@ export class OutlineService {
 		}
 
 		try {
-			const users = await this.service.getAll(message);
+			const users = await this.service.getAll(message.chat.id);
 			const keys = context.accept
 				? users.accessKeys
 				: users.accessKeys.filter(({ name }) => name.startsWith(message.text));
@@ -54,12 +58,21 @@ export class OutlineService {
 					}),
 				},
 			]);
-			const inlineKeyboard: SendBasicOptions = {
-				reply_markup: {
-					inline_keyboard: [...buttons],
-				},
-			};
-			await bot.sendMessage(message.chat.id, 'Select user for additional info:', inlineKeyboard);
+			const chunkSize = 50;
+			const chunksCount = Math.ceil(buttons.length / chunkSize);
+			for (let i = 0; i < chunksCount; i++) {
+				const chunk = buttons.slice(i * chunkSize, i * chunkSize + chunkSize);
+				const inlineKeyboard: SendBasicOptions = {
+					reply_markup: {
+						inline_keyboard: [...chunk],
+					},
+				};
+				await bot.sendMessage(
+					message.chat.id,
+					`Select user for additional info (part ${i + 1}):`,
+					inlineKeyboard,
+				);
+			}
 			await bot.sendMessage(message.chat.id, `Total count ${users.accessKeys.length}`);
 			logger.success(`[${basename(__filename)}]: Outline users list was handled`);
 		} catch (error) {
@@ -70,16 +83,31 @@ export class OutlineService {
 		}
 	}
 
-	async delete(id: string, chatId: number, start: boolean) {
+	async delete(context: KeysContext, message: Message, start: boolean) {
+		const chatId = message.chat.id;
 		logger.log(`[${basename(__filename)}]: delete${start ? ' Operation start' : ''}`);
-		if (!start) {
-			await bot.sendMessage(chatId, 'Selected user id to delete: ' + id);
-			await this.service.delete(id, chatId);
+		if (this.deleteSteps.delete) {
+			await bot.sendMessage(chatId, 'Selected user id to delete: ' + context.id);
+			await this.service.delete(context.id, chatId);
+			this.deleteSteps.delete = false;
 			globalHandler.finishCommand();
 			return;
 		}
+
+		if (start) {
+			await bot.sendMessage(
+				chatId,
+				'Send start of username for user searching or click on the button to show all users',
+				outlineDeleteKeyboard,
+			);
+			return;
+		}
 		const users = await this.service.getAll(chatId);
-		const buttons = users.accessKeys.map(({ name, id }) => [
+		const keys = context.accept
+			? users.accessKeys
+			: users.accessKeys.filter(({ name }) => name.startsWith(message.text));
+
+		const buttons = keys.map(({ name, id }) => [
 			{
 				text: name,
 				callback_data: JSON.stringify({
@@ -93,12 +121,18 @@ export class OutlineService {
 				}),
 			},
 		]);
-		const inlineKeyboard = {
-			reply_markup: {
-				inline_keyboard: [...buttons],
-			},
-		};
-		await bot.sendMessage(chatId, 'Select user to delete:', inlineKeyboard);
+		const chunkSize = 50;
+		const chunksCount = Math.ceil(buttons.length / chunkSize);
+		for (let i = 0; i < chunksCount; i++) {
+			const chunk = buttons.slice(i * chunkSize, i * chunkSize + chunkSize);
+			const inlineKeyboard: SendBasicOptions = {
+				reply_markup: {
+					inline_keyboard: [...chunk],
+				},
+			};
+			await bot.sendMessage(message.chat.id, `Select user to delete (part ${i + 1}):`, inlineKeyboard);
+		}
+		this.deleteSteps.delete = true;
 	}
 
 	async getUser(id: string, chatId: number) {

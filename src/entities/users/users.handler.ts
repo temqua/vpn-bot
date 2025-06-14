@@ -4,7 +4,6 @@ import type { ICommandHandler } from '../../core/contracts';
 import { CmdCode, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import { paymentsService, PaymentsService } from './payments.service';
-import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
 
 export interface UsersContext {
@@ -20,8 +19,8 @@ export interface UsersContext {
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(
-		private service: UsersService,
-		private paymentsService: PaymentsService,
+		private service: UsersService = new UsersService(),
+		private paymentsService: PaymentsService = new PaymentsService(),
 	) {}
 	private state = {
 		params: new Map(),
@@ -96,4 +95,4 @@ class UsersCommandsHandler implements ICommandHandler {
 	}
 }
 
-export const userCommandsHandler = new UsersCommandsHandler(new UsersService(new UsersRepository()), paymentsService);
+export const userCommandsHandler = new UsersCommandsHandler(new UsersService(), paymentsService);

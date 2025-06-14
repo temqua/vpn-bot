@@ -1,8 +1,8 @@
 import { randomUUID } from 'crypto';
-import bot from '../../core/bot';
-import client from '../../core/client';
-import logger from '../../core/logger';
-import env from '../../env';
+import bot from '../../../core/bot';
+import client from '../../../core/client';
+import logger from '../../../core/logger';
+import env from '../../../env';
 import type {
 	XClientSettings,
 	XOnlineClientsResponse,

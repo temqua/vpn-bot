@@ -1,18 +1,18 @@
 import type { InlineKeyboardButton, Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
-import { setActiveStep } from '../../core';
-import bot from '../../core/bot';
-import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../core/enums';
-import { globalHandler } from '../../core/global.handler';
-import logger from '../../core/logger';
-import env from '../../env';
-import type { KeysContext } from './keys.handler';
-import type { XUIApiService } from './xui.api-service';
+import { setActiveStep } from '../../../core';
+import bot from '../../../core/bot';
+import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../../core/enums';
+import { globalHandler } from '../../../core/global.handler';
+import logger from '../../../core/logger';
+import env from '../../../env';
+import type { KeysContext } from '../keys.handler';
+import { XUIApiService } from './xui.api-service';
 import type { SniffingSettings, StreamSettings, XInbound, XSettings } from './xui.types';
-import { xuiListKeyboard } from '../../core/buttons';
+import { xuiDeleteKeyboard, xuiListKeyboard } from '../../../core/buttons';
 
 export class XUIService {
-	constructor(private service: XUIApiService) {}
+	constructor(private service: XUIApiService = new XUIApiService()) {}
 
 	private params = new Map();
 	private createSteps = {
@@ -22,6 +22,7 @@ export class XUIService {
 	};
 	private deleteSteps = {
 		user: false,
+		username: false,
 		inboundId: false,
 	};
 	private inbounds: XInbound[] = [];
@@ -221,10 +222,22 @@ flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}
 		}
 		if (this.deleteSteps.inboundId) {
 			this.params.set('inbound_id', context.id);
-			const selectedInbound = this.inbounds.find(i => i.id === Number(context.id));
+			await bot.sendMessage(
+				message.chat.id,
+				'Send start of username for user searching or click on the button to show all users',
+				xuiDeleteKeyboard,
+			);
+			this.setDeleteStep('username');
+			return;
+		}
+		if (this.deleteSteps.username) {
+			const selectedInbound = this.inbounds.find(i => i.id === Number(this.params.get('inbound_id')));
 			const settings: XSettings = JSON.parse(selectedInbound.settings);
-			await bot.sendMessage(message.chat.id, 'Inbound clients. Enter UUID of user to delete');
-			for (const client of settings.clients) {
+			const clients = context.accept
+				? settings.clients
+				: settings.clients.filter(c => c.email.startsWith(message.text));
+			await bot.sendMessage(message.chat.id, 'Found inbound clients. Enter UUID of user to delete');
+			for (const client of clients) {
 				await bot.sendMessage(
 					message.chat.id,
 					`User ${client.email.replace(/[-.*#_]/g, match => `\\${match}`)} UUID \`${client.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
@@ -236,6 +249,7 @@ flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}
 			this.setDeleteStep('user');
 			return;
 		}
+
 		if (this.deleteSteps.user) {
 			this.params.set('uuid', message.text);
 		}

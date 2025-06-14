@@ -1,50 +1,18 @@
+import { SpendingCategory } from '@prisma/client';
 import type { Message } from 'node-telegram-bot-api';
-import { formatDate, isAdmin } from '../core';
+import { adminStartMessage, formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
-import { CommandScope, UserRequest, VPNProtocol } from '../core/enums';
+import { CmdCode, CommandScope, SpendingCommand, UserRequest } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/global.handler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
+import { OutlineApiService } from '../entities/keys/outline/outline.api-service';
+import { OutlineService } from '../entities/keys/outline/outline.service';
 import { paymentsService } from '../entities/users/payments.service';
 import { PlanRepository } from '../entities/users/plans.repository';
 import { PlansService } from '../entities/users/plans.service';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
-import { SpendingCategory } from '@prisma/client';
-import { OutlineService } from '../entities/keys/outline.service';
-import { OutlineApiService } from '../entities/keys/outline.api-service';
-
-const keysHelpMessage = Object.values(VPNProtocol)
-	.filter(p => ![VPNProtocol.Outline, VPNProtocol.XUI].includes(p))
-	.reduce((acc, curr) => {
-		const current = `
-/key create ${curr}
-/key create ${curr} <username>
-/key delete ${curr}
-/key delete ${curr} <username> 
-/key file ${curr} <username>
-/keys ${curr}
-	`;
-		return acc + current;
-	}, '');
-
-const adminStartMessage = `
-/keys
-/key
-/key create
-${keysHelpMessage}
-/key create outline
-/key delete outline
-/keys outline
-/keys online
-/user
-/user create
-/user delete
-/user pay
-/users
-/users sync
-/payments
-`;
 
 const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
 /me — для просмотра информации, которая хранится о вас
@@ -168,6 +136,22 @@ bot.onText(/\/payments/, async (msg: Message) => {
 	});
 });
 
+bot.onText(/\/spendings$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+
+	globalHandler.execute(
+		{
+			scope: CommandScope.Spendings,
+			context: {
+				[CmdCode.Command]: SpendingCommand.List,
+			},
+		},
+		msg,
+	);
+});
+
 bot.onText(/\/spending$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
@@ -175,7 +159,9 @@ bot.onText(/\/spending$/, async (msg: Message) => {
 	globalHandler.execute(
 		{
 			scope: CommandScope.Spendings,
-			context: {},
+			context: {
+				[CmdCode.Command]: SpendingCommand.Create,
+			},
 		},
 		msg,
 	);
@@ -190,6 +176,7 @@ bot.onText(/\/spending\s+nalog/, async (msg: Message) => {
 			scope: CommandScope.Spendings,
 			context: {
 				category: SpendingCategory.Nalog,
+				[CmdCode.Command]: SpendingCommand.Create,
 			},
 		},
 		msg,
@@ -205,6 +192,7 @@ bot.onText(/\/spending\s+servers/, async (msg: Message) => {
 			scope: CommandScope.Spendings,
 			context: {
 				category: SpendingCategory.Servers,
+				[CmdCode.Command]: SpendingCommand.Create,
 			},
 		},
 		msg,

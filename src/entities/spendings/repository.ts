@@ -12,4 +12,8 @@ export class SpendingsRepository {
 			},
 		});
 	}
+
+	async list() {
+		return await prisma.spending.findMany();
+	}
 }

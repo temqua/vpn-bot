@@ -16,9 +16,9 @@ import { UsersRepository, type VPNUser } from './users.repository';
 
 export class PaymentsService {
 	constructor(
-		private repository: PaymentsRepository,
-		private plansRepository: PlanRepository,
-		private usersRepository: UsersRepository,
+		private repository: PaymentsRepository = new PaymentsRepository(),
+		private plansRepository: PlanRepository = new PlanRepository(),
+		private usersRepository: UsersRepository = new UsersRepository(),
 	) {}
 
 	private nalogService: NalogService = new NalogService();
@@ -346,8 +346,4 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 	}
 }
 
-export const paymentsService = new PaymentsService(
-	new PaymentsRepository(),
-	new PlanRepository(),
-	new UsersRepository(),
-);
+export const paymentsService = new PaymentsService();

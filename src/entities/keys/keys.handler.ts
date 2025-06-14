@@ -6,8 +6,8 @@ import { CmdCode, VPNKeyCommand, VPNProtocol } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
-import { outlineCommandsHandler } from './outline.handler';
-import { xuiCommandsHandler } from './xui.handler';
+import { outlineCommandsHandler } from './outline/outline.handler';
+import { xuiCommandsHandler } from './xui/xui.handler';
 
 export interface KeysContext {
 	[CmdCode.Protocol]: VPNProtocol;

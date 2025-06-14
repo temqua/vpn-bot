@@ -15,6 +15,11 @@ export enum CmdCode {
 	SubOperation = 'subo',
 }
 
+export enum SpendingCommand {
+	Create = 'cr',
+	List = 'list',
+}
+
 export enum VPNKeyCommand {
 	Create = 'cr',
 	List = 'list',

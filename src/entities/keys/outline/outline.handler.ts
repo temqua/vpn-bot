@@ -1,14 +1,13 @@
 import type { Message } from 'node-telegram-bot-api';
-import bot from '../../core/bot';
-import type { ICommandHandler } from '../../core/contracts';
-import { VPNKeyCommand } from '../../core/enums';
-import { globalHandler } from '../../core/global.handler';
-import type { KeysContext } from './keys.handler';
-import { OutlineApiService } from './outline.api-service';
+import bot from '../../../core/bot';
+import type { ICommandHandler } from '../../../core/contracts';
+import { VPNKeyCommand } from '../../../core/enums';
+import { globalHandler } from '../../../core/global.handler';
+import type { KeysContext } from '../keys.handler';
 import { OutlineService } from './outline.service';
 
 class OutlineCommandsHandler implements ICommandHandler {
-	constructor(private service: OutlineService) {}
+	constructor(private service: OutlineService = new OutlineService()) {}
 	private init = false;
 	async handle(context: KeysContext, message: Message, start = false) {
 		this.init = start;
@@ -18,7 +17,7 @@ class OutlineCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context.cmd === VPNKeyCommand.Delete) {
-			await this.service.delete(context.id, message.chat.id, this.init);
+			await this.service.delete(context, message, this.init);
 			this.init = false;
 			return;
 		}
@@ -47,4 +46,4 @@ class OutlineCommandsHandler implements ICommandHandler {
 	}
 }
 
-export const outlineCommandsHandler = new OutlineCommandsHandler(new OutlineService(new OutlineApiService()));
+export const outlineCommandsHandler = new OutlineCommandsHandler();

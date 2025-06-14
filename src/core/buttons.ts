@@ -431,38 +431,45 @@ export const getOutlineOperations = (id: string): SendBasicOptions => {
 	};
 };
 
-export const outlineListKeyboard: SendBasicOptions = {
-	reply_markup: {
-		inline_keyboard: [
-			[
-				{
-					text: 'Show all',
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Keys,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNKeyCommand.List,
-							[CmdCode.Protocol]: VPNProtocol.Outline,
-							accept: 1,
-						},
-						[CmdCode.Processing]: 1,
-					}),
-				},
+export function createShowAllKeyboard(protocol: VPNProtocol, operation = VPNKeyCommand.List): SendBasicOptions {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						text: 'Show all',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Keys,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: operation,
+								[CmdCode.Protocol]: protocol,
+								accept: 1,
+							},
+							[CmdCode.Processing]: 1,
+						}),
+					},
+				],
 			],
-		],
-	},
-};
+		},
+	};
+}
 
-export const xuiListKeyboard: SendBasicOptions = {
+export const outlineListKeyboard = createShowAllKeyboard(VPNProtocol.Outline);
+export const outlineDeleteKeyboard = createShowAllKeyboard(VPNProtocol.Outline, VPNKeyCommand.Delete);
+
+export const xuiListKeyboard = createShowAllKeyboard(VPNProtocol.XUI);
+export const xuiDeleteKeyboard = createShowAllKeyboard(VPNProtocol.XUI, VPNKeyCommand.Delete);
+export const payersKeyboard = {
 	reply_markup: {
 		inline_keyboard: [
 			[
 				{
 					text: 'Show all',
 					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Keys,
+						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNKeyCommand.List,
-							[CmdCode.Protocol]: VPNProtocol.XUI,
+							[CmdCode.Command]: VPNUserCommand.Update,
+							prop: 'payerId',
 							accept: 1,
 						},
 						[CmdCode.Processing]: 1,

@@ -8,7 +8,6 @@ import { OpenVPNKeysService } from './openvpn-users';
 export class CertificatesService {
 	private service: ICertificatesService;
 	constructor(private protocol: VPNProtocol) {
-		this.service = new IKEv2KeysService();
 		switch (protocol) {
 			case VPNProtocol.WG:
 				this.service = new WireguardKeysService();

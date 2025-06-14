@@ -3,8 +3,14 @@ import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-teleg
 import { basename } from 'path';
 import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
-import { createUserOperationsKeyboard, getUserContactKeyboard, getUserMenu, skipKeyboard } from '../../core/buttons';
-import { Bank, BoolFieldState, CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
+import {
+	createUserOperationsKeyboard,
+	getUserContactKeyboard,
+	getUserMenu,
+	payersKeyboard,
+	skipKeyboard,
+} from '../../core/buttons';
+import { Bank, BoolFieldState, CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
@@ -15,20 +21,22 @@ import { UsersRepository, type VPNUser } from './users.repository';
 import { PaymentsRepository } from './payments.repository';
 
 export class UsersService {
-	constructor(private repository: UsersRepository) {}
+	constructor(private repository: UsersRepository = new UsersRepository()) {}
 
-	private state = {
-		params: new Map(),
-		createSteps: {
-			telegramId: false,
-			username: false,
-			firstName: false,
-			lastName: false,
-			telegramLink: false,
-			devices: false,
-			protocols: false,
-			bank: false,
-		},
+	params = new Map();
+	createSteps = {
+		telegramId: false,
+		username: false,
+		firstName: false,
+		lastName: false,
+		telegramLink: false,
+		devices: false,
+		protocols: false,
+		bank: false,
+	};
+	updateSteps = {
+		payerSearch: false,
+		apply: false,
 	};
 	private textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
 	private boolProps = ['active', 'free'];
@@ -40,7 +48,7 @@ export class UsersService {
 		start = false,
 		selectedOptions: (Device | VPNProtocol | Bank)[] = [],
 	) {
-		this.log(`create. Active step ${this.getActiveStep(this.state.createSteps) ?? 'start'}`);
+		this.log(`create. Active step ${this.getActiveStep(this.createSteps) ?? 'start'}`);
 
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
@@ -63,37 +71,37 @@ export class UsersService {
 			this.setCreateStep('telegramId');
 			return;
 		}
-		if (this.state.createSteps.telegramId) {
+		if (this.createSteps.telegramId) {
 			if (message?.user_shared) {
-				this.state.params.set('telegram_id', message.user_shared.user_id.toString());
+				this.params.set('telegram_id', message.user_shared.user_id.toString());
 			}
 			await bot.sendMessage(chatId, 'Enter new username');
 			this.setCreateStep('username');
 			return;
 		}
-		if (this.state.createSteps.username) {
-			this.state.params.set('username', message.text);
+		if (this.createSteps.username) {
+			this.params.set('username', message.text);
 			await bot.sendMessage(chatId, 'Enter first name');
 			this.setCreateStep('firstName');
 			return;
 		}
-		if (this.state.createSteps.firstName) {
-			this.state.params.set('first_name', message.text);
+		if (this.createSteps.firstName) {
+			this.params.set('first_name', message.text);
 			await bot.sendMessage(chatId, 'Enter last name', skipKeyboard);
 			this.setCreateStep('lastName');
 			return;
 		}
-		if (this.state.createSteps.lastName) {
+		if (this.createSteps.lastName) {
 			if (!context.skip) {
-				this.state.params.set('last_name', message.text);
+				this.params.set('last_name', message.text);
 			}
 			await bot.sendMessage(chatId, 'Enter telegram link', skipKeyboard);
 			this.setCreateStep('telegramLink');
 			return;
 		}
-		if (this.state.createSteps.telegramLink) {
+		if (this.createSteps.telegramLink) {
 			if (!context.skip) {
-				this.state.params.set('telegram_link', message.text);
+				this.params.set('telegram_link', message.text);
 			}
 			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
 				allows_multiple_answers: true,
@@ -102,9 +110,9 @@ export class UsersService {
 			this.setCreateStep('devices');
 			return;
 		}
-		if (this.state.createSteps.devices) {
+		if (this.createSteps.devices) {
 			if (!context.skip) {
-				this.state.params.set('devices', selectedOptions);
+				this.params.set('devices', selectedOptions);
 			}
 			await bot.sendPoll(chatId, 'Choose protocols', pollOptions.protocols, {
 				allows_multiple_answers: true,
@@ -113,9 +121,9 @@ export class UsersService {
 			this.setCreateStep('protocols');
 			return;
 		}
-		if (this.state.createSteps.protocols) {
+		if (this.createSteps.protocols) {
 			if (!context.skip) {
-				this.state.params.set('protocols', selectedOptions);
+				this.params.set('protocols', selectedOptions);
 			}
 			await bot.sendPoll(chatId, 'Choose bank', pollOptions.bank, {
 				allows_multiple_answers: false,
@@ -124,12 +132,12 @@ export class UsersService {
 			this.setCreateStep('bank');
 			return;
 		}
-		if (this.state.createSteps.bank) {
+		if (this.createSteps.bank) {
 			if (!context.skip) {
-				this.state.params.set('bank', selectedOptions[0]);
+				this.params.set('bank', selectedOptions[0]);
 			}
 		}
-		const params = this.state.params;
+		const params = this.params;
 		const username = params.get('username');
 		try {
 			const newUser = await this.repository.create(
@@ -150,7 +158,7 @@ export class UsersService {
 			);
 			await bot.sendMessage(chatId, `Unexpected error occurred while creating user ${username}: ${error}`);
 		} finally {
-			this.state.params.clear();
+			this.params.clear();
 			this.resetCreateSteps();
 			globalHandler.finishCommand();
 		}
@@ -302,13 +310,18 @@ export class UsersService {
 			return;
 		}
 		if (context.prop === 'payerId') {
-			const updateId = this.state.params.get('updateId');
+			if (this.updateSteps.payerSearch) {
+				this.getPossiblePayers(message, context);
+				this.setUpdateStep('apply');
+				return;
+			}
+			const updateId = this.params.get('updateId');
 			const updated = await this.repository.update(updateId, {
 				payerId: context.id,
 			});
 			logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
 			await bot.sendMessage(context.chatId, this.formatUserInfo(updated));
-			this.state.params.clear();
+			this.params.clear();
 			globalHandler.finishCommand();
 			return;
 		}
@@ -445,7 +458,11 @@ have no payments for next month.`,
 	}
 
 	private setCreateStep(current: string) {
-		setActiveStep(current, this.state.createSteps);
+		setActiveStep(current, this.createSteps);
+	}
+
+	private setUpdateStep(current: string) {
+		setActiveStep(current, this.updateSteps);
 	}
 
 	private async initUpdate(message: Message, context: UsersContext) {
@@ -463,8 +480,13 @@ have no payments for next month.`,
 				allows_multiple_answers: false,
 			});
 		} else if (context.prop === 'payerId') {
-			this.state.params.set('updateId', context.id);
-			await this.getPossiblePayers(message);
+			this.params.set('updateId', context.id);
+			await bot.sendMessage(
+				message.chat.id,
+				'Send start of username for user searching or click on the button to show all users',
+				payersKeyboard,
+			);
+			this.setUpdateStep('payerSearch');
 		} else {
 			await bot.sendPoll(message.chat.id, `Select ${context.prop}`, pollOptions[context.prop], {
 				allows_multiple_answers: context.prop !== 'bank',
@@ -472,21 +494,21 @@ have no payments for next month.`,
 		}
 	}
 
-	private async getPossiblePayers(message: Message) {
-		const users = await this.repository.payersList();
-		const chunkSize = 50;
+	private async getPossiblePayers(message: Message, context: UsersContext) {
+		const possibleUsers = await this.repository.payersList();
+		const users = context.accept ? possibleUsers : possibleUsers.filter(u => u.username.startsWith(message.text));
 		const buttons = users
 			.map(({ id, username, firstName, lastName }) => [
 				{
 					text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
 					callback_data: JSON.stringify({
-						s: CommandScope.Users,
-						c: {
-							cmd: VPNUserCommand.Update,
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.Update,
 							id,
 							prop: 'payerId',
 						},
-						p: 1,
+						[CmdCode.Processing]: 1,
 					}),
 				} as InlineKeyboardButton,
 			])
@@ -495,17 +517,18 @@ have no payments for next month.`,
 					{
 						text: 'Set null',
 						callback_data: JSON.stringify({
-							s: CommandScope.Users,
-							c: {
-								cmd: VPNUserCommand.Update,
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.Update,
 								id: null,
 								prop: 'payerId',
 							},
-							p: 1,
+							[CmdCode.Processing]: 1,
 						}),
 					},
 				],
 			]);
+		const chunkSize = 50;
 		const chunksCount = Math.ceil(buttons.length / chunkSize);
 		for (let i = 0; i < chunksCount; i++) {
 			const chunk = buttons.slice(i * chunkSize, i * chunkSize + chunkSize);
@@ -526,7 +549,7 @@ have no payments for next month.`,
 		});
 		logger.success(`Field ${prop} has been successfully updated for user ${id}`);
 		await bot.sendMessage(chatId, this.formatUserInfo(updated));
-		this.state.params.clear();
+		this.params.clear();
 		globalHandler.finishCommand();
 		return;
 	}
@@ -540,8 +563,8 @@ have no payments for next month.`,
 	}
 
 	private resetCreateSteps() {
-		Object.keys(this.state.createSteps).forEach(k => {
-			this.state.createSteps[k] = false;
+		Object.keys(this.createSteps).forEach(k => {
+			this.createSteps[k] = false;
 		});
 	}
 
@@ -578,4 +601,4 @@ ${user.active ? '' : 'Inactive'}
 	}
 }
 
-export const usersService = new UsersService(new UsersRepository());
+export const usersService = new UsersService();

@@ -214,6 +214,38 @@ bot.onText(/\/key\s+delete\s+openvpn$/, async (msg: Message) => {
 	);
 });
 
+bot.onText(/\/key\s+create\s+xui$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Keys,
+			context: {
+				[CmdCode.Command]: VPNKeyCommand.Create,
+				[CmdCode.Protocol]: VPNProtocol.XUI,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(/\/key\s+delete\s+xui$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Keys,
+			context: {
+				[CmdCode.Command]: VPNKeyCommand.Delete,
+				[CmdCode.Protocol]: VPNProtocol.XUI,
+			},
+		},
+		msg,
+	);
+});
+
 bot.onText(/\/key\s+create\s+wg\s+(.*)/, async (msg: Message, match: RegExpMatchArray | null) => {
 	await createClient(msg, match, VPNProtocol.WG);
 });
@@ -277,6 +309,23 @@ bot.onText(/\/keys\s+outline/, async (msg: Message) => {
 		msg,
 	);
 });
+
+bot.onText(/\/keys\s+xui/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Keys,
+			context: {
+				[CmdCode.Command]: VPNKeyCommand.List,
+				[CmdCode.Protocol]: VPNProtocol.XUI,
+			},
+		},
+		msg,
+	);
+});
+
 async function createClient(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
 	if (!isAdmin(msg)) {
 		return;
