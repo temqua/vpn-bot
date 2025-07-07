@@ -29,8 +29,8 @@ services:
             - /etc/grafana/ssl:/etc/grafana/ssl:ro # Твои SSL-серты
         environment:
             - GF_SERVER_PROTOCOL=https
-            - GF_SERVER_CERT_FILE=/etc/grafana/ssl/grafana-cert.pem
-            - GF_SERVER_CERT_KEY=/etc/grafana/ssl/grafana-key.pem
+            - GF_SERVER_CERT_FILE=/etc/grafana/ssl/cert.pem
+            - GF_SERVER_CERT_KEY=/etc/grafana/ssl/key.pem
         restart: unless-stopped
 
     prometheus-wireguard-exporter:
