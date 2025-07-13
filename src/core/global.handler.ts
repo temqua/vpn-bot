@@ -1,6 +1,6 @@
 import type { Message, Poll } from 'node-telegram-bot-api';
 import { keysCommandsHandler, type KeysContext } from '../entities/keys/keys.handler';
-import { spendingsCommandsHandler, type SpendingsContext } from '../entities/spendings/handler';
+import { expensesCommandsHandler, type ExpensesContext } from '../entities/expenses/handler';
 import { userCommandsHandler, type UsersContext } from '../entities/users/users.handler';
 import type { ICommandHandler } from './contracts';
 import { CommandScope } from './enums';
@@ -18,7 +18,7 @@ export type CommandDetailCompressed = {
 	c: CommandContext;
 };
 
-export type CommandContext = UsersContext | KeysContext | SpendingsContext;
+export type CommandContext = UsersContext | KeysContext | ExpensesContext;
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
 
@@ -36,8 +36,8 @@ class GlobalHandler {
 			return;
 		}
 		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
-		if (this.activeCommand.scope === CommandScope.Spendings) {
-			spendingsCommandsHandler.handlePoll(this.activeCommand.context as SpendingsContext, poll);
+		if (this.activeCommand.scope === CommandScope.Expenses) {
+			expensesCommandsHandler.handlePoll(this.activeCommand.context as ExpensesContext, poll);
 		} else {
 			userCommandsHandler.handlePoll(this.activeCommand.context as UsersContext, poll);
 		}
@@ -57,7 +57,7 @@ class GlobalHandler {
 				handler = keysCommandsHandler;
 				break;
 			default:
-				handler = spendingsCommandsHandler;
+				handler = expensesCommandsHandler;
 		}
 		handler.handle(this.activeCommand.context, message);
 	}
@@ -74,7 +74,7 @@ class GlobalHandler {
 				handler = keysCommandsHandler;
 				break;
 			default:
-				handler = spendingsCommandsHandler;
+				handler = expensesCommandsHandler;
 		}
 		handler.handle(this.activeCommand.context, message, !command.processing);
 	}

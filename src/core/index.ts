@@ -52,4 +52,12 @@ ${keysHelpMessage}
 /users sync
 /users unpaid
 /payments
+/expenses
+/expenses sum
+/expenses nalog sum
+/expenses servers sum
+/expense
+/expense nalog
+/expense servers
+/metrics
 `;

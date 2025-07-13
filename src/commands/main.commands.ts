@@ -1,9 +1,8 @@
-import { SpendingCategory } from '@prisma/client';
 import type { Message } from 'node-telegram-bot-api';
 import { adminStartMessage, formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
-import { CmdCode, CommandScope, SpendingCommand, UserRequest } from '../core/enums';
+import { CmdCode, CommandScope, ExpenseCommand, UserRequest } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/global.handler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
@@ -13,6 +12,7 @@ import { paymentsService } from '../entities/users/payments.service';
 import { PlanRepository } from '../entities/users/plans.repository';
 import { PlansService } from '../entities/users/plans.service';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
+import { ExpenseCategory } from '@prisma/client';
 
 const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
 /me — для просмотра информации, которая хранится о вас
@@ -136,63 +136,118 @@ bot.onText(/\/payments/, async (msg: Message) => {
 	});
 });
 
-bot.onText(/\/spendings$/, async (msg: Message) => {
+bot.onText(/\/payments\s+sum/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const sum = await paymentsService.sum();
+	await bot.sendMessage(msg.chat.id, `Сумма всех платежей в системе: ${sum}`);
+});
+
+bot.onText(/\/expenses$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
 
 	globalHandler.execute(
 		{
-			scope: CommandScope.Spendings,
+			scope: CommandScope.Expenses,
 			context: {
-				[CmdCode.Command]: SpendingCommand.List,
+				[CmdCode.Command]: ExpenseCommand.List,
 			},
 		},
 		msg,
 	);
 });
 
-bot.onText(/\/spending$/, async (msg: Message) => {
+bot.onText(/\/expenses\s+sum$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
 	globalHandler.execute(
 		{
-			scope: CommandScope.Spendings,
+			scope: CommandScope.Expenses,
 			context: {
-				[CmdCode.Command]: SpendingCommand.Create,
+				[CmdCode.Command]: ExpenseCommand.Sum,
 			},
 		},
 		msg,
 	);
 });
 
-bot.onText(/\/spending\s+nalog/, async (msg: Message) => {
+bot.onText(/\/expenses\s+nalog\s+sum$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
 	globalHandler.execute(
 		{
-			scope: CommandScope.Spendings,
+			scope: CommandScope.Expenses,
 			context: {
-				category: SpendingCategory.Nalog,
-				[CmdCode.Command]: SpendingCommand.Create,
+				[CmdCode.Command]: ExpenseCommand.Sum,
+				category: ExpenseCategory.Nalog,
 			},
 		},
 		msg,
 	);
 });
 
-bot.onText(/\/spending\s+servers/, async (msg: Message) => {
+bot.onText(/\/expenses\s+servers\s+sum$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
 	globalHandler.execute(
 		{
-			scope: CommandScope.Spendings,
+			scope: CommandScope.Expenses,
 			context: {
-				category: SpendingCategory.Servers,
-				[CmdCode.Command]: SpendingCommand.Create,
+				[CmdCode.Command]: ExpenseCommand.Sum,
+				category: ExpenseCategory.Servers,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(/\/expense$/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Expenses,
+			context: {
+				[CmdCode.Command]: ExpenseCommand.Create,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(/\/expense\s+nalog/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Expenses,
+			context: {
+				category: ExpenseCategory.Nalog,
+				[CmdCode.Command]: ExpenseCommand.Create,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(/\/expense\s+servers/, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Expenses,
+			context: {
+				category: ExpenseCategory.Servers,
+				[CmdCode.Command]: ExpenseCommand.Create,
 			},
 		},
 		msg,

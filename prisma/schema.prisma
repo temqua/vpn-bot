@@ -55,15 +55,15 @@ model Payment {
   @@map("payments")
 }
 
-model Spending {
-  id          String   @id @default(uuid())
-  paymentDate DateTime @default(now()) @map(name: "payment_date")
+model Expense {
+  id          String          @id @default(uuid())
+  paymentDate DateTime        @default(now()) @map(name: "payment_date")
   amount      Decimal
-  currency    String   @default("RUB")
-  category    SpendingCategory
+  currency    String          @default("RUB")
+  category    ExpenseCategory
   description String?
 
-  @@map("spendings")
+  @@map("expenses")
 }
 
 model Plan {
@@ -96,9 +96,13 @@ enum VPNProtocol {
   IKEv2
   Outline
   VLess
+
+  @@map("vpn_protocol")
 }
 
-enum SpendingCategory {
+enum ExpenseCategory {
   Nalog
   Servers
+
+  @@map("expense_category")
 }

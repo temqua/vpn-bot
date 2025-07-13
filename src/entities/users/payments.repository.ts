@@ -70,4 +70,12 @@ export class PaymentsRepository {
 			},
 		});
 	}
+
+	async sum() {
+		return await prisma.payment.aggregate({
+			_sum: {
+				amount: true,
+			},
+		});
+	}
 }

@@ -46,6 +46,11 @@ export class PaymentsService {
 		globalHandler.finishCommand();
 	}
 
+	async sum() {
+		const result = await this.repository.sum();
+		return result._sum.amount;
+	}
+
 	async pay(message: Message, context: UsersContext, start: boolean) {
 		this.log(`pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`);
 		if (start) {
