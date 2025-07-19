@@ -121,7 +121,7 @@ bot.onText(/\/me$/, async (msg: Message) => {
 	}
 });
 
-bot.onText(/\/payments/, async (msg: Message) => {
+bot.onText(/\/payments$/, async (msg: Message) => {
 	if (isAdmin(msg)) {
 		await paymentsService.showAll(msg);
 		return;
