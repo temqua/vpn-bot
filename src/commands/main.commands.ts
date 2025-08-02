@@ -1,18 +1,19 @@
 import type { Message } from 'node-telegram-bot-api';
-import { adminStartMessage, formatDate, isAdmin } from '../core';
+import { formatDate, isAdmin } from '../core';
 import bot from '../core/bot';
 import { getUserContactKeyboard } from '../core/buttons';
-import { CmdCode, CommandScope, ExpenseCommand, UserRequest } from '../core/enums';
+import { UserRequest } from '../core/enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../core/global.handler';
 import logger from '../core/logger';
 import { logsService } from '../core/logs';
 import { OutlineApiService } from '../entities/keys/outline/outline.api-service';
 import { OutlineService } from '../entities/keys/outline/outline.service';
-import { paymentsService } from '../entities/users/payments.service';
-import { PlanRepository } from '../entities/users/plans.repository';
 import { PlansService } from '../entities/users/plans.service';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
-import { ExpenseCategory } from '@prisma/client';
+import { expenseHelpMessage } from './expenses.commands';
+import { keyHelpMessage } from './keys.commands';
+import { paymentsHelpMessage } from './payments.commands';
+import { userHelpMessage } from './users.commands';
 
 const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
 /me — для просмотра информации, которая хранится о вас
@@ -21,13 +22,48 @@ const userStartMessage = `Добро пожаловать в бот тессер
 
 const usersRepository = new UsersRepository();
 
-const plansService = new PlansService(new PlanRepository());
+const plansService = new PlansService();
+
+const mainCommandsList = {
+	plans: {
+		regexp: /\/plans$/,
+		docs: '/plans — show users plans',
+	},
+	metrics: {
+		regexp: /\/metrics$/,
+		docs: '/metrics — show outline server metrics',
+	},
+	ping: {
+		regexp: /\/ping$/,
+		docs: '/ping — test if bot working',
+	},
+	wg: {
+		regexp: /\/wg$/,
+		docs: '/wg — show server output for wg command',
+	},
+	wgCommand: {
+		regexp: /\/wg\s+(.*)/,
+		docs: '/wg <text> — execute server command wg with params and see output',
+	},
+	lookup: {
+		regexp: /\/lookup$/,
+		docs: '/lookup — see user telegram id',
+	},
+};
+
+const mainHelpMessage = Object.values(mainCommandsList)
+	.map(c => c.docs)
+	.join('\n');
 
 bot.onText(/\/start/, async (msg: Message) => {
 	logger.success('Ready');
 	if (isAdmin(msg)) {
 		await bot.sendMessage(msg.chat.id, '✅ Ready');
-		await bot.sendMessage(msg.chat.id, adminStartMessage);
+		await bot.sendMessage(msg.chat.id, mainHelpMessage);
+		await bot.sendMessage(msg.chat.id, keyHelpMessage);
+		await bot.sendMessage(msg.chat.id, expenseHelpMessage);
+		await bot.sendMessage(msg.chat.id, paymentsHelpMessage);
+		await bot.sendMessage(msg.chat.id, userHelpMessage);
 	} else {
 		const user = await usersRepository.getByTelegramId(msg.from.id.toString());
 		if (user) {
@@ -56,47 +92,6 @@ bot.on('message', async (msg: Message) => {
 	}
 });
 
-bot.onText(/\/ping$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	logger.success('PONG');
-	await bot.sendMessage(msg.chat.id, '✅ PONG');
-});
-
-bot.onText(/\/wg$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	await logsService.wg(msg, '');
-});
-
-bot.onText(/\/wg\s+(.*)/, async (msg: Message, match: RegExpMatchArray) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	await logsService.wg(msg, ` ${match[1]}`);
-});
-
-bot.onText(/\/lookup/, async (msg: Message) => {
-	await bot.sendMessage(msg.chat.id, 'Share user:', {
-		reply_markup: getUserContactKeyboard(UserRequest.Lookup),
-	});
-});
-
-bot.onText(/\/plans/, async (msg: Message) => {
-	const plans = await plansService.getAll();
-	for (const plan of plans) {
-		await bot.sendMessage(
-			msg.chat.id,
-			`${plan.name}
-Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
-Количество человек: ${plan.peopleCount}
-Продолжительность: ${plan.months} месяцев`,
-		);
-	}
-});
-
 bot.on('poll', p => {
 	globalHandler.handlePoll(p);
 });
@@ -112,6 +107,47 @@ bot.on('callback_query', async query => {
 	globalHandler.execute(data, query.message);
 });
 
+bot.onText(mainCommandsList.ping.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	logger.success('PONG');
+	await bot.sendMessage(msg.chat.id, '✅ PONG');
+});
+
+bot.onText(mainCommandsList.wg.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await logsService.wg(msg, '');
+});
+
+bot.onText(mainCommandsList.wgCommand.regexp, async (msg: Message, match: RegExpMatchArray) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	await logsService.wg(msg, ` ${match[1]}`);
+});
+
+bot.onText(mainCommandsList.lookup.regexp, async (msg: Message) => {
+	await bot.sendMessage(msg.chat.id, 'Share user:', {
+		reply_markup: getUserContactKeyboard(UserRequest.Lookup),
+	});
+});
+
+bot.onText(mainCommandsList.plans.regexp, async (msg: Message) => {
+	const plans = await plansService.getAll();
+	for (const plan of plans) {
+		await bot.sendMessage(
+			msg.chat.id,
+			`${plan.name}
+Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
+Количество человек: ${plan.peopleCount}
+Продолжительность: ${plan.months} месяцев`,
+		);
+	}
+});
+
 bot.onText(/\/me$/, async (msg: Message) => {
 	const user = await usersRepository.getByTelegramId(msg.from.id.toString());
 	if (user) {
@@ -121,140 +157,7 @@ bot.onText(/\/me$/, async (msg: Message) => {
 	}
 });
 
-bot.onText(/\/payments$/, async (msg: Message) => {
-	if (isAdmin(msg)) {
-		await paymentsService.showAll(msg);
-		return;
-	}
-	const user = await usersRepository.getByTelegramId(msg.from.id.toString());
-	if (!user) {
-		await bot.sendMessage(msg.chat.id, 'Вы не зарегистрированы в системе');
-		return;
-	}
-	await paymentsService.showPayments(msg, {
-		id: user.id,
-	});
-});
-
-bot.onText(/\/payments\s+sum/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	const sum = await paymentsService.sum();
-	await bot.sendMessage(msg.chat.id, `Сумма всех платежей в системе: ${sum}`);
-});
-
-bot.onText(/\/expenses$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				[CmdCode.Command]: ExpenseCommand.List,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/expenses\s+sum$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				[CmdCode.Command]: ExpenseCommand.Sum,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/expenses\s+nalog\s+sum$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				[CmdCode.Command]: ExpenseCommand.Sum,
-				category: ExpenseCategory.Nalog,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/expenses\s+servers\s+sum$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				[CmdCode.Command]: ExpenseCommand.Sum,
-				category: ExpenseCategory.Servers,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/expense$/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				[CmdCode.Command]: ExpenseCommand.Create,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/expense\s+nalog/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				category: ExpenseCategory.Nalog,
-				[CmdCode.Command]: ExpenseCommand.Create,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/expense\s+servers/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Expenses,
-			context: {
-				category: ExpenseCategory.Servers,
-				[CmdCode.Command]: ExpenseCommand.Create,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/metrics$/, async (msg: Message) => {
+bot.onText(mainCommandsList.metrics.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}

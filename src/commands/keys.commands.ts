@@ -6,6 +6,32 @@ import { CmdCode, CommandScope, VPNKeyCommand, VPNProtocol } from '../core/enums
 import { globalHandler } from '../core/global.handler';
 import { CertificatesService } from '../entities/keys/certificates.service';
 
+const keysHelpMessage = Object.values(VPNProtocol)
+	.filter(p => ![VPNProtocol.Outline, VPNProtocol.XUI].includes(p))
+	.reduce((acc, curr) => {
+		const current = `
+/key create ${curr}
+/key create ${curr} <username>
+/key delete ${curr}
+/key delete ${curr} <username> 
+/key file ${curr} <username>
+/keys ${curr}
+	`;
+		return acc + current;
+	}, '');
+
+export const keyHelpMessage = `/keys
+/key
+/key create
+/key delete
+/key export
+${keysHelpMessage}
+/key create outline
+/key delete outline
+/keys outline
+/key create xui
+/key delete xui`;
+
 bot.onText(/\/key$/, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;

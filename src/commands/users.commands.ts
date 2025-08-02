@@ -8,7 +8,42 @@ import { usersService } from '../entities/users/users.service';
 import env from '../env';
 import ms from 'ms';
 
-bot.onText(/\/user$/, async (msg: Message) => {
+export const userCommandsList = {
+	user: {
+		regexp: /\/user$/,
+		docs: '/user — show user commands',
+	},
+	users: {
+		regexp: /\/users$/,
+		docs: '/users — show users',
+	},
+	unpaid: {
+		regexp: /\/users*\s+unpaid$/,
+		docs: '/user(s) unpaid — show users with expired vpn subscription',
+	},
+	create: {
+		regexp: /\/user\s+create$/,
+		docs: '/user create — show commands for creating user',
+	},
+	delete: {
+		regexp: /\/user\s+delete$/,
+		docs: '/user delete — show commands for deleting user',
+	},
+	sync: {
+		regexp: /\/users*\s+sync/,
+		docs: '/user(s) sync — sync users',
+	},
+	pay: {
+		regexp: /\/user\s+pay/,
+		docs: '/user pay — user payment command',
+	},
+};
+
+export const userHelpMessage = Object.values(userCommandsList)
+	.map(c => c.docs)
+	.join('\n');
+
+bot.onText(userCommandsList.user.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -26,7 +61,7 @@ bot.onText(/\/user$/, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, 'Select command:', inlineKeyboard);
 });
 
-bot.onText(/\/users$/, async (msg: Message) => {
+bot.onText(userCommandsList.users.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -41,7 +76,7 @@ bot.onText(/\/users$/, async (msg: Message) => {
 	);
 });
 
-bot.onText(/\/users\s+unpaid$/, async (msg: Message) => {
+bot.onText(userCommandsList.unpaid.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -56,7 +91,7 @@ bot.onText(/\/users\s+unpaid$/, async (msg: Message) => {
 	);
 });
 
-bot.onText(/\/user\s+create$/, async (msg: Message) => {
+bot.onText(userCommandsList.create.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -71,7 +106,7 @@ bot.onText(/\/user\s+create$/, async (msg: Message) => {
 	);
 });
 
-bot.onText(/\/user\s+delete$/, async (msg: Message) => {
+bot.onText(userCommandsList.delete.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -86,14 +121,14 @@ bot.onText(/\/user\s+delete$/, async (msg: Message) => {
 	);
 });
 
-bot.onText(/\/users\s+sync/, async (msg: Message) => {
+bot.onText(userCommandsList.sync.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
 	await usersService.export(msg);
 });
 
-bot.onText(/\/user\s+pay/, async (msg: Message) => {
+bot.onText(userCommandsList.pay.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
@@ -102,21 +137,6 @@ bot.onText(/\/user\s+pay/, async (msg: Message) => {
 			scope: CommandScope.Users,
 			context: {
 				cmd: VPNUserCommand.Pay,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(/\/user\s+unpaid/, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Users,
-			context: {
-				cmd: VPNUserCommand.ShowUnpaid,
 			},
 		},
 		msg,

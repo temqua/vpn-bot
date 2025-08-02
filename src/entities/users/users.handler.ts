@@ -14,6 +14,7 @@ export interface UsersContext {
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;
+	a?: string;
 	[CmdCode.SubOperation]?: VPNUserCommand;
 }
 

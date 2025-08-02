@@ -1,6 +1,7 @@
 import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
 import { CmdCode, CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './global.handler';
+import type { UsersContext } from '../entities/users/users.handler';
 
 export const userButtons: InlineKeyboardButton[][] = [
 	[
@@ -300,6 +301,25 @@ export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
 	return {
 		reply_markup: {
 			inline_keyboard: createUserOperationsInlineKeyboard(id),
+		},
+	};
+};
+
+export const getFrequestPaymentAmountsKeyboard = (amounts: number[]): SendBasicOptions => {
+	const keyboard: InlineKeyboardButton[] = amounts.map(amount => ({
+		text: amount.toString(),
+		callback_data: JSON.stringify({
+			[CmdCode.Scope]: CommandScope.Users,
+			[CmdCode.Context]: {
+				[CmdCode.Command]: VPNUserCommand.Pay,
+				a: amount.toString(),
+			} as UsersContext,
+			p: 1,
+		} as CommandDetailCompressed),
+	}));
+	return {
+		reply_markup: {
+			inline_keyboard: [keyboard],
 		},
 	};
 };

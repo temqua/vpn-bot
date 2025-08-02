@@ -4,7 +4,7 @@ import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import { formatDate, setActiveStep } from '../../core';
 import bot from '../../core/bot';
-import { acceptKeyboard, yesNoKeyboard } from '../../core/buttons';
+import { acceptKeyboard, getFrequestPaymentAmountsKeyboard, yesNoKeyboard } from '../../core/buttons';
 import { UserRequest } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
@@ -94,9 +94,17 @@ export class PaymentsService {
 				return;
 			}
 			this.state.params.set('user', user);
+			const prices = [user.price];
+			if (user.payments.length) {
+				const lastPayment = user.payments[user.payments.length - 1];
+				if (lastPayment.amount !== user.price) {
+					prices.push(lastPayment.amount);
+				}
+			}
 			await bot.sendMessage(
 				message.chat.id,
-				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях`,
+				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях, либо выберите из списка`,
+				getFrequestPaymentAmountsKeyboard(prices),
 			);
 			setActiveStep('amount', this.state.paymentSteps);
 			return;
@@ -112,7 +120,7 @@ export class PaymentsService {
 			return;
 		}
 		if (this.state.paymentSteps.amount) {
-			const amount = Number(message.text);
+			const amount = context.a ? context.a : Number(message.text);
 			this.state.params.set('amount', amount);
 			await this.calculateMonthsCount(message.chat.id, user);
 			return;
