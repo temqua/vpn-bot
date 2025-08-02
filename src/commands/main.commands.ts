@@ -136,6 +136,9 @@ bot.onText(mainCommandsList.lookup.regexp, async (msg: Message) => {
 });
 
 bot.onText(mainCommandsList.plans.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
 	const plans = await plansService.getAll();
 	for (const plan of plans) {
 		await bot.sendMessage(
