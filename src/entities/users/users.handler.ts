@@ -3,7 +3,7 @@ import type { Message, Poll } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../core/contracts';
 import { CmdCode, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
-import { paymentsService, PaymentsService } from './payments.service';
+import { PaymentsService } from '../payments/payments.service';
 import { UsersService } from './users.service';
 
 export interface UsersContext {
@@ -96,4 +96,4 @@ class UsersCommandsHandler implements ICommandHandler {
 	}
 }
 
-export const userCommandsHandler = new UsersCommandsHandler(new UsersService(), paymentsService);
+export const userCommandsHandler = new UsersCommandsHandler();

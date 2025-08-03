@@ -23,8 +23,8 @@ export const expenseCommandsList = {
 		docs: '/expenses servers sum — show sum of server expenses',
 	},
 	create: {
-		regexp: /\/expense$/,
-		docs: '/expense — create expense',
+		regexp: /\/expense create$/,
+		docs: '/expense create — create expense',
 	},
 	createNalog: {
 		regexp: /\/expense\s+nalog/,

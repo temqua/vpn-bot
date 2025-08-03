@@ -1,17 +1,36 @@
 import type { Message } from 'node-telegram-bot-api';
 import { isAdmin } from '../core';
 import bot from '../core/bot';
-import { paymentsService } from '../entities/users/payments.service';
+import { paymentsService } from '../entities/payments/payments.service';
 import { UsersRepository } from '../entities/users/users.repository';
+import { globalHandler } from '../core/global.handler';
+import { CommandScope, PaymentCommand } from '../core/enums';
+import { paymentButtons } from '../core/buttons';
 
 export const paymentCommandsList = {
+	menu: {
+		regexp: /\/payment$/,
+		docs: '/payment — show payments menu',
+	},
 	all: {
 		regexp: /\/payments$/,
 		docs: '/payments — show payments list',
 	},
+	getById: {
+		regexp: /\/payment\s+get/,
+		docs: '/payment get — show payment by id',
+	},
+	findByDate: {
+		regexp: /\/payment\s+date/,
+		docs: '/payment date — find payments by date',
+	},
 	sum: {
 		regexp: /\/payments\s+sum/,
 		docs: '/payments sum — show sum of payments',
+	},
+	delete: {
+		regexp: /\/payment\s+delete/,
+		docs: '/payment delete — delete payment',
 	},
 };
 
@@ -21,9 +40,29 @@ export const paymentsHelpMessage = Object.values(paymentCommandsList)
 
 const usersRepository = new UsersRepository();
 
+bot.onText(paymentCommandsList.menu.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const inlineKeyboard = {
+		reply_markup: {
+			inline_keyboard: paymentButtons,
+		},
+	};
+	await bot.sendMessage(msg.chat.id, 'Select operation', inlineKeyboard);
+});
+
 bot.onText(paymentCommandsList.all.regexp, async (msg: Message) => {
 	if (isAdmin(msg)) {
-		await paymentsService.showAll(msg);
+		globalHandler.execute(
+			{
+				scope: CommandScope.Payments,
+				context: {
+					cmd: PaymentCommand.List,
+				},
+			},
+			msg,
+		);
 		return;
 	}
 	const user = await usersRepository.getByTelegramId(msg.from.id.toString());
@@ -40,6 +79,58 @@ bot.onText(paymentCommandsList.sum.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	const sum = await paymentsService.sum();
-	await bot.sendMessage(msg.chat.id, `Сумма всех платежей в системе: ${sum}`);
+	globalHandler.execute(
+		{
+			scope: CommandScope.Payments,
+			context: {
+				cmd: PaymentCommand.Sum,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(paymentCommandsList.findByDate.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Payments,
+			context: {
+				cmd: PaymentCommand.FindByDate,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(paymentCommandsList.delete.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Payments,
+			context: {
+				cmd: PaymentCommand.Delete,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(paymentCommandsList.getById.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Payments,
+			context: {
+				cmd: PaymentCommand.GetById,
+			},
+		},
+		msg,
+	);
 });

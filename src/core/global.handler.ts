@@ -5,6 +5,7 @@ import { userCommandsHandler, type UsersContext } from '../entities/users/users.
 import type { ICommandHandler } from './contracts';
 import { CommandScope } from './enums';
 import logger from './logger';
+import { paymentsCommandsHandler, type PaymentsContext } from '../entities/payments/payments.handler';
 
 export type CommandDetails = {
 	processing?: boolean;
@@ -18,7 +19,7 @@ export type CommandDetailCompressed = {
 	c: CommandContext;
 };
 
-export type CommandContext = UsersContext | KeysContext | ExpensesContext;
+export type CommandContext = UsersContext | KeysContext | ExpensesContext | PaymentsContext;
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
 
@@ -56,6 +57,9 @@ class GlobalHandler {
 			case CommandScope.Keys:
 				handler = keysCommandsHandler;
 				break;
+			case CommandScope.Payments:
+				handler = paymentsCommandsHandler;
+				break;
 			default:
 				handler = expensesCommandsHandler;
 		}
@@ -72,6 +76,9 @@ class GlobalHandler {
 				break;
 			case CommandScope.Keys:
 				handler = keysCommandsHandler;
+				break;
+			case CommandScope.Payments:
+				handler = paymentsCommandsHandler;
 				break;
 			default:
 				handler = expensesCommandsHandler;

@@ -1,5 +1,13 @@
 import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
-import { CmdCode, CommandScope, UserRequest, VPNKeyCommand, VPNProtocol, VPNUserCommand } from './enums';
+import {
+	CmdCode,
+	CommandScope,
+	PaymentCommand,
+	UserRequest,
+	VPNKeyCommand,
+	VPNProtocol,
+	VPNUserCommand,
+} from './enums';
 import type { CommandDetailCompressed } from './global.handler';
 import type { UsersContext } from '../entities/users/users.handler';
 
@@ -131,6 +139,58 @@ export const getProtocolButtons = (operation: VPNKeyCommand) => {
 				}) as InlineKeyboardButton,
 		);
 };
+
+export const paymentButtons: InlineKeyboardButton[][] = [
+	[
+		{
+			text: 'Show All',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.List,
+				},
+			}),
+		},
+		{
+			text: 'Get by ID',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.GetById,
+				},
+			}),
+		},
+		{
+			text: 'Find by Date',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.FindByDate,
+				},
+			}),
+		},
+		{
+			text: 'Show Sum',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.Sum,
+				},
+			}),
+		},
+	],
+	[
+		{
+			text: 'Delete',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.Delete,
+				},
+			}),
+		},
+	],
+];
 
 export const keyButtons: InlineKeyboardButton[][] = [
 	[

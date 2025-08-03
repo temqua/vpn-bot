@@ -18,7 +18,7 @@ import env from '../../env';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
-import { PaymentsRepository } from './payments.repository';
+import { PaymentsRepository } from '../payments/payments.repository';
 
 export class UsersService {
 	constructor(private repository: UsersRepository = new UsersRepository()) {}

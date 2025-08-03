@@ -86,6 +86,8 @@ class ExpensesHandler implements ICommandHandler {
 		if (!expenses.length) {
 			await bot.sendMessage(message.chat.id, `No expenses found`);
 		}
+		this.params.clear();
+		globalHandler.finishCommand();
 	}
 
 	async sum(context: ExpensesContext, message: Message) {
@@ -95,11 +97,15 @@ class ExpensesHandler implements ICommandHandler {
 			} else {
 				await this.sumServers(message);
 			}
+			this.params.clear();
+			globalHandler.finishCommand();
 			return;
 		}
 		const result = await this.repository.sum();
 
 		await bot.sendMessage(message.chat.id, `Sum of expenses: ${result._sum.amount}`);
+		this.params.clear();
+		globalHandler.finishCommand();
 	}
 
 	async sumNalogs(message: Message) {

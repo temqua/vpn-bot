@@ -1,5 +1,5 @@
 import type { Payment, Plan } from '@prisma/client';
-import { addMonths } from 'date-fns';
+import { addMonths, parse } from 'date-fns';
 import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import { formatDate, setActiveStep } from '../../core';
@@ -8,11 +8,11 @@ import { acceptKeyboard, getFrequestPaymentAmountsKeyboard, yesNoKeyboard } from
 import { UserRequest } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
-import { NalogService } from './nalog.service';
+import { NalogService } from '../users/nalog.service';
 import { PaymentsRepository } from './payments.repository';
-import { PlanRepository } from './plans.repository';
-import type { UsersContext } from './users.handler';
-import { UsersRepository, type VPNUser } from './users.repository';
+import { PlanRepository } from '../users/plans.repository';
+import type { UsersContext } from '../users/users.handler';
+import { UsersRepository, type VPNUser } from '../users/users.repository';
 
 export class PaymentsService {
 	constructor(
@@ -46,9 +46,71 @@ export class PaymentsService {
 		globalHandler.finishCommand();
 	}
 
-	async sum() {
+	async sum(chatId: number) {
 		const result = await this.repository.sum();
-		return result._sum.amount;
+		const amount = result._sum.amount;
+		await bot.sendMessage(chatId, `Сумма всех платежей в системе: ${amount}`);
+		globalHandler.finishCommand();
+	}
+
+	async delete(message: Message, start: boolean) {
+		this.log(`delete`);
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Enter payment id');
+		} else {
+			try {
+				const result = await this.repository.delete(message.text);
+				await bot.sendMessage(
+					message.chat.id,
+					`Платёж с введённым ID ${result.id} в дату ${formatDate(result.paymentDate)} успешно удалён из системы`,
+				);
+			} catch (err) {
+				await bot.sendMessage(message.chat.id, `Ошибка удаления платежа: ${err}`);
+				logger.error(err);
+			} finally {
+				globalHandler.finishCommand();
+			}
+		}
+	}
+
+	async getById(message: Message, start: boolean) {
+		this.log('getById');
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Enter payment id');
+		} else {
+			const found = await this.repository.getById(message.text);
+			if (found) {
+				await bot.sendMessage(message.chat.id, 'В системе найден следующий платёж по введённому ID:');
+				await this.showPaymentInfo(message, found);
+			} else {
+				await bot.sendMessage(message.chat.id, 'В системе не найдено платежей с введённым ID');
+			}
+			globalHandler.finishCommand();
+		}
+	}
+
+	async findByDate(message: Message, start: boolean) {
+		this.log('findByDate');
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Enter date in ISO Format (2025-08-03)');
+		} else {
+			try {
+				const found = await this.repository.getByDate(parse(message.text, 'yyyy-MM-dd', new Date()));
+				if (found.length) {
+					await bot.sendMessage(message.chat.id, 'В системе найдены следующие платёжи по указанной дате');
+					for (const p of found) {
+						await this.showPaymentInfo(message, p);
+					}
+				} else {
+					await bot.sendMessage(message.chat.id, 'В системе не найдено платежей в указанную дату');
+				}
+			} catch (error) {
+				await bot.sendMessage(message.chat.id, `Ошибка поиска платежа по дате: ${error}`);
+				logger.error(error);
+			} finally {
+				globalHandler.finishCommand();
+			}
+		}
 	}
 
 	async pay(message: Message, context: UsersContext, start: boolean) {
@@ -120,7 +182,7 @@ export class PaymentsService {
 			return;
 		}
 		if (this.state.paymentSteps.amount) {
-			const amount = context.a ? context.a : Number(message.text);
+			const amount = context.a ? Number(context.a) : Number(message.text);
 			this.state.params.set('amount', amount);
 			await this.calculateMonthsCount(message.chat.id, user);
 			return;
@@ -163,6 +225,7 @@ export class PaymentsService {
 		for (const p of payments) {
 			await this.showPaymentInfo(msg, p);
 		}
+		globalHandler.finishCommand();
 	}
 
 	private async addPaymentNalog(chatId: number, username: string, amount: number) {
@@ -271,6 +334,13 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 ID платежа ${result.id}`;
 				logger.success(`${basename(__filename)}: ${successMessage}`);
 				await bot.sendMessage(chatId, successMessage);
+				await bot.sendMessage(
+					chatId,
+					result.id.replace(/[-.*#_]/g, match => `\\${match}`),
+					{
+						parse_mode: 'MarkdownV2',
+					},
+				);
 				if (nalog) {
 					await this.addPaymentNalog(chatId, user.username, amount);
 				}

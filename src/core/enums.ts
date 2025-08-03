@@ -52,10 +52,19 @@ export enum VPNUserCommand {
 	ShowUnpaid = 'su',
 }
 
+export enum PaymentCommand {
+	Delete = 'delete',
+	List = 'list',
+	GetById = 'getid',
+	FindByDate = 'find',
+	Sum = 'sum',
+}
+
 export enum CommandScope {
 	Keys = 'keys',
 	Users = 'users',
 	Expenses = 'expenses',
+	Payments = 'payments',
 }
 
 export enum UserRequest {

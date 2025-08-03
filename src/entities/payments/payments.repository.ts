@@ -71,10 +71,26 @@ export class PaymentsRepository {
 		});
 	}
 
+	async getByDate(date: Date) {
+		return await prisma.payment.findMany({
+			where: {
+				paymentDate: date,
+			},
+		});
+	}
+
 	async sum() {
 		return await prisma.payment.aggregate({
 			_sum: {
 				amount: true,
+			},
+		});
+	}
+
+	async delete(id: string) {
+		return await prisma.payment.delete({
+			where: {
+				id,
 			},
 		});
 	}
