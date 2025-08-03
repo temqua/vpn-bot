@@ -1,4 +1,5 @@
-import type { Bank, Device, Payment, User, VPNProtocol } from '@prisma/client';
+import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
+import type { Bank } from '../../core/enums';
 import { prisma } from '../../core/prisma';
 
 export type VPNUser = User & {

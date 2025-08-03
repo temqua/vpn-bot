@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import creds from '../../../sheets-api.json';
-export async function exportToSheet(sheetId: string, range: string, values: string[][]) {
+export async function exportToSheet(sheetId: string, range: string, values: (string | number | boolean)[][]) {
 	const auth = new google.auth.GoogleAuth({
 		credentials: creds,
 		scopes: ['https://www.googleapis.com/auth/spreadsheets'],

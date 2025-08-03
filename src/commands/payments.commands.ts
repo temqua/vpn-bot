@@ -4,7 +4,7 @@ import bot from '../core/bot';
 import { paymentsService } from '../entities/payments/payments.service';
 import { UsersRepository } from '../entities/users/users.repository';
 import { globalHandler } from '../core/global.handler';
-import { CommandScope, PaymentCommand } from '../core/enums';
+import { CmdCode, CommandScope, PaymentCommand, VPNUserCommand } from '../core/enums';
 import { paymentButtons } from '../core/buttons';
 
 export const paymentCommandsList = {
@@ -75,7 +75,8 @@ bot.onText(paymentCommandsList.all.regexp, async (msg: Message) => {
 		return;
 	}
 	await paymentsService.showPayments(msg, {
-		id: user.id,
+		id: user.id.toString(),
+		[CmdCode.Command]: VPNUserCommand.ShowPayments,
 	});
 });
 

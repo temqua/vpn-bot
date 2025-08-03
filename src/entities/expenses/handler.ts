@@ -119,7 +119,7 @@ class ExpensesHandler implements ICommandHandler {
 	}
 
 	async handlePoll(context: ExpensesContext, poll: Poll) {
-		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text);
+		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text as ExpenseCategory);
 		context.category = selected[0];
 		this.handle(context, null, false);
 	}

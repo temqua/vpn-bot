@@ -1,6 +1,5 @@
-import './keys.commands';
-import './main.commands';
-import './users.commands';
-import './expenses.commands';
-import './payments.commands';
-export default {};
+export * from './keys.commands';
+export * from './main.commands';
+export * from './users.commands';
+export * from './expenses.commands';
+export * from './payments.commands';

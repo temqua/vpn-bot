@@ -1,3 +1,4 @@
+// @ts-nocheck
 import https from 'https';
 const httpsAgent = new https.Agent({
 	rejectUnauthorized: false, // Ignore self-signed certificates

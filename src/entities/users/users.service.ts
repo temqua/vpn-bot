@@ -15,10 +15,10 @@ import { globalHandler } from '../../core/global.handler';
 import logger from '../../core/logger';
 import pollOptions from '../../core/pollOptions';
 import env from '../../env';
+import { PaymentsRepository } from '../payments/payments.repository';
 import { exportToSheet } from './sheets.service';
 import type { UsersContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
-import { PaymentsRepository } from '../payments/payments.repository';
 
 export class UsersService {
 	constructor(private repository: UsersRepository = new UsersRepository()) {}
@@ -140,7 +140,7 @@ export class UsersService {
 		const params = this.params;
 		const username = params.get('username');
 		try {
-			const newUser = await this.repository.create(
+			const newUser: User = await this.repository.create(
 				username,
 				params.get('first_name'),
 				params.get('telegram_id'),
@@ -151,7 +151,7 @@ export class UsersService {
 				params.get('bank'),
 			);
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
-			await this.sendUserMenu(chatId, newUser);
+			await this.sendNewUserMenu(chatId, newUser);
 		} catch (error) {
 			logger.error(
 				`[${basename(__filename)}]: Unexpected error occurred while creating user ${username}: ${error}`,
@@ -537,7 +537,7 @@ have no payments for next month.`,
 	}
 
 	private async applyUpdate(chatId: number, id: number, prop: string, value: string[] | number | string | boolean) {
-		const updated = await this.repository.update(id, {
+		const updated: VPNUser = await this.repository.update(id, {
 			[prop]: value,
 		});
 		logger.success(`Field ${prop} has been successfully updated for user ${id}`);
@@ -561,7 +561,16 @@ have no payments for next month.`,
 		});
 	}
 
-	private async sendUserMenu(chatId: number, user: User | VPNUser) {
+	private async sendNewUserMenu(chatId: number, user: User) {
+		await bot.sendMessage(chatId, this.formatBaseUserInfo(user));
+		await bot.sendMessage(chatId, 'Select operation', {
+			reply_markup: {
+				inline_keyboard: getUserMenu(user.id),
+			},
+		});
+	}
+
+	private async sendUserMenu(chatId: number, user: VPNUser) {
 		await bot.sendMessage(chatId, this.formatUserInfo(user));
 		await bot.sendMessage(chatId, 'Select operation', {
 			reply_markup: {
@@ -570,9 +579,8 @@ have no payments for next month.`,
 		});
 	}
 
-	private formatUserInfo(user: VPNUser | User) {
-		return `
-ID: ${user.id}
+	private formatBaseUserInfo(user: User) {
+		let baseInfo = `ID: ${user.id}
 Username: ${user.username}
 First Name: ${user.firstName}
 Last Name: ${user.lastName}
@@ -581,12 +589,30 @@ Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Protocols: ${user.protocols.join(', ')}
 Price: ${user.price}
-Created At: ${formatDate(user.createdAt)}
-${user.bank ? 'Bank: ' + user.bank : ''}
-${user.free ? 'Is free' : ''}
-${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}
-${user.active ? '' : 'Inactive'}
-		`;
+Created At: ${formatDate(user.createdAt)}\n`;
+		if (user.bank) {
+			baseInfo = baseInfo.concat(`Bank: ${user.bank}\n`);
+		}
+		if (user.free) {
+			baseInfo = baseInfo.concat('Is free\n');
+		}
+		if (!user.active) {
+			baseInfo = baseInfo.concat('Inactive\n');
+		}
+		return baseInfo;
+	}
+
+	private formatUserInfo(user: VPNUser) {
+		let userInfo = this.formatBaseUserInfo(user);
+		if (user.payer?.username) {
+			userInfo = userInfo.concat(`Payer: ${user.payer.username}\n`);
+		}
+		if (user.dependants.length) {
+			userInfo = userInfo.concat(
+				`Dependants: ${user.dependants?.map(u => `${u.username} ${u.telegramLink ?? ''}\n`).join(', ')}\n`,
+			);
+		}
+		return userInfo;
 	}
 
 	private log(message: string) {

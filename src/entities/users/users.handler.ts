@@ -1,7 +1,7 @@
-import type { User } from '@prisma/client';
+import type { Device, User, VPNProtocol } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../core/contracts';
-import { CmdCode, VPNUserCommand } from '../../core/enums';
+import { Bank, CmdCode, VPNUserCommand } from '../../core/enums';
 import { globalHandler } from '../../core/global.handler';
 import { PaymentsService } from '../payments/payments.service';
 import { UsersService } from './users.service';
@@ -85,7 +85,7 @@ class UsersCommandsHandler implements ICommandHandler {
 	}
 
 	async handlePoll(context: UsersContext, poll: Poll) {
-		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text);
+		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text as Device | VPNProtocol | Bank);
 		if (context.cmd === VPNUserCommand.Create) {
 			await this.service.create(null, context, false, selected);
 		} else if (context.cmd === VPNUserCommand.Update) {
