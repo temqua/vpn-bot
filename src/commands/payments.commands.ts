@@ -24,6 +24,10 @@ export const paymentCommandsList = {
 		regexp: /\/payment\s+date/,
 		docs: '/payment date — find payments by date',
 	},
+	findByDateRange: {
+		regexp: /\/payment\s+daterange/,
+		docs: '/payment daterange — find payments by date',
+	},
 	sum: {
 		regexp: /\/payments\s+sum/,
 		docs: '/payments sum — show sum of payments',
@@ -99,6 +103,21 @@ bot.onText(paymentCommandsList.findByDate.regexp, async (msg: Message) => {
 			scope: CommandScope.Payments,
 			context: {
 				cmd: PaymentCommand.FindByDate,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(paymentCommandsList.findByDateRange.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Payments,
+			context: {
+				cmd: PaymentCommand.FindByDateRange,
 			},
 		},
 		msg,

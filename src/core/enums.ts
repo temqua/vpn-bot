@@ -57,6 +57,7 @@ export enum PaymentCommand {
 	List = 'list',
 	GetById = 'getid',
 	FindByDate = 'find',
+	FindByDateRange = 'findr',
 	Sum = 'sum',
 }
 

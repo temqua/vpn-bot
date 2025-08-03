@@ -26,6 +26,9 @@ class PaymentsCommandsHandler implements ICommandHandler {
 		if (context.cmd === PaymentCommand.Sum) {
 			await this.service.sum(message.chat.id);
 		}
+		if (context.cmd === PaymentCommand.FindByDateRange) {
+			await this.service.findByDateRange(message, start);
+		}
 	}
 }
 

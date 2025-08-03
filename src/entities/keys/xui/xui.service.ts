@@ -2,7 +2,7 @@ import type { InlineKeyboardButton, Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import { setActiveStep } from '../../../core';
 import bot from '../../../core/bot';
-import { CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../../core/enums';
+import { CmdCode, CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '../../../core/enums';
 import { globalHandler } from '../../../core/global.handler';
 import logger from '../../../core/logger';
 import env from '../../../env';
@@ -73,13 +73,13 @@ export class XUIService {
 								{
 									text: `${inbound.id} (${inbound.protocol})`,
 									callback_data: JSON.stringify({
-										s: CommandScope.Keys,
-										c: {
+										[CmdCode.Scope]: CommandScope.Keys,
+										[CmdCode.Context]: {
 											cmd: VPNKeyCommand.Create,
 											pr: VPNProtocol.XUI,
 											id: inbound.id,
 										},
-										p: 1,
+										[CmdCode.Processing]: 1,
 									}),
 								} as InlineKeyboardButton,
 							]),
@@ -204,13 +204,13 @@ flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}
 							{
 								text: `${inbound.id} (${inbound.protocol})`,
 								callback_data: JSON.stringify({
-									s: CommandScope.Keys,
-									c: {
+									[CmdCode.Scope]: CommandScope.Keys,
+									[CmdCode.Context]: {
 										cmd: VPNKeyCommand.Delete,
 										pr: VPNProtocol.XUI,
 										id: inbound.id,
 									},
-									p: 1,
+									[CmdCode.Processing]: 1,
 								}),
 							} as InlineKeyboardButton,
 						]),

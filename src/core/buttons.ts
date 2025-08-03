@@ -143,16 +143,7 @@ export const getProtocolButtons = (operation: VPNKeyCommand) => {
 export const paymentButtons: InlineKeyboardButton[][] = [
 	[
 		{
-			text: 'Show All',
-			callback_data: JSON.stringify({
-				[CmdCode.Scope]: CommandScope.Payments,
-				[CmdCode.Context]: {
-					cmd: PaymentCommand.List,
-				},
-			}),
-		},
-		{
-			text: 'Get by ID',
+			text: 'Find by ID',
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
@@ -170,6 +161,26 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
+			text: 'Find by Date Range',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.FindByDateRange,
+				},
+			}),
+		},
+	],
+	[
+		{
+			text: 'Show All',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Payments,
+				[CmdCode.Context]: {
+					cmd: PaymentCommand.List,
+				},
+			}),
+		},
+		{
 			text: 'Show Sum',
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
@@ -178,8 +189,6 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
-	],
-	[
 		{
 			text: 'Delete',
 			callback_data: JSON.stringify({
@@ -374,7 +383,7 @@ export const getFrequestPaymentAmountsKeyboard = (amounts: number[]): SendBasicO
 				[CmdCode.Command]: VPNUserCommand.Pay,
 				a: amount.toString(),
 			} as UsersContext,
-			p: 1,
+			[CmdCode.Processing]: 1,
 		} as CommandDetailCompressed),
 	}));
 	return {
@@ -551,6 +560,18 @@ export const payersKeyboard = {
 							[CmdCode.Command]: VPNUserCommand.Update,
 							prop: 'payerId',
 							accept: 1,
+						},
+						[CmdCode.Processing]: 1,
+					}),
+				},
+				{
+					text: 'Set null',
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.Update,
+							prop: 'payerId',
+							id: null,
 						},
 						[CmdCode.Processing]: 1,
 					}),

@@ -1,5 +1,6 @@
 import type { Payment, Plan, User } from '@prisma/client';
 import { prisma } from '../../core/prisma';
+import { endOfDay, startOfDay } from 'date-fns';
 
 export type UserPaymentDto = {
 	amount: number;
@@ -74,7 +75,21 @@ export class PaymentsRepository {
 	async getByDate(date: Date) {
 		return await prisma.payment.findMany({
 			where: {
-				paymentDate: date,
+				paymentDate: {
+					gte: startOfDay(date),
+					lte: endOfDay(date),
+				},
+			},
+		});
+	}
+
+	async getByDateRange(from: Date, to: Date) {
+		return await prisma.payment.findMany({
+			where: {
+				paymentDate: {
+					gte: startOfDay(from),
+					lte: endOfDay(to),
+				},
 			},
 		});
 	}

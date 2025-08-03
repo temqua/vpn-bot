@@ -172,12 +172,12 @@ export class UsersService {
 			{
 				text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
 				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
 						cmd: VPNUserCommand.GetById,
 						id,
 					},
-					p: 1,
+					[CmdCode.Processing]: 1,
 				}),
 			} as InlineKeyboardButton,
 		]);
@@ -310,19 +310,29 @@ export class UsersService {
 			return;
 		}
 		if (context.prop === 'payerId') {
+			if (context.id === null) {
+				this.setUpdateStep('apply');
+			}
 			if (this.updateSteps.payerSearch) {
-				this.getPossiblePayers(message, context);
+				this.getPossiblePayers(message, context, this.params.get('updateId'));
 				this.setUpdateStep('apply');
 				return;
 			}
 			const updateId = this.params.get('updateId');
-			const updated = await this.repository.update(updateId, {
-				payerId: context.id,
-			});
-			logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
-			await bot.sendMessage(context.chatId, this.formatUserInfo(updated));
-			this.params.clear();
-			globalHandler.finishCommand();
+			try {
+				const updated = await this.repository.update(updateId, {
+					payerId: context.id,
+				});
+				logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
+				await this.sendUserMenu(message.chat.id, updated);
+			} catch (error) {
+				const errorMessage = `Error while updating payerId ${error}`;
+				logger.error(errorMessage);
+				await bot.sendMessage(message.chat.id, errorMessage);
+			} finally {
+				this.params.clear();
+				globalHandler.finishCommand();
+			}
 			return;
 		}
 		const newValue = textProp
@@ -348,12 +358,12 @@ export class UsersService {
 			{
 				text: username,
 				callback_data: JSON.stringify({
-					s: CommandScope.Users,
-					c: {
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
 						cmd: VPNUserCommand.Delete,
 						id,
 					},
-					p: 1,
+					[CmdCode.Processing]: 1,
 				}),
 			},
 		]);
@@ -494,40 +504,23 @@ have no payments for next month.`,
 		}
 	}
 
-	private async getPossiblePayers(message: Message, context: UsersContext) {
-		const possibleUsers = await this.repository.payersList();
+	private async getPossiblePayers(message: Message, context: UsersContext, userId: string) {
+		const possibleUsers = await this.repository.payersList(Number(userId));
 		const users = context.accept ? possibleUsers : possibleUsers.filter(u => u.username.startsWith(message.text));
-		const buttons = users
-			.map(({ id, username, firstName, lastName }) => [
-				{
-					text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.Update,
-							id,
-							prop: 'payerId',
-						},
-						[CmdCode.Processing]: 1,
-					}),
-				} as InlineKeyboardButton,
-			])
-			.concat([
-				[
-					{
-						text: 'Set null',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.Update,
-								id: null,
-								prop: 'payerId',
-							},
-							[CmdCode.Processing]: 1,
-						}),
+		const buttons = users.map(({ id, username, firstName, lastName }) => [
+			{
+				text: `${username} (${firstName ?? ''} ${lastName ?? ''})`,
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.Update,
+						id,
+						prop: 'payerId',
 					},
-				],
-			]);
+					[CmdCode.Processing]: 1,
+				}),
+			} as InlineKeyboardButton,
+		]);
 		const chunkSize = 50;
 		const chunksCount = Math.ceil(buttons.length / chunkSize);
 		for (let i = 0; i < chunksCount; i++) {

@@ -22,17 +22,18 @@ export class PaymentsService {
 	) {}
 
 	private nalogService: NalogService = new NalogService();
-
-	private state = {
-		params: new Map(),
-		paymentSteps: {
-			user: false,
-			amount: false,
-			months: false,
-			expires: false,
-			nalog: false,
-			dependants: false,
-		},
+	private params = new Map();
+	private paymentSteps = {
+		user: false,
+		amount: false,
+		months: false,
+		expires: false,
+		nalog: false,
+		dependants: false,
+	};
+	private findByDateRangeSteps = {
+		from: false,
+		to: false,
 	};
 
 	async showPayments(message: Message, context: UsersContext) {
@@ -57,19 +58,22 @@ export class PaymentsService {
 		this.log(`delete`);
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
-		} else {
-			try {
-				const result = await this.repository.delete(message.text);
-				await bot.sendMessage(
-					message.chat.id,
-					`Платёж с введённым ID ${result.id} в дату ${formatDate(result.paymentDate)} успешно удалён из системы`,
-				);
-			} catch (err) {
-				await bot.sendMessage(message.chat.id, `Ошибка удаления платежа: ${err}`);
-				logger.error(err);
-			} finally {
-				globalHandler.finishCommand();
-			}
+			return;
+		}
+		try {
+			const result = await this.repository.delete(message.text);
+			await bot.sendMessage(
+				message.chat.id,
+				`Платёж с введённым ID \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\` датой ${formatDate(result.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)} успешно удалён из системы`,
+				{
+					parse_mode: 'MarkdownV2',
+				},
+			);
+		} catch (err) {
+			await bot.sendMessage(message.chat.id, `Ошибка удаления платежа: ${err}`);
+			logger.error(err);
+		} finally {
+			globalHandler.finishCommand();
 		}
 	}
 
@@ -77,46 +81,86 @@ export class PaymentsService {
 		this.log('getById');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
-		} else {
-			const found = await this.repository.getById(message.text);
-			if (found) {
-				await bot.sendMessage(message.chat.id, 'В системе найден следующий платёж по введённому ID:');
-				await this.showPaymentInfo(message, found);
-			} else {
-				await bot.sendMessage(message.chat.id, 'В системе не найдено платежей с введённым ID');
-			}
-			globalHandler.finishCommand();
+			return;
 		}
+		const found = await this.repository.getById(message.text);
+		if (found) {
+			await bot.sendMessage(message.chat.id, 'В системе найден следующий платёж по введённому ID:');
+			await this.showPaymentInfo(message, found);
+		} else {
+			await bot.sendMessage(message.chat.id, 'В системе не найдено платежей с введённым ID');
+		}
+		globalHandler.finishCommand();
 	}
 
 	async findByDate(message: Message, start: boolean) {
 		this.log('findByDate');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter date in ISO Format (2025-08-03)');
-		} else {
-			try {
-				const found = await this.repository.getByDate(parse(message.text, 'yyyy-MM-dd', new Date()));
-				if (found.length) {
-					await bot.sendMessage(message.chat.id, 'В системе найдены следующие платёжи по указанной дате');
-					for (const p of found) {
-						await this.showPaymentInfo(message, p);
-					}
-				} else {
-					await bot.sendMessage(message.chat.id, 'В системе не найдено платежей в указанную дату');
+			return;
+		}
+		try {
+			const found = await this.repository.getByDate(parse(message.text, 'yyyy-MM-dd', new Date()));
+			if (found.length) {
+				await bot.sendMessage(message.chat.id, 'В системе найдены следующие платёжи по указанной дате');
+				for (const p of found) {
+					await this.showPaymentInfo(message, p);
 				}
-			} catch (error) {
-				await bot.sendMessage(message.chat.id, `Ошибка поиска платежа по дате: ${error}`);
-				logger.error(error);
-			} finally {
-				globalHandler.finishCommand();
+			} else {
+				await bot.sendMessage(message.chat.id, 'В системе не найдено платежей в указанную дату');
 			}
+		} catch (error) {
+			await bot.sendMessage(message.chat.id, `Ошибка поиска платежа по дате: ${error}`);
+			logger.error(error);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
+
+	async findByDateRange(message: Message, start: boolean) {
+		this.log('findByDateRange');
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Enter date from in ISO Format (2025-08-03)');
+			this.findByDateRangeSteps.from = true;
+			return;
+		}
+		if (this.findByDateRangeSteps.from) {
+			this.params.set('from', message.text);
+			this.findByDateRangeSteps.to = true;
+			this.findByDateRangeSteps.from = false;
+			await bot.sendMessage(message.chat.id, 'Enter date to in ISO Format (2025-08-03)');
+			return;
+		}
+		try {
+			const fromStr = this.params.get('from');
+			let from = parse(fromStr, 'yyyy-MM-dd', new Date());
+			let to = parse(message.text, 'yyyy-MM-dd', new Date());
+			if (from > to) {
+				const temp = from;
+				from = to;
+				to = temp;
+			}
+			const found = await this.repository.getByDateRange(from, to);
+			if (found.length) {
+				await bot.sendMessage(message.chat.id, 'В системе найдены следующие платёжи в указанные даты');
+				for (const p of found) {
+					await this.showPaymentInfo(message, p);
+				}
+			} else {
+				await bot.sendMessage(message.chat.id, 'В системе не найдено платежей в указанные даты');
+			}
+		} catch (error) {
+			await bot.sendMessage(message.chat.id, `Ошибка поиска платежей по датам: ${error}`);
+			logger.error(error);
+		} finally {
+			globalHandler.finishCommand();
 		}
 	}
 
 	async pay(message: Message, context: UsersContext, start: boolean) {
-		this.log(`pay. Active step "${this.getActiveStep(this.state.paymentSteps) ?? 'start'}"`);
+		this.log(`pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
 		if (start) {
-			setActiveStep('user', this.state.paymentSteps);
+			setActiveStep('user', this.paymentSteps);
 			if (!context.id) {
 				await bot.sendMessage(message.chat.id, 'Share user or enter username', {
 					reply_markup: {
@@ -137,7 +181,7 @@ export class PaymentsService {
 				return;
 			}
 		}
-		if (this.state.paymentSteps.user) {
+		if (this.paymentSteps.user) {
 			let user: VPNUser;
 			if (context.id) {
 				user = await this.usersRepository.getById(Number(context.id));
@@ -151,11 +195,11 @@ export class PaymentsService {
 				const errorMessage = 'Пользователь не найден в системе';
 				logger.error(errorMessage);
 				await bot.sendMessage(message.chat.id, errorMessage);
-				this.state.params.clear();
+				this.params.clear();
 				globalHandler.finishCommand();
 				return;
 			}
-			this.state.params.set('user', user);
+			this.params.set('user', user);
 			const prices = [user.price];
 			if (user.payments.length) {
 				const lastPayment = user.payments[user.payments.length - 1];
@@ -168,54 +212,54 @@ export class PaymentsService {
 				`Платёжная операция для пользователя ${user.username}. Введите количество денег в рублях, либо выберите из списка`,
 				getFrequestPaymentAmountsKeyboard(prices),
 			);
-			setActiveStep('amount', this.state.paymentSteps);
+			setActiveStep('amount', this.paymentSteps);
 			return;
 		}
 
-		const user: VPNUser = this.state.params.get('user');
+		const user: VPNUser = this.params.get('user');
 		if (!user) {
 			const errorMessage = `Ошибка при обработке платежа. Пользователь не найден в системе`;
 			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
 			await bot.sendMessage(message.chat.id, errorMessage);
-			this.state.params.clear();
+			this.params.clear();
 			globalHandler.finishCommand();
 			return;
 		}
-		if (this.state.paymentSteps.amount) {
+		if (this.paymentSteps.amount) {
 			const amount = context.a ? Number(context.a) : Number(message.text);
-			this.state.params.set('amount', amount);
+			this.params.set('amount', amount);
 			await this.calculateMonthsCount(message.chat.id, user);
 			return;
 		}
-		if (this.state.paymentSteps.months) {
+		if (this.paymentSteps.months) {
 			if (!context.accept) {
-				this.state.params.set('months', Number(message.text));
+				this.params.set('months', Number(message.text));
 			}
 			delete context.accept;
 			await this.calculateExpirationDate(message.chat.id, user);
 			return;
 		}
-		if (this.state.paymentSteps.expires) {
+		if (this.paymentSteps.expires) {
 			if (!context.accept) {
-				this.state.params.set('expires', new Date(message.text));
+				this.params.set('expires', new Date(message.text));
 			}
 			delete context.accept;
 			await bot.sendMessage(message.chat.id, `Добавить налог?`, yesNoKeyboard);
-			this.state.params.set('nalog', false);
+			this.params.set('nalog', false);
 			this.setPaymentStep('nalog');
 			return;
 		}
-		if (this.state.paymentSteps.nalog) {
-			this.state.params.set('nalog', Boolean(context?.accept));
+		if (this.paymentSteps.nalog) {
+			this.params.set('nalog', Boolean(context?.accept));
 			if (user.dependants.length) {
 				await bot.sendMessage(message.chat.id, `Добавить платежи для дочерних юзеров?`, yesNoKeyboard);
-				this.state.params.set('dependants', false);
+				this.params.set('dependants', false);
 				this.setPaymentStep('dependants');
 				return;
 			}
 		}
-		if (this.state.paymentSteps.dependants) {
-			this.state.params.set('dependants', Boolean(context?.accept));
+		if (this.paymentSteps.dependants) {
+			this.params.set('dependants', Boolean(context?.accept));
 		}
 		await this.executePayment(message.chat.id, user);
 	}
@@ -259,7 +303,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 	}
 
 	private async calculateMonthsCount(chatId: number, user: VPNUser) {
-		const amount = this.state.params.get('amount');
+		const amount = this.params.get('amount');
 		const dependants = user.dependants?.length ?? 0;
 		const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependants);
 		if (user.dependants?.length) {
@@ -277,7 +321,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 Количество месяцев: ${plan.months}
 				`,
 			);
-			this.state.params.set('plan', plan);
+			this.params.set('plan', plan);
 		}
 		const monthsCount = plan
 			? plan.months
@@ -289,12 +333,12 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			`Вычисленное количество месяцев на основании найденного плана, либо по существующей цене ${user.price} для пользователя: ${monthsCount}. Можно ввести своё количество ответным сообщением`,
 			acceptKeyboard,
 		);
-		this.state.params.set('months', monthsCount);
+		this.params.set('months', monthsCount);
 		this.setPaymentStep('months');
 	}
 
 	private async calculateExpirationDate(chatId: number, user: VPNUser) {
-		const months = this.state.params.get('months');
+		const months = this.params.get('months');
 		const lastPayment = await this.repository.getLastPayment(user.id);
 		if (lastPayment) {
 			await bot.sendMessage(
@@ -305,23 +349,23 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 		const calculated = addMonths(lastPayment?.expiresOn ?? new Date(), months);
 		await bot.sendMessage(
 			chatId,
-			`Вычисленная дата окончания работы: ${calculated.toISOString()}. 
+			`Вычисленная дата окончания работы: ${formatDate(calculated)}. 
 Можно отправить свою дату в ISO формате без времени: 2025-01-01 
 Или с временем 2025-02-02T22:59:24Z`,
 			acceptKeyboard,
 		);
-		this.state.params.set('expires', calculated);
+		this.params.set('expires', calculated);
 		this.setPaymentStep('expires');
 	}
 
 	private async executePayment(chatId: number, user: VPNUser) {
 		try {
-			const amount = this.state.params.get('amount');
-			const monthsCount = this.state.params.get('months');
-			const expiresOn = this.state.params.get('expires');
-			const nalog = this.state.params.get('nalog');
-			const plan: Plan = this.state.params.get('plan') ?? null;
-			const dependants = this.state.params.get('dependants');
+			const amount = this.params.get('amount');
+			const monthsCount = this.params.get('months');
+			const expiresOn = this.params.get('expires');
+			const nalog = this.params.get('nalog');
+			const plan: Plan = this.params.get('plan') ?? null;
+			const dependants = this.params.get('dependants');
 			const result = await this.repository.create(user.id, {
 				amount: Number(amount),
 				monthsCount: Number(monthsCount),
@@ -330,13 +374,12 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			});
 			if (result) {
 				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. 
-Новая дата истечения срока ${formatDate(expiresOn)}. 
-ID платежа ${result.id}`;
+Новая дата истечения срока ${formatDate(expiresOn)}.`;
 				logger.success(`${basename(__filename)}: ${successMessage}`);
 				await bot.sendMessage(chatId, successMessage);
 				await bot.sendMessage(
 					chatId,
-					result.id.replace(/[-.*#_]/g, match => `\\${match}`),
+					`ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
 					{
 						parse_mode: 'MarkdownV2',
 					},
@@ -355,10 +398,16 @@ ID платежа ${result.id}`;
 						});
 						if (childResult) {
 							const successMessage = `Платёж для дочернего юзера на ${monthsCount} месяцев был успешно обработан для пользователя ${dep.username}. 
-Новая дата истечения срока ${formatDate(expiresOn)}. 
-ID платежа ${result.id}`;
+Новая дата истечения срока ${formatDate(expiresOn)}`;
 							logger.success(`${basename(__filename)}: ${successMessage}`);
 							await bot.sendMessage(chatId, successMessage);
+							await bot.sendMessage(
+								chatId,
+								`ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
+								{
+									parse_mode: 'MarkdownV2',
+								},
+							);
 						} else {
 							const errMessage = `По непредвиденным обстоятельствам платеж для дочернего пользователя ${dep.username} не был создан`;
 							logger.error(`[${basename(__filename)}]: ${errMessage}`);
@@ -376,7 +425,7 @@ ID платежа ${result.id}`;
 			logger.error(`[${basename(__filename)}]: ${errMessage}`);
 			await bot.sendMessage(chatId, errMessage);
 		} finally {
-			this.state.params.clear();
+			this.params.clear();
 			globalHandler.finishCommand();
 		}
 	}
@@ -413,7 +462,7 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 	}
 
 	private setPaymentStep(current: string) {
-		setActiveStep(current, this.state.paymentSteps);
+		setActiveStep(current, this.paymentSteps);
 	}
 
 	private getActiveStep(steps) {
