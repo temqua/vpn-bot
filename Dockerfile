@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:lts-bookworm-slim
 WORKDIR /app
 
 COPY package.json bun.lockb .env sheets-api.json tsconfig.json ./
