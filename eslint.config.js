@@ -18,4 +18,7 @@ export default [
 			],
 		},
 	},
+	{
+		ignores: ['apps/keys/dist/*', 'apps/users/dist/*', 'apps/backups/dist/*'],
+	},
 ];

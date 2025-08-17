@@ -7,8 +7,6 @@
 		"build": "npx prisma generate && tsc",
 		"prestart": "npx prisma generate",
 		"start": "node dist/src/main.js",
-		"format": "prettier --write .",
-		"lint": "eslint src/**",
 		"seed": "ts-node prisma/seed.ts",
 		"migration": "prisma migrate dev"
 	},
@@ -24,12 +22,7 @@
 		"node-telegram-bot-api": "^0.66.0"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.33.0",
-		"@types/ms": "^2.1.0",
 		"@types/node-telegram-bot-api": "^0.64.10",
-		"prettier": "^3.6.2",
-		"prisma": "^6.14.0",
-		"ts-node": "^10.9.2",
-		"typescript-eslint": "^8.39.1"
+		"prisma": "^6.14.0"
 	}
 }

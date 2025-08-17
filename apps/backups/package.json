@@ -4,13 +4,11 @@
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
-		"build": "tsc",
-		"format": "prettier --write ."
+		"build": "tsc"
 	},
 	"devDependencies": {
 		"@types/ms": "^2.1.0",
-		"@types/node-telegram-bot-api": "^0.64.10",
-		"prettier": "^3.6.2"
+		"@types/node-telegram-bot-api": "^0.64.10"
 	},
 	"peerDependencies": {
 		"typescript": "^5.0.0"
