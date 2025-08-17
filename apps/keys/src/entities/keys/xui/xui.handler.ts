@@ -1,0 +1,31 @@
+import type { Message } from 'node-telegram-bot-api';
+import type { ICommandHandler } from '../../../contracts';
+import { VPNKeyCommand } from '../../../enums';
+import { globalHandler } from '../../../global.handler';
+import type { KeysContext } from '../keys.handler';
+import { XUIService } from './xui.service';
+
+export class XUICommandsHandler implements ICommandHandler {
+	constructor(private service: XUIService = new XUIService()) {}
+
+	async handle(context: KeysContext, message: Message, start?: boolean) {
+		if (context.cmd === VPNKeyCommand.Create) {
+			await this.service.create(message, context, start);
+			return;
+		}
+		if (context.cmd === VPNKeyCommand.Delete) {
+			await this.service.delete(message, context, start);
+			return;
+		}
+		if (context.cmd === VPNKeyCommand.List) {
+			await this.service.getAll(message, context, start);
+			return;
+		}
+		if (context.cmd === VPNKeyCommand.GetOnline) {
+			await this.service.getOnline(message.chat.id);
+		}
+		globalHandler.finishCommand();
+	}
+}
+
+export const xuiCommandsHandler = new XUICommandsHandler();

@@ -1,0 +1,24 @@
+{
+	"name": "backups-bot",
+	"version": "3.0.0",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"format": "prettier --write ."
+	},
+	"devDependencies": {
+		"@types/ms": "^2.1.0",
+		"@types/node-telegram-bot-api": "^0.64.10",
+		"prettier": "^3.6.2"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"dotenv": "^17.2.1",
+		"envalid": "^8.1.0",
+		"ms": "^2.1.3",
+		"node-telegram-bot-api": "^0.66.0"
+	}
+}

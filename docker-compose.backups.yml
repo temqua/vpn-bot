@@ -1,0 +1,35 @@
+services:
+    vpn-db:
+        image: postgres:17.2-bookworm
+        container_name: vpn-db
+        ports:
+            - '54333:5432'
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: JFJ4GSvryTwBW1
+            POSTGRES_DB: vpn
+        volumes:
+            - vpn-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready']
+            interval: 5s
+            timeout: 45s
+            retries: 5
+    backups-bot:
+        image: backups-bot
+        container_name: backups-bot
+        build:
+            context: .
+            dockerfile: ./apps/backups/Dockerfile
+        env_file: .env
+        network_mode: host
+        restart: always
+        volumes:
+            - backups:/home/vpnadmin/backups
+
+volumes:
+    vpn-data:
+    backups:
