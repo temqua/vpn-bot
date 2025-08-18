@@ -4,7 +4,7 @@ services:
         container_name: users-bot
         build:
             context: .
-            dockerfile: ./apps/users/Dockerfile
+            dockerfile: ./Dockerfile
         env_file: .env
         network_mode: host
-        restart: always
+        restart: unless-stopped

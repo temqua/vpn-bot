@@ -1,11 +1,13 @@
 {
 	"compilerOptions": {
 		"outDir": "dist",
-		"module": "esnext",
-		"target": "esnext",
-		"moduleResolution": "bundler",
+		"module": "commonjs",
+		"target": "es2024",
+		"lib": ["ES2024"],
+		"moduleResolution": "node",
 		"skipLibCheck": true,
-		"strict": true
+		"resolveJsonModule": true,
+		"esModuleInterop": true
 	},
 	"include": ["src/**/*", "package.json"]
 }

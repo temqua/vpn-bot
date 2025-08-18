@@ -59,7 +59,7 @@ export class NalogService {
 		const response = await client.post(`${this.apiRoot}/auth/lkfl`, {
 			body: JSON.stringify(body),
 		});
-		const responseBody: NalogAuthResponse & NalogErrorMessage = await response.json();
+		const responseBody = (await response.json()) as NalogAuthResponse & NalogErrorMessage;
 		if (!response.ok) {
 			const errorMessage = responseBody.message ?? response.statusText;
 			throw new Error(errorMessage);
@@ -95,7 +95,7 @@ export class NalogService {
 				'Content-Type': 'application/json',
 			},
 		});
-		const responseBody: NalogIncomeResponse & NalogErrorMessage = await response.json();
+		const responseBody = (await response.json()) as NalogIncomeResponse & NalogErrorMessage;
 		if (!response.ok) {
 			const errorMessage = responseBody.exceptionMessage
 				? responseBody.exceptionMessage

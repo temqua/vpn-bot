@@ -4,7 +4,7 @@ services:
         container_name: keys-bot
         build:
             context: .
-            dockerfile: ./apps/keys/Dockerfile
+            dockerfile: ./Dockerfile
         env_file: .env
         network_mode: host
         cap_add:

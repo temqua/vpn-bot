@@ -15,7 +15,7 @@ import type {
 export class XUIApiService {
 	async create(chatId: number, username: string, telegramId: number, inboundId = 1): Promise<string | null> {
 		const loginResponse = await this.login(chatId);
-		const loginResult: XUILoginResponse = await loginResponse.json();
+		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 		if (!loginResult.success) {
 			await bot.sendMessage(chatId, `Auth error 3X-UI. ${loginResult.msg}`);
 			logger.error(`Auth error 3X-UI. ${loginResult.msg}`);
@@ -53,7 +53,7 @@ export class XUIApiService {
 			logger.error(`Error while creating X-UI user ${username}: ${response.status} ${response.statusText}`);
 			return null;
 		}
-		const result: XUIBaseResponse = await response.json();
+		const result = (await response.json()) as XUIBaseResponse;
 		if (result) {
 			await bot.sendMessage(chatId, result.msg);
 			return id;
@@ -62,7 +62,7 @@ export class XUIApiService {
 	}
 	async delete(chatId: number, uuid: string, inboundId = 1) {
 		const loginResponse = await this.login(chatId);
-		const loginResult: XUILoginResponse = await loginResponse.json();
+		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 		if (!loginResult.success) {
 			await bot.sendMessage(chatId, `Auth error 3X-UI. ${loginResult.msg}`);
 			logger.error(`Auth error 3X-UI. ${loginResult.msg}`);
@@ -83,14 +83,14 @@ export class XUIApiService {
 			);
 			return null;
 		}
-		const result: XUIBaseResponse = await response.json();
+		const result = (await response.json()) as XUIBaseResponse;
 		if (result) {
 			await bot.sendMessage(chatId, result.msg);
 		}
 	}
 	async getAll(chatId: number): Promise<XUIInboundsResponse | null> {
 		const loginResponse = await this.login(chatId);
-		const loginResult: XUILoginResponse = await loginResponse.json();
+		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 
 		if (!loginResult.success) {
 			await bot.sendMessage(chatId, `Auth error 3X-UI. ${loginResult.msg}`);
@@ -113,7 +113,7 @@ export class XUIApiService {
 
 	async getOnline(chatId: number): Promise<XOnlineClientsResponse> {
 		const loginResponse = await this.login(chatId);
-		const loginResult: XUILoginResponse = await loginResponse.json();
+		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 
 		if (!loginResult.success) {
 			await bot.sendMessage(chatId, `Auth error 3X-UI. ${loginResult.msg}`);

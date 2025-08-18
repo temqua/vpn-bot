@@ -1,14 +1,13 @@
 {
 	"name": "backups-bot",
 	"version": "3.0.0",
-	"module": "src/index.ts",
-	"type": "module",
 	"scripts": {
-		"build": "tsc"
+		"build": "rimraf dist && tsc"
 	},
 	"devDependencies": {
 		"@types/ms": "^2.1.0",
-		"@types/node-telegram-bot-api": "^0.64.10"
+		"@types/node-telegram-bot-api": "^0.64.10",
+		"rimraf": "^6.0.1"
 	},
 	"peerDependencies": {
 		"typescript": "^5.0.0"

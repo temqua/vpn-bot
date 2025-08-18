@@ -30,7 +30,7 @@ accessUrl: \`${key.accessUrl}\`
 			logger.error(`Outline users list fetching finished with error: ${response.status} ${response.statusText}`);
 			return null;
 		}
-		return await response.json();
+		return (await response.json()) as OutlineResponse;
 	}
 
 	async getUser(id: string, chatId: number): Promise<OutlineKey | null> {
@@ -43,10 +43,10 @@ accessUrl: \`${key.accessUrl}\`
 			logger.error(`Outline user ${id} fetching finished with error: ${response.status} ${response.statusText}`);
 			return null;
 		}
-		return await response.json();
+		return (await response.json()) as OutlineKey;
 	}
 
-	async getTransferredMetrics(chatId: number): Promise<OutlineMetricsTransfer> {
+	async getTransferredMetrics(chatId: number): Promise<OutlineMetricsTransfer | null> {
 		const response = await client.get(`${env.OUTLINE_API_ROOT}/metrics/transfer`);
 		if (!response.ok) {
 			const errMsg = `Error while fetching outline users transfer metrics: ${response.status} ${response.statusText}`;
@@ -54,7 +54,7 @@ accessUrl: \`${key.accessUrl}\`
 			logger.error(errMsg);
 			return null;
 		}
-		return await response.json();
+		return (await response.json()) as OutlineMetricsTransfer;
 	}
 
 	async create(message: Message, username: string) {
@@ -71,7 +71,7 @@ accessUrl: \`${key.accessUrl}\`
 				);
 				return;
 			}
-			const key: OutlineKey = await response.json();
+			const key = (await response.json()) as OutlineKey;
 			if (key?.id) {
 				await bot.sendMessage(
 					message.chat.id,
@@ -194,6 +194,6 @@ accessUrl: \`${key.accessUrl}\``,
 				`Error while fetching experimental server metrics: ${response.status} ${response.statusText}`,
 			);
 		}
-		return await response.json();
+		return (await response.json()) as OutlineServerMetricsResponse;
 	}
 }

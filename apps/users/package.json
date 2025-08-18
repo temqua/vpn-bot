@@ -1,10 +1,8 @@
 {
 	"name": "users-bot",
 	"version": "3.0.0",
-	"module": "src/index.ts",
-	"type": "module",
 	"scripts": {
-		"build": "npx prisma generate && tsc",
+		"build": "npx prisma generate && rimraf dist && tsc",
 		"prestart": "npx prisma generate",
 		"start": "node dist/src/main.js",
 		"seed": "ts-node prisma/seed.ts",
@@ -23,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@types/node-telegram-bot-api": "^0.64.10",
-		"prisma": "^6.14.0"
+		"prisma": "^6.14.0",
+		"rimraf": "^6.0.1"
 	}
 }
