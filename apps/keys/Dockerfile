@@ -1,6 +1,14 @@
-FROM node:lts-bookworm-slim
+FROM node:lts-alpine as builder
 WORKDIR /app
 
+COPY package.json package-lock.json tsconfig.json .env ./
+COPY src/ ./src
+COPY scripts/ ./scripts
+
+RUN npm ci && npm run build
+
+FROM node:lts-bookworm-slim
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \ 
     qrencode wireguard apt-utils \
@@ -8,7 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     net-tools iptables libnss3-tools 
 
 COPY package.json package-lock.json .env tsconfig.json ./
-COPY src/ ./src
 COPY scripts/ ./scripts
-RUN npm install && npm run build && npm ci --omit=dev
+COPY --from=builder /app/dist ./dist
+RUN npm ci --omit=dev
+
 CMD [ "node", "dist/src/index.js" ]
