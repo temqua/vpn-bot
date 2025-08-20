@@ -13,6 +13,7 @@ services:
             POSTGRES_DB: vpn
         volumes:
             - vpn-data:/var/lib/postgresql/data
+            - ./data.sql:/docker-entrypoint-initdb.d/pg-init.sql:ro
         healthcheck:
             test: ['CMD-SHELL', 'pg_isready']
             interval: 5s
