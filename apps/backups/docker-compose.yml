@@ -12,7 +12,7 @@ services:
             POSTGRES_PASSWORD: JFJ4GSvryTwBW1
             POSTGRES_DB: vpn
         volumes:
-            - vpn-data:/var/lib/postgresql/data
+            - vpn-bot_vpn-data:/var/lib/postgresql/data
             - ./data.sql:/docker-entrypoint-initdb.d/pg-init.sql:ro
         healthcheck:
             test: ['CMD-SHELL', 'pg_isready']
@@ -32,5 +32,6 @@ services:
             - backups:/home/vpnadmin/backups
 
 volumes:
-    vpn-data:
+    vpn-bot_vpn-data:
+        external: true
     backups:
