@@ -12,6 +12,14 @@
 					"DATABASE_URL": "postgresql://admin:JFJ4GSvryTwBW1@localhost:54333/vpn?schema=public"
 				}
 			}
+		},
+		{
+			"type": "typescript",
+			"tsconfig": "apps/keys/tsconfig.json",
+			"option": "watch",
+			"problemMatcher": ["$tsc-watch"],
+			"group": "build",
+			"label": "tsc: watch - apps/keys/tsconfig.json"
 		}
 	]
 }

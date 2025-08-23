@@ -1,11 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import https from 'https';
-const httpsAgent = new https.Agent({
-	rejectUnauthorized: false, // Ignore self-signed certificates
-});
+import { fetch, Agent } from 'undici';
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+const httpsAgent = new Agent({
+	connect: {
+		rejectUnauthorized: false,
+	},
+});
 
 export default {
 	async get(url: string, params?: RequestInit) {
