@@ -104,18 +104,24 @@ export class XUIService {
 		);
 		if (id) {
 			const inbound = this.inbounds.find(i => i.id == (this.params.get('inbound_id') ?? 1));
-			const streamSettings = JSON.parse(inbound.streamSettings);
-			await bot.sendMessage(
-				message.chat.id,
-				`vless://${id}@${env.XUI_ADDRESS}:443?type=${streamSettings.network}&security=${streamSettings.security}&pbk=${streamSettings.realitySettings.settings.publicKey}&fp=${streamSettings.realitySettings.settings.fingerprint}&sni=${streamSettings.realitySettings.serverNames[0]}&sid=${streamSettings.realitySettings.shortIds[0]}&spx=%2F&flow=xtls-rprx-vision#vless-${this.params.get('username')}`,
-			);
+			if (inbound) {
+				const streamSettings = JSON.parse(inbound.streamSettings);
+				await bot.sendMessage(
+					message.chat.id,
+					`vless://${id}@${env.XUI_ADDRESS}:443?type=${streamSettings.network}&security=${streamSettings.security}&pbk=${streamSettings.realitySettings.settings.publicKey}&fp=${streamSettings.realitySettings.settings.fingerprint}&sni=${streamSettings.realitySettings.serverNames[0]}&sid=${streamSettings.realitySettings.shortIds[0]}&spx=%2F&flow=xtls-rprx-vision#vless-${this.params.get('username')}`,
+				);
+			} else {
+				const errorMessage = `Unexpected error. inbound ${this.params.get('inbound_id')} did not found in system`;
+				logger.error(errorMessage);
+				await bot.sendMessage(message.chat.id, errorMessage);
+			}
 		}
 		this.params.clear();
 		this.inbounds = [];
 		globalHandler.finishCommand();
 	}
 
-	async getAll(message: Message, context: KeysContext, start: boolean) {
+	async getAll(message: Message, context: KeysContext, start?: boolean) {
 		const chatId = message.chat.id;
 		if (start) {
 			await bot.sendMessage(
@@ -124,6 +130,10 @@ export class XUIService {
 				xuiListKeyboard,
 			);
 			return;
+		}
+
+		if (!message.text) {
+			await bot.sendMessage(message.chat.id, "You didn't pass any text to response. Finishing execution");
 		}
 
 		const result = await this.service.getAll(chatId);
@@ -153,7 +163,7 @@ stream settings: ${JSON.stringify(streamSettings)}
 			const settings: XSettings = JSON.parse(inbound.settings);
 			const clients = context.accept
 				? settings.clients
-				: settings.clients.filter(client => client.email.startsWith(message?.text));
+				: settings.clients.filter(client => client.email.startsWith(message.text as string));
 			for (const client of clients) {
 				await bot.sendMessage(
 					chatId,
@@ -186,7 +196,7 @@ flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}
 		await bot.sendMessage(chatId, `Online users: ${result.obj.join(', ')}`);
 	}
 
-	async delete(message: Message, context: KeysContext, start: boolean) {
+	async delete(message: Message, context: KeysContext, start?: boolean) {
 		this.log('delete');
 
 		if (start) {
@@ -231,11 +241,14 @@ flow: ${client.flow.replace(/[-.*#_]/g, match => `\\${match}`)}
 			return;
 		}
 		if (this.deleteSteps.username) {
+			if (!message.text) {
+				await bot.sendMessage(message.chat.id, "You didn't pass any text to response. Finishing execution");
+			}
 			const selectedInbound = this.inbounds.find(i => i.id === Number(this.params.get('inbound_id')));
 			const settings: XSettings = JSON.parse(selectedInbound?.settings ?? '');
 			const clients = context.accept
 				? settings.clients
-				: settings.clients.filter(c => c.email.startsWith(message?.text));
+				: settings.clients.filter(c => c.email.startsWith(message.text as string));
 			await bot.sendMessage(message.chat.id, 'Found inbound clients. Enter UUID of user to delete');
 			for (const client of clients) {
 				await bot.sendMessage(

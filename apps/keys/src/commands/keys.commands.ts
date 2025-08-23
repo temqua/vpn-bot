@@ -376,7 +376,7 @@ async function deleteClient(msg: Message, match: RegExpMatchArray | null, protoc
 	await new CertificatesService(protocol).delete(msg, username);
 }
 
-async function getClients(msg: Message, match: RegExpMatchArray, protocol: VPNProtocol) {
+async function getClients(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
 	if (!isAdmin(msg)) {
 		return;
 	}

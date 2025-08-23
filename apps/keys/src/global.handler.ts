@@ -39,7 +39,7 @@ class GlobalHandler {
 	async execute(command: CommandDetails, message: Message) {
 		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command?.context?.cmd} command`);
 		this.activeCommand = command;
-		keysCommandsHandler.handle(this.activeCommand?.context, message, !command.processing);
+		keysCommandsHandler.handle(this.activeCommand.context, message, !command?.processing);
 	}
 }
 

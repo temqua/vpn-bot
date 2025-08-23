@@ -21,22 +21,22 @@ export class CertificatesService {
 		}
 	}
 
-	async create(message: Message, username: string) {
-		await this.service.create(message, username);
+	async create(message: Message, username: string | undefined) {
+		await this.service.create(message, username ?? '');
 	}
-	async getFile(message: Message, username: string) {
-		await this.service.getFile(message, username);
+	async getFile(message: Message, username: string | undefined) {
+		await this.service.getFile(message, username ?? '');
 	}
 
-	async delete(message: Message, username: string) {
-		await this.service.delete(message, username);
+	async delete(message: Message, username: string | undefined) {
+		await this.service.delete(message, username ?? '');
 	}
 
 	async getAll(message: Message) {
 		await this.service.getAll(message);
 	}
 
-	async export(message: Message, username: string) {
-		await this.service.export(message, username);
+	async export(message: Message, username: string | undefined) {
+		await this.service.export(message, username ?? '');
 	}
 }

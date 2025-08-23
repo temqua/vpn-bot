@@ -94,8 +94,7 @@ accessUrl: \`${key.accessUrl}\``,
 				await bot.sendMessage(message.chat.id, errorMessage);
 			}
 		} catch (error) {
-			logger.error(`Outline user ${username} was not created correctly`);
-			logger.error(error);
+			logger.error(`Outline user ${username} was not created correctly: ${error}`);
 			await bot.sendMessage(message.chat.id, `Outline user ${username} was not created correctly ${error}`);
 		}
 	}

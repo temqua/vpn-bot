@@ -100,11 +100,15 @@ bot.onText(mainCommandsList.wg.regexp, async (msg: Message) => {
 	await logsService.wg(msg, '');
 });
 
-bot.onText(mainCommandsList.wgCommand.regexp, async (msg: Message, match: RegExpMatchArray) => {
+bot.onText(mainCommandsList.wgCommand.regexp, async (msg: Message, match: RegExpMatchArray | null) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	await logsService.wg(msg, ` ${match[1]}`);
+	if (match && match.length) {
+		await logsService.wg(msg, ` ${match[1]}`);
+	} else {
+		await bot.sendMessage(msg.chat.id, 'No params for wg command found');
+	}
 });
 
 bot.onText(mainCommandsList.metrics.regexp, async (msg: Message) => {

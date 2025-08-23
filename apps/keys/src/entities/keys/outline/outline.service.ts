@@ -34,9 +34,18 @@ export class OutlineService {
 
 		try {
 			const users = await this.service.getAll(message.chat.id);
+			if (!users) {
+				await bot.sendMessage(message.chat.id, 'null received instead of users list');
+				return;
+			}
+			if (!message.text) {
+				await bot.sendMessage(message.chat.id, "You didn't pass any text to response. Finishing execution");
+				return;
+			}
+
 			const keys = context.accept
 				? users.accessKeys
-				: users.accessKeys.filter(({ name }) => name.startsWith(message.text));
+				: users.accessKeys.filter(({ name }) => name.startsWith(message.text as string));
 			if (!keys.length) {
 				await bot.sendMessage(message.chat.id, 'No outline users found for your request');
 				await bot.sendMessage(message.chat.id, `Total count ${users.accessKeys.length}`);
@@ -88,7 +97,7 @@ export class OutlineService {
 		logger.log(`[${basename(__filename)}]: delete${start ? ' Operation start' : ''}`);
 		if (this.deleteSteps.delete) {
 			await bot.sendMessage(chatId, 'Selected user id to delete: ' + context.id);
-			await this.service.delete(context.id, chatId);
+			await this.service.delete(context.id ?? '', chatId);
 			this.deleteSteps.delete = false;
 			globalHandler.finishCommand();
 			return;
@@ -103,9 +112,17 @@ export class OutlineService {
 			return;
 		}
 		const users = await this.service.getAll(chatId);
+		if (!users) {
+			await bot.sendMessage(message.chat.id, 'null received instead of users list');
+			return;
+		}
+		if (!message.text) {
+			await bot.sendMessage(message.chat.id, "You didn't pass any text to response. Finishing execution");
+			return;
+		}
 		const keys = context.accept
 			? users.accessKeys
-			: users.accessKeys.filter(({ name }) => name.startsWith(message.text));
+			: users.accessKeys.filter(({ name }) => name.startsWith(message.text as string));
 
 		const buttons = keys.map(({ name, id }) => [
 			{
@@ -175,6 +192,10 @@ dataLimit: ${dataLimit.replace(/[-.*#_]/g, match => `\\${match}`)}`,
 			await bot.sendMessage(message.chat.id, 'Enter new username');
 			return;
 		}
+		if (!message.text) {
+			await bot.sendMessage(message.chat.id, "You didn't pass any text to response. Finishing execution");
+			return;
+		}
 		try {
 			await this.service.rename(id, message.chat.id, message.text);
 			await bot.sendMessage(message.chat.id, 'User has been successfully renamed');
@@ -220,7 +241,7 @@ dataLimit: ${dataLimit.replace(/[-.*#_]/g, match => `\\${match}`)}`,
 		}
 	}
 
-	async getMetrics(message) {
+	async getMetrics(message: Message) {
 		try {
 			const metricsResponse = await this.service.getMetrics();
 			const current = metricsResponse.server.bandwidth.current;

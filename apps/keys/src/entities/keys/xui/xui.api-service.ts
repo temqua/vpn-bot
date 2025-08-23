@@ -15,6 +15,9 @@ import type {
 export class XUIApiService {
 	async create(chatId: number, username: string, telegramId: number, inboundId = 1): Promise<string | null> {
 		const loginResponse = await this.login(chatId);
+		if (!loginResponse) {
+			return null;
+		}
 		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 		if (!loginResult.success) {
 			await bot.sendMessage(chatId, `Auth error 3X-UI. ${loginResult.msg}`);
@@ -62,6 +65,9 @@ export class XUIApiService {
 	}
 	async delete(chatId: number, uuid: string, inboundId = 1) {
 		const loginResponse = await this.login(chatId);
+		if (!loginResponse) {
+			return null;
+		}
 		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 		if (!loginResult.success) {
 			await bot.sendMessage(chatId, `Auth error 3X-UI. ${loginResult.msg}`);
@@ -90,6 +96,9 @@ export class XUIApiService {
 	}
 	async getAll(chatId: number): Promise<XUIInboundsResponse | null> {
 		const loginResponse = await this.login(chatId);
+		if (!loginResponse) {
+			return null;
+		}
 		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 
 		if (!loginResult.success) {
@@ -111,8 +120,11 @@ export class XUIApiService {
 		return (await response.json()) as XUIInboundsResponse;
 	}
 
-	async getOnline(chatId: number): Promise<XOnlineClientsResponse> {
+	async getOnline(chatId: number): Promise<XOnlineClientsResponse | null> {
 		const loginResponse = await this.login(chatId);
+		if (!loginResponse) {
+			return null;
+		}
 		const loginResult = (await loginResponse.json()) as XUILoginResponse;
 
 		if (!loginResult.success) {
@@ -139,7 +151,7 @@ export class XUIApiService {
 		return (await response.json()) as XOnlineClientsResponse;
 	}
 
-	private async login(chatId: number): Promise<Response> {
+	private async login(chatId: number): Promise<Response | null> {
 		const body = new URLSearchParams({
 			username: env.XUI_USERNAME,
 			password: env.XUI_PASSWORD,

@@ -8,6 +8,7 @@ import { CertificatesService } from './certificates.service';
 import commandsMap from './commandsMap';
 import { outlineCommandsHandler } from './outline/outline.handler';
 import { xuiCommandsHandler } from './xui/xui.handler';
+import logger from '../../logger';
 
 export interface KeysContext {
 	[CmdCode.Protocol]: VPNProtocol;
@@ -18,13 +19,18 @@ export interface KeysContext {
 }
 
 class KeysCommandsHandler implements ICommandHandler {
-	async handle(context: KeysContext | null | undefined, message: Message, start = false) {
+	async handle(context: KeysContext, message: Message, start = false) {
 		if (context?.cmd === VPNKeyCommand.Expand) {
-			await bot.sendMessage(message.chat.id, 'Select protocol', {
-				reply_markup: {
-					inline_keyboard: [getProtocolButtons(context.subo)],
-				},
-			});
+			if (context.subo) {
+				bot.sendMessage(message.chat.id, 'Select protocol', {
+					reply_markup: {
+						inline_keyboard: [getProtocolButtons(context.subo)],
+					},
+				});
+			} else {
+				bot.sendMessage(message.chat.id, `context.subo ${context.subo} is null | undefined`);
+			}
+
 			globalHandler.finishCommand();
 			return;
 		}
@@ -45,9 +51,16 @@ class KeysCommandsHandler implements ICommandHandler {
 			await bot.sendMessage(message.chat.id, 'Enter username');
 			return;
 		}
-		const method = commandsMap[context.cmd];
-		const service = new CertificatesService(context[CmdCode.Protocol]);
-		await service[method](message, message.text);
+		const method: keyof CertificatesService | undefined = commandsMap[context?.cmd];
+		if (context?.cmd && method) {
+			const service = new CertificatesService(context[CmdCode.Protocol]);
+			await service[method](message, message?.text);
+		} else {
+			const errorMessage = `context is null or does not contain cmd ${context?.cmd} or method not found for this command`;
+			logger.error(errorMessage);
+			await bot.sendMessage(message.chat.id, errorMessage);
+		}
+
 		globalHandler.finishCommand();
 	}
 }
