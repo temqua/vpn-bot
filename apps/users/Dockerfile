@@ -1,7 +1,7 @@
 FROM node:lts-alpine AS builder
 WORKDIR /app
 ENV NODE_OPTIONS="--max-old-space-size=1536"
-COPY package.json package-lock.json sheets-api.json .env tsconfig.js1ю5on ./
+COPY package.json package-lock.json sheets-api.json .env tsconfig.json ./
 COPY src/ ./src
 COPY prisma/ ./prisma
 
