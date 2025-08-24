@@ -1,11 +1,12 @@
-FROM node:lts-alpine as builder
+FROM node:lts-alpine AS builder
 WORKDIR /app
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 COPY package.json package-lock.json sheets-api.json .env tsconfig.json ./
 COPY src/ ./src
 COPY prisma/ ./prisma
 
-RUN npm ci && npm run build
+RUN npm install -g npm && npm ci
+RUN npm run build
 
 FROM node:lts-alpine
 WORKDIR /app
