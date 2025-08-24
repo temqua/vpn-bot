@@ -22,7 +22,7 @@ jobs:
               working-directory: apps/users
 
             - name: Generate sheets-api.json
-              run: echo ${{ secrets.SHEETS_API }} > sheets-api.json
+              run: echo "${{ secrets.SHEETS_API }}" > sheets-api.json
               working-directory: apps/users
 
             - name: Build
