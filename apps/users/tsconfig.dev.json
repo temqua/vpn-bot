@@ -1,5 +1,6 @@
 {
 	"extends": "./tsconfig.base.json",
 	"sourceMap": true,
-	"inlineSources": true
+	"inlineSources": true,
+	"incremental": true
 }
