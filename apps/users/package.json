@@ -2,7 +2,7 @@
 	"name": "users-bot",
 	"version": "3.0.0",
 	"scripts": {
-		"build": "prisma generate && rimraf dist && tsc",
+		"build": "prisma generate && rimraf dist && tsc --build --verbose",
 		"prestart": "npx prisma generate",
 		"start": "node dist/src/main.js",
 		"seed": "ts-node prisma/seed.ts",
