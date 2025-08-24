@@ -2,8 +2,8 @@ name: Build and Deploy users-bot
 
 run-name: 'Build and Deploy users-bot'
 
-on: 
-  workflow_dispatch:
+on:
+    workflow_dispatch:
 
 jobs:
     build_and_deploy:
@@ -36,7 +36,7 @@ jobs:
                   target: ${{ secrets.DB_SERVER_APP_DIRECTORY }}
 
             - name: Deploy via SSH
-              uses: appleboy/ssh-action@1.2.2
+              uses: appleboy/ssh-action@v1.2.2
               with:
                   host: ${{ secrets.DB_SERVER_HOST }}
                   username: ${{ secrets.DB_SERVER_USERNAME }}
