@@ -48,4 +48,5 @@ jobs:
                       cd ${{ secrets.DB_SERVER_APP_DIRECTORY }}/apps/users
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz
+                      cp ${{ secrets.DB_SERVER_APP_DIRECTORY }}/sheets-api.json ${{ secrets.DB_SERVER_APP_DIRECTORY }}/apps/users/dist 
                       docker-compose up --build -d
