@@ -3,7 +3,7 @@ import type { Bank } from '../../enums';
 import { prisma } from '../../prisma';
 
 export type VPNUser = User & {
-	payer: User;
+	payer: User | null;
 	payments: Payment[];
 	dependants: User[];
 };
@@ -59,7 +59,7 @@ export class UsersRepository {
 		});
 	}
 
-	async findByUsername(username: string): Promise<VPNUser[] | null> {
+	async findByUsername(username: string): Promise<VPNUser[]> {
 		return await prisma.user.findMany({
 			where: {
 				username: {
@@ -88,7 +88,7 @@ export class UsersRepository {
 		});
 	}
 
-	async findByFirstName(firstName: string): Promise<VPNUser[] | null> {
+	async findByFirstName(firstName: string): Promise<VPNUser[]> {
 		return await prisma.user.findMany({
 			where: {
 				firstName: {
@@ -104,7 +104,12 @@ export class UsersRepository {
 		});
 	}
 
-	async update(id: number, data) {
+	async update(
+		id: number,
+		data: {
+			[key: string]: string[] | number | string | boolean;
+		},
+	) {
 		return await prisma.user.update({
 			where: {
 				id,
@@ -131,7 +136,7 @@ export class UsersRepository {
 		});
 	}
 
-	async payersList(userId: number): Promise<User[] | null> {
+	async payersList(userId: number): Promise<User[]> {
 		return await prisma.user.findMany({
 			where: {
 				payerId: null,

@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"lint": "eslint apps/**",
+		"lint:fix": "eslint --fix apps/**",
 		"format": "prettier --write ."
 	},
 	"repository": {

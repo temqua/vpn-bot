@@ -11,8 +11,9 @@
 			"skipFiles": ["<node_internals>/**"],
 			"runtimeExecutable": "nodemon",
 			"type": "node",
+			"sourceMaps": true,
 			"envFile": "${workspaceFolder}/apps/keys/.env",
-			"outFiles": ["${workspaceFolder}/apps/keys/dist/**/*.js"]
+			"outFiles": ["${workspaceFolder}/apps/keys/dist/src/**/*.js"]
 		},
 		{
 			"name": "Launch Users Bot",
@@ -20,9 +21,12 @@
 			"request": "launch",
 			"skipFiles": ["<node_internals>/**"],
 			"runtimeExecutable": "nodemon",
+			"restart": true,
+			"runtimeArgs": ["--exec", "ts-node"],
 			"type": "node",
+			"sourceMaps": true,
 			"envFile": "${workspaceFolder}/apps/users/.env",
-			"outFiles": ["${workspaceFolder}/apps/users/dist/**/*.js"]
+			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"]
 		}
 	]
 }

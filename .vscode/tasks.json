@@ -20,6 +20,14 @@
 			"problemMatcher": ["$tsc-watch"],
 			"group": "build",
 			"label": "tsc: watch - apps/keys/tsconfig.json"
+		},
+		{
+			"type": "typescript",
+			"tsconfig": "apps/users/tsconfig.json",
+			"option": "watch",
+			"problemMatcher": ["$tsc-watch"],
+			"group": "build",
+			"label": "tsc: watch - apps/users/tsconfig.json"
 		}
 	]
 }

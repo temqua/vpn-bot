@@ -72,7 +72,7 @@ export class PaymentsRepository {
 		});
 	}
 
-	async getByDate(date: Date) {
+	async getByDate(date: Date): Promise<Payment[]> {
 		return await prisma.payment.findMany({
 			where: {
 				paymentDate: {
@@ -83,7 +83,7 @@ export class PaymentsRepository {
 		});
 	}
 
-	async getByDateRange(from: Date, to: Date) {
+	async getByDateRange(from: Date, to: Date): Promise<Payment[]> {
 		return await prisma.payment.findMany({
 			where: {
 				paymentDate: {

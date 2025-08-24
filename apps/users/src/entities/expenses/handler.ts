@@ -30,13 +30,13 @@ class ExpensesHandler implements ICommandHandler {
 		description: false,
 	};
 
-	async handle(context: ExpensesContext, message: Message, start = false) {
+	async handle(context: ExpensesContext, message: Message | null, start = false) {
 		if (context.cmd === ExpenseCommand.Create) {
 			this.create(context as ExpenseCreateContext, message, start);
 		} else if (context.cmd === ExpenseCommand.List) {
-			this.list(message);
+			this.list(message as Message);
 		} else {
-			this.sum(context, message);
+			this.sum(context, message as Message);
 		}
 	}
 

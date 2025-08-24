@@ -95,6 +95,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.params.set('last_name', message?.text);
 			}
+			delete context.skip;
 			await bot.sendMessage(chatId, 'Enter telegram link', skipKeyboard);
 			this.setCreateStep('telegramLink');
 			return;
@@ -103,6 +104,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.params.set('telegram_link', message?.text);
 			}
+			delete context.skip;
 			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
 				allows_multiple_answers: true,
 			});
@@ -114,6 +116,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.params.set('devices', selectedOptions);
 			}
+			delete context.skip;
 			await bot.sendPoll(chatId, 'Choose protocols', pollOptions.protocols, {
 				allows_multiple_answers: true,
 			});
@@ -125,6 +128,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.params.set('protocols', selectedOptions);
 			}
+			delete context.skip;
 			await bot.sendPoll(chatId, 'Choose bank', pollOptions.bank, {
 				allows_multiple_answers: false,
 			});
@@ -136,6 +140,7 @@ export class UsersService {
 			if (!context.skip) {
 				this.params.set('bank', selectedOptions[0]);
 			}
+			delete context.skip;
 		}
 		const params = this.params;
 		const username = params.get('username');
@@ -206,6 +211,8 @@ export class UsersService {
 			} else {
 				await bot.sendMessage(message.chat.id, `No users found in system with first name ${message.text}`);
 			}
+			globalHandler.finishCommand();
+			return;
 		}
 		await bot.sendMessage(message.chat.id, 'Enter first name');
 	}
@@ -282,17 +289,18 @@ export class UsersService {
 	}
 
 	async update(
-		message: Message,
+		message: Message | null,
 		context: UserUpdateCommandContext,
 		state: { init: boolean },
 		selectedOptions: (Device | VPNProtocol | Bank | BoolFieldState)[] = [],
 	) {
 		this.log('update');
+		const chatId = message?.chat?.id || env.ADMIN_USER_ID;
 		const textProp = this.textProps.includes(context.prop);
 		const boolProp = this.boolProps.includes(context.prop);
 		const numberProp = this.numberProps.includes(context.prop);
 		if (state.init) {
-			this.initUpdate(message, context);
+			this.initUpdate(message as Message, context);
 			state.init = false;
 			return;
 		}
@@ -325,26 +333,49 @@ export class UsersService {
 			const updateId = this.params.get('updateId');
 			try {
 				const updated = await this.repository.update(updateId, {
-					payerId: context.id,
+					payerId: context.id ?? '',
 				});
 				logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
-				await this.sendUserMenu(message?.chat?.id, updated);
+				await this.sendUserMenu(chatId, updated);
 			} catch (error) {
 				const errorMessage = `Error while updating payerId ${error}`;
 				logger.error(errorMessage);
-				await bot.sendMessage(message?.chat?.id, errorMessage);
+				await bot.sendMessage(chatId, errorMessage);
 			} finally {
 				this.params.clear();
 				globalHandler.finishCommand();
 			}
 			return;
 		}
-		const newValue = textProp
-			? message?.text
-			: numberProp
-				? Number(message?.text)
-				: message?.user_shared?.user_id.toString();
-		this.applyUpdate(message?.chat?.id, Number(context.id), context.prop, newValue);
+		if ((textProp || numberProp) && ['null', 'undefined'].includes(typeof message?.text)) {
+			bot.sendMessage(chatId, `message.text is null/empty ${message?.text}`);
+			this.params.clear();
+			globalHandler.finishCommand();
+			return;
+		}
+		if (
+			!textProp &&
+			!numberProp &&
+			(typeof message?.user_shared === 'undefined' || typeof message?.user_shared?.user_id === 'undefined')
+		) {
+			bot.sendMessage(
+				chatId,
+				`message.user_shared or message.user_shared.user_id is null/empty ${message?.text}`,
+			);
+			this.params.clear();
+			globalHandler.finishCommand();
+			return;
+		}
+
+		let newValue: string[] | number | string | boolean = '';
+		if (textProp) {
+			newValue = message?.text as string;
+		} else if (numberProp) {
+			newValue = Number(message?.text);
+		} else {
+			newValue = message?.user_shared?.user_id.toString() ?? '';
+		}
+		this.applyUpdate(chatId, Number(context.id), context.prop, newValue);
 	}
 
 	async delete(msg: Message, context: UsersContext, start: boolean) {
@@ -503,9 +534,12 @@ have no payments for next month.`,
 			);
 			this.setUpdateStep('payerSearch');
 		} else {
-			await bot.sendPoll(chatId, `Select ${context.prop}`, pollOptions[context.prop], {
-				allows_multiple_answers: context.prop !== 'bank',
-			});
+			const foundOptions: string[] = pollOptions[context.prop] ?? [];
+			if (foundOptions.length) {
+				await bot.sendPoll(chatId, `Select ${context.prop}`, foundOptions, {
+					allows_multiple_answers: context.prop !== 'bank',
+				});
+			}
 		}
 	}
 
