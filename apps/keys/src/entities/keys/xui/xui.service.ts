@@ -61,8 +61,11 @@ export class XUIService {
 			this.params.set('username', message.text);
 			const result = await this.service.getAll(message.chat.id);
 			if (!result || !result.success) {
-				await bot.sendMessage(message.chat.id, `Error while fetching X-UI inbounds: ${result?.msg}`);
-				logger.error(`Error while fetching X-UI inbounds: ${result?.msg}`);
+				await bot.sendMessage(
+					message.chat.id,
+					`Error while fetching X-UI inbounds: ${result?.msg ?? 'Unknown'}`,
+				);
+				logger.error(`Error while fetching X-UI inbounds: ${result?.msg ?? 'Unknown'}`);
 				this.params.set('inbound_id', 1);
 			} else {
 				this.inbounds = result.obj;
