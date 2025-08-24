@@ -13,7 +13,7 @@ WORKDIR /app
 COPY package.json package-lock.json sheets-api.json .env tsconfig.json ./
 COPY --from=builder /app/dist ./dist
 COPY prisma/ ./prisma
-RUN npm ci --omit=dev
+RUN NODE_ENV=production npm ci --omit=dev
 RUN npx prisma generate
 
 CMD ["node", "dist/src/index.js"]

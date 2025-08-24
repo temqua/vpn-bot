@@ -23,6 +23,7 @@
 			"runtimeExecutable": "nodemon",
 			"restart": true,
 			"runtimeArgs": ["--exec", "ts-node"],
+			"args": ["--project", "${workspaceFolder}/apps/users/tsconfig.dev.json"],
 			"type": "node",
 			"sourceMaps": true,
 			"envFile": "${workspaceFolder}/apps/users/.env",
