@@ -1,5 +1,7 @@
 name: Build and Deploy users-bot
 
+run-name: "Build and Deploy users-bot"
+
 on: workflow_dispatch
 
 jobs:
@@ -23,7 +25,7 @@ jobs:
               run: tar -czf dist.tar.gz dist
 
             - name: Upload to server
-              uses: appleboy/scp-action
+              uses: appleboy/scp-action@v1
               with:
                   host: ${{ secrets.DB_SERVER_HOST }}
                   username: ${{ secrets.DB_SERVER_USERNAME }}
@@ -32,7 +34,7 @@ jobs:
                   target: ${{ secrets.DB_SERVER_APP_DIRECTORY }}
 
             - name: Deploy via SSH
-              uses: appleboy/ssh-action
+              uses: appleboy/ssh-action@1.2.2
               with:
                   host: ${{ secrets.DB_SERVER_HOST }}
                   username: ${{ secrets.DB_SERVER_USERNAME }}
