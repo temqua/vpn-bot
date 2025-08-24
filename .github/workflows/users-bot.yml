@@ -49,7 +49,7 @@ jobs:
                   username: ${{ secrets.DB_SERVER_USERNAME }}
                   key: ${{ secrets.DB_SERVER_SSH_KEY }}
                   script: |
-                      cd ${{ secrets.DB_SERVER_APP_DIRECTORY }}
+                      cd ~/apps/users
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz
                       docker-compose up --build -d
