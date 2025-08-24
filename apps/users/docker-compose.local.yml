@@ -1,0 +1,10 @@
+services:
+    app:
+        image: users-bot
+        container_name: users-bot
+        build:
+            context: .
+            dockerfile: ./Dockerfile.development
+        env_file: .env
+        network_mode: host
+        restart: unless-stopped

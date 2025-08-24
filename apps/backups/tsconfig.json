@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"outDir": "dist",
+		"module": "commonjs",
+		"target": "es2024",
+		"lib": ["ES2024"],
+		"moduleResolution": "node",
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"strict": true,
+		"incremental": true,
+		"sourceMap": true
+	},
+	"include": ["src/**/*", "package.json"]
+}

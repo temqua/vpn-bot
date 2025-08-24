@@ -5,16 +5,29 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "bun",
+			"name": "Launch Keys Bot",
+			"program": "${workspaceFolder}/apps/keys/src/index.ts",
 			"request": "launch",
-			"name": "Launch Bot Bun",
-			"program": "${workspaceFolder}/src/main.ts"
+			"skipFiles": ["<node_internals>/**"],
+			"runtimeExecutable": "nodemon",
+			"type": "node",
+			"sourceMaps": true,
+			"envFile": "${workspaceFolder}/apps/keys/.env",
+			"outFiles": ["${workspaceFolder}/apps/keys/dist/src/**/*.js"]
 		},
 		{
-			"type": "bun",
+			"name": "Launch Users Bot",
+			"program": "${workspaceFolder}/apps/users/src/index.ts",
 			"request": "launch",
-			"name": "Launch Backups Bot Bun",
-			"program": "${workspaceFolder}/src/backup.ts"
+			"skipFiles": ["<node_internals>/**"],
+			"runtimeExecutable": "nodemon",
+			"restart": true,
+			"runtimeArgs": ["--exec", "ts-node"],
+			"args": ["--project", "${workspaceFolder}/apps/users/tsconfig.dev.json"],
+			"type": "node",
+			"sourceMaps": true,
+			"envFile": "${workspaceFolder}/apps/users/.env",
+			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"]
 		}
 	]
 }
