@@ -15,16 +15,18 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v4
               with:
-                  node-version: '22'
+                  node-version: 22
 
             - name: Install dependencies
               run: npm ci
 
             - name: Build
               run: npm run build
+              working-directory: apps/users
 
             - name: Archive dist
               run: tar -czf dist.tar.gz dist
+              working-directory: apps/users
 
             - name: Upload to server
               uses: appleboy/scp-action@v1
@@ -32,7 +34,7 @@ jobs:
                   host: ${{ secrets.DB_SERVER_HOST }}
                   username: ${{ secrets.DB_SERVER_USERNAME }}
                   key: ${{ secrets.DB_SERVER_SSH_KEY }}
-                  source: dist.tar.gz
+                  source: apps/users/dist.tar.gz
                   target: ${{ secrets.DB_SERVER_APP_DIRECTORY }}
 
             - name: Deploy via SSH
