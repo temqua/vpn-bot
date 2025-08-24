@@ -21,12 +21,8 @@ jobs:
               run: npm ci
               working-directory: apps/users
 
-            - name: Generate sheets-api.json
-              run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
-              working-directory: apps/users
-
             - name: Build
-              run: npm run build
+              run: touch sheets-api.json && npm run build
               working-directory: apps/users
 
             - name: Archive dist
@@ -49,7 +45,7 @@ jobs:
                   username: ${{ secrets.DB_SERVER_USERNAME }}
                   key: ${{ secrets.DB_SERVER_SSH_KEY }}
                   script: |
-                      cd ~/apps/users
+                      cd ${{ secrets.DB_SERVER_APP_DIRECTORY }}/apps/users
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz
                       docker-compose up --build -d
