@@ -1,4 +1,4 @@
-FROM node:lts-alpine as builder
+FROM node:lts-bookworm-slim as builder
 WORKDIR /app
 
 COPY package.json package-lock.json tsconfig.json .env ./
