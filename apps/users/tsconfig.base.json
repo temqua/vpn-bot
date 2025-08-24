@@ -7,8 +7,7 @@
 		"moduleResolution": "node",
 		"skipLibCheck": true,
 		"resolveJsonModule": true,
-		"esModuleInterop": true,
-		"incremental": true
+		"esModuleInterop": true
 	},
 	"include": ["src/**/*", "package.json"],
 	"exclude": ["node_modules"]
