@@ -56,7 +56,7 @@ export class PaymentsService {
 	}
 
 	async delete(message: Message, start: boolean) {
-		this.log(`delete`);
+		this.log(`[line 59]: delete`);
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
 			return;
@@ -79,7 +79,7 @@ export class PaymentsService {
 	}
 
 	async getById(message: Message, start: boolean) {
-		this.log('getById');
+		this.log('[line: 82]: getById');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
 			return;
@@ -95,7 +95,7 @@ export class PaymentsService {
 	}
 
 	async findByDate(message: Message, start: boolean) {
-		this.log('findByDate');
+		this.log('[line 98]: findByDate');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter date in ISO Format (2025-08-03)');
 			return;
@@ -124,7 +124,7 @@ export class PaymentsService {
 	}
 
 	async findByDateRange(message: Message, start: boolean) {
-		this.log('findByDateRange');
+		this.log('[line 127]: findByDateRange');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter date from in ISO Format (2025-08-03)');
 			this.findByDateRangeSteps.from = true;
@@ -170,7 +170,7 @@ export class PaymentsService {
 	}
 
 	async pay(message: Message | null, context: UsersContext, start: boolean) {
-		this.log(`pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
+		this.log(`[line 173]: pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (start) {
 			setActiveStep('user', this.paymentSteps);
@@ -254,21 +254,30 @@ export class PaymentsService {
 			return;
 		}
 		if (this.paymentSteps.months) {
-			if (!context.accept && message?.text) {
-				this.params.set('months', Number(message.text));
+			if (!context.accept) {
+				if (message?.text) {
+					this.params.set('months', Number(message.text));
+				} else {
+					await bot.sendMessage(chatId, `message.text is null/empty ${message?.text}`);
+					this.params.clear();
+					globalHandler.finishCommand();
+					return;
+				}
 			}
 			delete context.accept;
 			await this.calculateExpirationDate(chatId, user);
 			return;
 		}
 		if (this.paymentSteps.expires) {
-			if (!context.accept && message?.text) {
-				this.params.set('expires', new Date(message.text));
-			} else {
-				await bot.sendMessage(chatId, `message.text is null/empty ${message?.text}`);
-				this.params.clear();
-				globalHandler.finishCommand();
-				return;
+			if (!context.accept) {
+				if (message?.text) {
+					this.params.set('expires', new Date(message.text));
+				} else {
+					await bot.sendMessage(chatId, `message.text is null/empty ${message?.text}`);
+					this.params.clear();
+					globalHandler.finishCommand();
+					return;
+				}
 			}
 			delete context.accept;
 			await bot.sendMessage(chatId, `Добавить налог?`, yesNoKeyboard);
@@ -300,7 +309,7 @@ export class PaymentsService {
 	}
 
 	private async addPaymentNalog(chatId: number, username: string, amount: number) {
-		this.log('add nalog');
+		this.log('[line 303]: add nalog');
 		try {
 			const token = await this.nalogService.auth();
 			const paymentId = await this.nalogService.addNalog(token, amount);
