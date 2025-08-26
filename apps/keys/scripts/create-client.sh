@@ -4,7 +4,7 @@ protocol=$2
 
 # Проверка обязательных параметров
 if [[ -z "$client" || -z "$protocol" ]]; then
-    echo "Usage: $0 <client_name> <ikev2|wireguard|openvpn>"
+    echo "Usage: $0 <client_name> <ikev2|wg|openvpn>"
     exit 1
 fi
 
