@@ -65,7 +65,7 @@ case $protocol in
 		mv "$client.ovpn" "$directory"
         ;;
     *)
-        echo "Unknown protocol: $protocol. Supported: ikev2, wireguard, openvpn"
+        echo "Unknown protocol: $protocol. Supported: ikev2, wg, openvpn"
         exit 1
         ;;
 esac
