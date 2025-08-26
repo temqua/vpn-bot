@@ -11,7 +11,7 @@ on:
                 default: t
                 type: choice
                 options:
-                    - tur
+                    - turkey
                     - us
                     - de
                     - neth
