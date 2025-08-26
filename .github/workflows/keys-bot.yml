@@ -58,6 +58,7 @@ jobs:
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
                   script: |
                       cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/apps/keys
+                      git pull
                       rm -rf dist
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz

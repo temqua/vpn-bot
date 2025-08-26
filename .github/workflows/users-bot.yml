@@ -46,6 +46,7 @@ jobs:
                   key: ${{ secrets.DB_SERVER_SSH_KEY }}
                   script: |
                       cd ${{ secrets.DB_SERVER_APP_DIRECTORY }}/apps/users
+                      git pull
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz
                       cp sheets-api.json dist/
