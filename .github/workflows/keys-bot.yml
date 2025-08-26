@@ -60,4 +60,5 @@ jobs:
                       cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/apps/keys
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz
-                      docker-compose up --build -d
+                      docker-compose build --no-cache
+                      docker-compose up -d
