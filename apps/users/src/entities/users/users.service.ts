@@ -509,7 +509,7 @@ have no payments for next month.`,
 			await bot.sendMessage(
 				message.chat.id,
 				`Users
-${users.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
+${users.map(u => `${u.username} ${u.telegramLink ?? ''} created at: ${formatDate(u.createdAt, 'dd.MM.yyyy')}`).join('\n')} 
 currently have a trial period `,
 			);
 		}
