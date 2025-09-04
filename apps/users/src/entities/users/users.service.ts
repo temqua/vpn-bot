@@ -48,7 +48,7 @@ export class UsersService {
 		start = false,
 		selectedOptions: (Device | VPNProtocol | Bank)[] = [],
 	) {
-		this.log(`create. Active step ${this.getActiveStep(this.createSteps) ?? 'start'}`);
+		this.log(`[line 51]: create. Active step ${this.getActiveStep(this.createSteps) ?? 'start'}`);
 
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
@@ -201,7 +201,7 @@ export class UsersService {
 	}
 
 	async findByFirstName(message: Message, start: boolean) {
-		this.log('findByFirstName');
+		this.log('[line 204]: findByFirstName');
 		if (!start) {
 			const users = await this.repository.findByFirstName(message.text ?? '');
 			if (users?.length) {
@@ -218,7 +218,7 @@ export class UsersService {
 	}
 
 	async findByUsername(message: Message, start: boolean) {
-		this.log('findByUsername');
+		this.log('[line 221]: findByUsername');
 
 		if (!start) {
 			const users = await this.repository.findByUsername(message.text ?? '');
@@ -270,7 +270,7 @@ export class UsersService {
 	}
 
 	async getById(message: Message, context: UsersContext) {
-		this.log('getById');
+		this.log('[line 273]: getById');
 		const user = await this.repository.getById(Number(context.id));
 		if (user) {
 			await this.sendUserMenu(message.chat.id, user);
@@ -294,7 +294,7 @@ export class UsersService {
 		state: { init: boolean },
 		selectedOptions: (Device | VPNProtocol | Bank | BoolFieldState)[] = [],
 	) {
-		this.log('update');
+		this.log('[line 297]: update');
 		const chatId = message?.chat?.id || env.ADMIN_USER_ID;
 		const textProp = this.textProps.includes(context.prop);
 		const boolProp = this.boolProps.includes(context.prop);
@@ -379,7 +379,7 @@ export class UsersService {
 	}
 
 	async delete(msg: Message, context: UsersContext, start: boolean) {
-		this.log('delete');
+		this.log('[line 382]: delete');
 		if (!start) {
 			await this.repository.delete(Number(context.id));
 			const message = `User with id ${context.id} has been successfully removed`;
@@ -411,7 +411,7 @@ export class UsersService {
 	}
 
 	async exportPayments(message: Message) {
-		this.log('exportPayments');
+		this.log('[line 414]: exportPayments');
 
 		const paymentsData = await new PaymentsRepository().getAllForSheet();
 		const preparedPaymentsData = paymentsData.map(row => {
@@ -439,7 +439,7 @@ export class UsersService {
 	}
 
 	async export(message: Message) {
-		this.log('export');
+		this.log('[line 442]: export');
 		const data = await this.repository.list();
 		const preparedData = data.map(row => {
 			return [
@@ -468,7 +468,7 @@ export class UsersService {
 	}
 
 	async showUnpaid(message: Message) {
-		this.log('unpaid');
+		this.log('[line 471]: unpaid');
 		const users = await this.repository.getUnpaidUsers();
 		for (const user of users) {
 			if (user.payments.length) {
@@ -497,6 +497,20 @@ export class UsersService {
 				`Users 
 ${users.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
 have no payments for next month.`,
+			);
+		}
+		globalHandler.finishCommand();
+	}
+
+	async showTrial(message: Message) {
+		this.log('[line 506]: trial');
+		const users = await this.repository.getTrialUsers();
+		if (users.length) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Users
+${users.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
+currently have a trial period `,
 			);
 		}
 		globalHandler.finishCommand();

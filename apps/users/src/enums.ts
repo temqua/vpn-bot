@@ -28,6 +28,7 @@ export enum VPNUserCommand {
 	Expand = 'e',
 	ShowPayments = 'sp',
 	ShowUnpaid = 'su',
+	ShowTrial = 'st',
 }
 
 export enum PaymentCommand {

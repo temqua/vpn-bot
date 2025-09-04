@@ -1,6 +1,7 @@
 import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
 import type { Bank } from '../../enums';
 import { prisma } from '../../prisma';
+import { subWeeks } from 'date-fns';
 
 export type VPNUser = User & {
 	payer: User | null;
@@ -170,12 +171,27 @@ export class UsersRepository {
 						},
 					},
 				},
+				createdAt: {
+					lt: subWeeks(new Date(), 3),
+				},
 			},
 			include: {
 				payments: {
 					orderBy: {
 						paymentDate: 'desc',
 					},
+				},
+			},
+		});
+	}
+
+	async getTrialUsers() {
+		return await prisma.user.findMany({
+			where: {
+				free: false,
+				active: true,
+				createdAt: {
+					gt: subWeeks(new Date(), 3),
 				},
 			},
 		});

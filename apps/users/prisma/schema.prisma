@@ -96,6 +96,7 @@ enum VPNProtocol {
   IKEv2
   Outline
   VLess
+  OpenVPN
 
   @@map("vpn_protocol")
 }

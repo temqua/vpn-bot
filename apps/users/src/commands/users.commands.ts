@@ -21,6 +21,10 @@ export const userCommandsList = {
 		regexp: /\/users*\s+unpaid$/,
 		docs: '/user(s) unpaid — show users with expired vpn subscription',
 	},
+	trial: {
+		regexp: /\/users*\s+trial$/,
+		docs: '/user(s) trial — show users with trial mode (created less than 20 days ago)',
+	},
 	create: {
 		regexp: /\/user\s+create$/,
 		docs: '/user create — show commands for creating user',
@@ -137,6 +141,21 @@ bot.onText(userCommandsList.pay.regexp, async (msg: Message) => {
 			scope: CommandScope.Users,
 			context: {
 				cmd: VPNUserCommand.Pay,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(userCommandsList.trial.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.ShowTrial,
 			},
 		},
 		msg,
