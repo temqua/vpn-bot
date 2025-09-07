@@ -10,6 +10,8 @@ import { formatDate, isAdmin } from '../utils';
 import { expenseHelpMessage } from './expenses.commands';
 import { paymentsHelpMessage } from './payments.commands';
 import { userHelpMessage } from './users.commands';
+import ms from 'ms';
+import { PaymentsService } from '../entities/payments/payments.service';
 
 const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
 /me — для просмотра информации, которая хранится о вас
@@ -19,6 +21,7 @@ const userStartMessage = `Добро пожаловать в бот тессер
 const usersRepository = new UsersRepository();
 
 const plansService = new PlansService();
+const paymentsService = new PaymentsService();
 
 const mainCommandsList = {
 	plans: {
@@ -39,6 +42,8 @@ const mainHelpMessage = Object.values(mainCommandsList)
 	.map(c => c.docs)
 	.join('\n');
 
+let showPaymentsJob;
+
 bot.onText(/\/start/, async (msg: Message) => {
 	logger.success('Ready');
 	if (isAdmin(msg)) {
@@ -53,6 +58,11 @@ bot.onText(/\/start/, async (msg: Message) => {
 			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${user.firstName}!`);
 		}
 		await bot.sendMessage(msg.chat.id, userStartMessage);
+		if (!showPaymentsJob) {
+			showPaymentsJob = setInterval(() => {
+				paymentsService.checkUnpaid(msg);
+			}, ms('1d'));
+		}
 	}
 });
 

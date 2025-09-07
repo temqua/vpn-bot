@@ -185,6 +185,24 @@ export class UsersRepository {
 		});
 	}
 
+	async isUserUnpaid(telegramId) {
+		return await prisma.user.findFirst({
+			where: {
+				payments: {
+					none: {
+						expiresOn: {
+							gt: new Date(),
+						},
+					},
+				},
+				createdAt: {
+					lt: subWeeks(new Date(), 4),
+				},
+				telegramId,
+			},
+		});
+	}
+
 	async getTrialUsers() {
 		return await prisma.user.findMany({
 			where: {

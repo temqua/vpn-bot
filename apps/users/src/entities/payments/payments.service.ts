@@ -308,8 +308,16 @@ export class PaymentsService {
 		globalHandler.finishCommand();
 	}
 
+	async checkUnpaid(msg: Message) {
+		this.log('[line 312]: checkUnpaid');
+		const unpaid = await this.usersRepository.isUserUnpaid(msg.from.id);
+		if (unpaid) {
+			bot.sendMessage(msg.chat.id, 'Уважаемый пользователь! Время подписки истекло. Необходимо оплатить впн');
+		}
+	}
+
 	private async addPaymentNalog(chatId: number, username: string, amount: number) {
-		this.log('[line 303]: add nalog');
+		this.log('[line 320]: addPaymentNalog');
 		try {
 			const token = await this.nalogService.auth();
 			const paymentId = await this.nalogService.addNalog(token, amount);

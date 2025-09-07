@@ -27,7 +27,8 @@
 			"type": "node",
 			"sourceMaps": true,
 			"envFile": "${workspaceFolder}/apps/users/.env",
-			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"]
+			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"],
+			"preLaunchTask": "tsc: build - apps/users/tsconfig.dev.json"
 		}
 	]
 }

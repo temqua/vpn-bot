@@ -52,6 +52,15 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+		{
+			text: 'Trial',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					cmd: VPNUserCommand.ShowTrial,
+				},
+			}),
+		},
 	],
 	[
 		{
