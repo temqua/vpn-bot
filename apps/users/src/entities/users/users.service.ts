@@ -1,4 +1,5 @@
 import type { Device, User, VPNProtocol } from '@prisma/client';
+import { subMonths } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
@@ -489,16 +490,25 @@ export class UsersService {
 						inline_keyboard: getUserMenu(user.id),
 					},
 				});
+			} else if (user.createdAt < subMonths(new Date(), 1)) {
+				await bot.sendMessage(
+					message.chat.id,
+					`User ${user.username} ${user.telegramLink ?? ''} created at ${formatDate(user.createdAt)} has to pay soon`,
+				);
 			}
 		}
 		if (users.length) {
 			await bot.sendMessage(
 				message.chat.id,
 				`Users 
-${users.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
+${users
+	.filter(user => user.createdAt > subMonths(new Date(), 1))
+	.map(u => `${u.username} ${u.telegramLink ?? ''}`)
+	.join('\n')} 
 have no payments for next month.`,
 			);
 		}
+
 		globalHandler.finishCommand();
 	}
 

@@ -5,7 +5,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Keys Bot",
+			"name": "Launch Keys Bot nodemon",
 			"program": "${workspaceFolder}/apps/keys/src/index.ts",
 			"request": "launch",
 			"skipFiles": ["<node_internals>/**"],
@@ -16,7 +16,7 @@
 			"outFiles": ["${workspaceFolder}/apps/keys/dist/src/**/*.js"]
 		},
 		{
-			"name": "Launch Users Bot",
+			"name": "Launch Users Bot nodemon",
 			"program": "${workspaceFolder}/apps/users/src/index.ts",
 			"request": "launch",
 			"skipFiles": ["<node_internals>/**"],
@@ -26,6 +26,16 @@
 			"args": ["--project", "${workspaceFolder}/apps/users/tsconfig.dev.json"],
 			"type": "node",
 			"sourceMaps": true,
+			"envFile": "${workspaceFolder}/apps/users/.env",
+			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"],
+			"preLaunchTask": "tsc: build - apps/users/tsconfig.dev.json"
+		},
+		{
+			"name": "Launch Users Bot",
+			"program": "${workspaceFolder}/apps/users/src/index.ts",
+			"request": "launch",
+			"skipFiles": ["<node_internals>/**"],
+			"type": "node",
 			"envFile": "${workspaceFolder}/apps/users/.env",
 			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"],
 			"preLaunchTask": "tsc: build - apps/users/tsconfig.dev.json"
