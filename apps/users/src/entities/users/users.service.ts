@@ -490,7 +490,7 @@ export class UsersService {
 						inline_keyboard: getUserMenu(user.id),
 					},
 				});
-			} else if (user.createdAt < subMonths(new Date(), 1)) {
+			} else if (user.createdAt > subMonths(new Date(), 1)) {
 				await bot.sendMessage(
 					message.chat.id,
 					`User ${user.username} ${user.telegramLink ?? ''} created at ${formatDate(user.createdAt)} has to pay soon`,
@@ -502,7 +502,7 @@ export class UsersService {
 				message.chat.id,
 				`Users 
 ${users
-	.filter(user => user.createdAt > subMonths(new Date(), 1))
+	.filter(user => user.createdAt < subMonths(new Date(), 1))
 	.map(u => `${u.username} ${u.telegramLink ?? ''}`)
 	.join('\n')} 
 have no payments for next month.`,
