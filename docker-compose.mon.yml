@@ -6,7 +6,11 @@ services:
         volumes:
             - ../monitoring/prometheus/config:/etc/prometheus
             - ../monitoring/prometheus/data:/prometheus
-        command: ['--config.file=/etc/prometheus/prometheus.yml', '--web.listen-address=:9099']
+        command:
+            [
+                "--config.file=/etc/prometheus/prometheus.yml",
+                "--web.listen-address=:9099",
+            ]
         restart: unless-stopped
 
     node_exporter:
@@ -15,22 +19,22 @@ services:
         network_mode: host
         pid: host
         volumes:
-            - '/:/host:ro,rslave'
+            - "/:/host:ro,rslave"
         command:
-            - '--path.rootfs=/host'
+            - "--path.rootfs=/host"
         restart: unless-stopped
 
     grafana:
         image: grafana/grafana
         container_name: grafana
-        network_mode: host # Используем сеть хоста
+        network_mode: host
         volumes:
             - grafana-storage:/var/lib/grafana # Сохраняем данные Grafana
-            - /etc/grafana/ssl:/etc/grafana/ssl:ro # Твои SSL-серты
+            - /etc/ssl/certs/grafana:/etc/ssl/certs/grafana:ro # Твои SSL-серты
         environment:
             - GF_SERVER_PROTOCOL=https
-            - GF_SERVER_CERT_FILE=/etc/grafana/ssl/cert.pem
-            - GF_SERVER_CERT_KEY=/etc/grafana/ssl/key.pem
+            - GF_SERVER_CERT_FILE=/etc/ssl/certs/grafana/cert.pem
+            - GF_SERVER_CERT_KEY=/etc/ssl/certs/grafana/key.pem
         restart: unless-stopped
 
     prometheus-wireguard-exporter:
