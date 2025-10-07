@@ -175,6 +175,6 @@ export class XUIApiService {
 		const parsedCookies = cookies.map(cookie => {
 			return cookie.split(';')[0].trim(); // берем только key=value (игнорируем параметры вроде Expires, HttpOnly)
 		});
-		return parsedCookies[1];
+		return parsedCookies[0];
 	}
 }

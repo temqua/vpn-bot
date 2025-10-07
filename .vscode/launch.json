@@ -31,6 +31,16 @@
 			"preLaunchTask": "tsc: build - apps/users/tsconfig.dev.json"
 		},
 		{
+			"name": "Launch Keys Bot",
+			"program": "${workspaceFolder}/apps/keys/src/index.ts",
+			"request": "launch",
+			"skipFiles": ["<node_internals>/**"],
+			"type": "node",
+			"envFile": "${workspaceFolder}/apps/keys/.env",
+			"outFiles": ["${workspaceFolder}/apps/keys/dist/src/**/*.js"],
+			"preLaunchTask": "tsc: build - apps/keys/tsconfig.json"
+		},
+		{
 			"name": "Launch Users Bot",
 			"program": "${workspaceFolder}/apps/users/src/index.ts",
 			"request": "launch",
