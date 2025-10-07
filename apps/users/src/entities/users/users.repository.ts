@@ -140,7 +140,6 @@ export class UsersRepository {
 	async payersList(userId: number): Promise<User[]> {
 		return await prisma.user.findMany({
 			where: {
-				payerId: null,
 				id: {
 					not: userId,
 				},
