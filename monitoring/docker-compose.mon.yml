@@ -6,11 +6,7 @@ services:
         volumes:
             - ../../monitoring/prometheus/config:/etc/prometheus
             - ../../monitoring/prometheus/data:/prometheus
-        command:
-            [
-                "--config.file=/etc/prometheus/prometheus.yml",
-                "--web.listen-address=:9099",
-            ]
+        command: ['--config.file=/etc/prometheus/prometheus.yml', '--web.listen-address=:9099']
         restart: unless-stopped
 
     node_exporter:
@@ -19,9 +15,9 @@ services:
         network_mode: host
         pid: host
         volumes:
-            - "/:/host:ro,rslave"
+            - '/:/host:ro,rslave'
         command:
-            - "--path.rootfs=/host"
+            - '--path.rootfs=/host'
         restart: unless-stopped
 
     grafana:
