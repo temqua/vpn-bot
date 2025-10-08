@@ -1,7 +1,7 @@
 import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
 import type { Bank } from '../../enums';
 import { prisma } from '../../prisma';
-import { subWeeks } from 'date-fns';
+import { subMonths, subWeeks } from 'date-fns';
 
 export type VPNUser = User & {
 	payer: User | null;
@@ -171,7 +171,7 @@ export class UsersRepository {
 					},
 				},
 				createdAt: {
-					lt: subWeeks(new Date(), 3),
+					lt: subWeeks(new Date(), 4),
 				},
 			},
 			include: {
@@ -184,7 +184,7 @@ export class UsersRepository {
 		});
 	}
 
-	async isUserUnpaid(telegramId) {
+	async isUserUnpaid(telegramId: string) {
 		return await prisma.user.findFirst({
 			where: {
 				payments: {
@@ -195,7 +195,7 @@ export class UsersRepository {
 					},
 				},
 				createdAt: {
-					lt: subWeeks(new Date(), 4),
+					lt: subMonths(new Date(), 1),
 				},
 				telegramId,
 			},

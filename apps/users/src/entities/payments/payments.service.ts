@@ -310,7 +310,7 @@ export class PaymentsService {
 
 	async checkUnpaid(msg: Message) {
 		this.log('[line 312]: checkUnpaid');
-		const unpaid = await this.usersRepository.isUserUnpaid(msg.from.id);
+		const unpaid = await this.usersRepository.isUserUnpaid(msg.from.id.toString());
 		if (unpaid) {
 			bot.sendMessage(msg.chat.id, 'Уважаемый пользователь! Время подписки истекло. Необходимо оплатить впн');
 		}
