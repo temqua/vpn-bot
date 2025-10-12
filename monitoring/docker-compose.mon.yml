@@ -28,6 +28,3 @@ services:
             - NET_ADMIN
         command: -a true
         restart: unless-stopped
-
-volumes:
-    grafana-storage:
