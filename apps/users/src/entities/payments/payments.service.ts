@@ -1,10 +1,11 @@
 import type { Payment, Plan } from '@prisma/client';
-import { addMonths, parse } from 'date-fns';
+import { addMonths, parse, subMonths } from 'date-fns';
 import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { acceptKeyboard, getFrequestPaymentAmountsKeyboard, yesNoKeyboard } from '../../buttons';
 import { UserRequest } from '../../enums';
+import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { formatDate, setActiveStep } from '../../utils';
@@ -13,7 +14,6 @@ import { PlanRepository } from '../users/plans.repository';
 import type { UsersContext } from '../users/users.handler';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { PaymentsRepository } from './payments.repository';
-import env from '../../env';
 
 export class PaymentsService {
 	constructor(
@@ -312,7 +312,8 @@ export class PaymentsService {
 		this.log('[line 312]: checkUnpaid');
 		const unpaid = await this.usersRepository.isUserUnpaid(msg.from.id.toString());
 		if (unpaid) {
-			bot.sendMessage(msg.chat.id, 'Уважаемый пользователь! Время подписки истекло. Необходимо оплатить впн');
+			const message = unpaid.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
+			bot.sendMessage(msg.chat.id, `Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн`);
 		}
 	}
 
