@@ -43,7 +43,7 @@ export class CertificatesService {
 				createReadStream(path),
 				{},
 				{
-					filename: `${username}${extension}`,
+					filename: `${username}.${extension}`,
 					contentType: 'application/octet-stream',
 				},
 			);
