@@ -1,5 +1,5 @@
 export enum VPNProtocol {
-	WG = 'wg',
+	WG = 'wireguard',
 	IKEv2 = 'ikev2',
 	Outline = 'outline',
 	OpenVPN = 'openvpn',

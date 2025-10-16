@@ -25,6 +25,10 @@ const mainCommandsList = {
 		regexp: /\/wg\s+(.*)/,
 		docs: '/wg <text> — execute server command wg with params and see output',
 	},
+	vnstat: {
+		regexp: /\/vnstat/,
+		docs: '/vnstat — show vnstat traffic logs',
+	},
 };
 
 const mainHelpMessage = Object.values(mainCommandsList)

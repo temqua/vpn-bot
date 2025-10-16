@@ -4,7 +4,7 @@ protocol=$2
 
 # Проверка обязательных параметров
 if [[ -z "$client" || -z "$protocol" ]]; then
-    echo "Usage: $0 <client_name> <ikev2|wg|openvpn>"
+    echo "Usage: $0 <client_name> <ikev2|wireguard|openvpn>"
     exit 1
 fi
 
@@ -50,7 +50,7 @@ case $protocol in
         zip -r "$client.zip" "$client"
         mv "$client.zip" "$client"
         ;;
-    wg)
+    wireguard)
         directory=$WG_DIR
         echo "Creating WireGuard client $client in $directory"
         wireguard.sh --addclient "$client"
@@ -72,4 +72,9 @@ esac
 
 # Установка правильных прав
 # chown -R vpnadmin:vpnadmin "$directory"
-echo "Client $client for $protocol created successfully in $directory"
+if [[ $? -eq 0 ]]; then
+    echo "Client $client for $protocol created successfully in $directory"
+else
+    echo "Error: failed to create client '$client' from $protocol"
+    exit 1
+fi

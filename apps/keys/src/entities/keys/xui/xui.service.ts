@@ -91,7 +91,7 @@ export class XUIService {
 				});
 			}
 
-			this.setCreateStep('inbound');
+			this.setCreateStep('inboundId');
 			return;
 		}
 		if (this.createSteps.inboundId) {

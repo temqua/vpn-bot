@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
 import { createButtons, deleteButtons, keyButtons, showKeysButtons } from '../buttons';
-import { CertificatesService } from '../entities/keys/certificates.service';
+import { servicesMap } from '../entities/keys/services-map';
 import { CmdCode, CommandScope, VPNKeyCommand, VPNProtocol } from '../enums';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
@@ -361,7 +361,7 @@ async function createClient(msg: Message, match: RegExpMatchArray | null, protoc
 		return;
 	}
 	const username = match[1];
-	await new CertificatesService(protocol).create(msg, username);
+	await servicesMap[protocol].create(msg, username);
 }
 
 async function deleteClient(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
@@ -373,14 +373,14 @@ async function deleteClient(msg: Message, match: RegExpMatchArray | null, protoc
 		return;
 	}
 	const username = match[1];
-	await new CertificatesService(protocol).delete(msg, username);
+	await servicesMap[protocol].delete(msg, username);
 }
 
 async function getClients(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	await new CertificatesService(protocol).getAll(msg);
+	await servicesMap[protocol].getAll(msg);
 }
 
 async function getFile(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
@@ -391,5 +391,5 @@ async function getFile(msg: Message, match: RegExpMatchArray | null, protocol: V
 		await bot.sendMessage(msg.chat.id, 'Unexpected error happened with regexp match value');
 		return;
 	}
-	await new CertificatesService(protocol).getFile(msg, match[1]);
+	await servicesMap[protocol].getFile(msg, match[1]);
 }

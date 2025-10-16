@@ -39,7 +39,7 @@ services:
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
             - /usr/bin/vnstat:/usr/bin/vnstat:ro
-            # Новые volumes для OpenVPN
+            # OpenVPN
             - /etc/openvpn:/etc/openvpn
             - /etc/openvpn/server:/etc/openvpn/server
             - /etc/openvpn/server/easy-rsa/easyrsa:/etc/openvpn/server/easy-rsa/easyrsa:ro

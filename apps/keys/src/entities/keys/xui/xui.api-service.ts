@@ -116,8 +116,8 @@ export class XUIApiService {
 			logger.error(`X-UI users list fetching finished with error: ${response.status} ${response.statusText}`);
 			return null;
 		}
-
-		return (await response.json()) as XUIInboundsResponse;
+		const parsed = await response.json();
+		return parsed as XUIInboundsResponse;
 	}
 
 	async getOnline(chatId: number): Promise<XOnlineClientsResponse | null> {
@@ -147,8 +147,8 @@ export class XUIApiService {
 			);
 			return null;
 		}
-
-		return (await response.json()) as XOnlineClientsResponse;
+		const parsed = await response.json();
+		return parsed as XOnlineClientsResponse;
 	}
 
 	private async login(chatId: number): Promise<Response | null> {

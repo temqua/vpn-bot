@@ -9,6 +9,7 @@ import commandsMap from './commandsMap';
 import { outlineCommandsHandler } from './outline/outline.handler';
 import { xuiCommandsHandler } from './xui/xui.handler';
 import logger from '../../logger';
+import { servicesMap } from './services-map';
 
 export interface KeysContext {
 	[CmdCode.Protocol]: VPNProtocol;
@@ -43,9 +44,14 @@ class KeysCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context?.cmd === VPNKeyCommand.List) {
-			await new CertificatesService(context[CmdCode.Protocol]).getAll(message);
+			const service = servicesMap[context[CmdCode.Protocol]];
+			await service.getAll(message);
 			globalHandler.finishCommand();
 			return;
+		}
+		if (context?.cmd === VPNKeyCommand.Delete && start) {
+			const service = servicesMap[context[CmdCode.Protocol]];
+			await service.getAll(message);
 		}
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter username');
@@ -53,7 +59,7 @@ class KeysCommandsHandler implements ICommandHandler {
 		}
 		const method: keyof CertificatesService | undefined = commandsMap[context?.cmd];
 		if (context?.cmd && method) {
-			const service = new CertificatesService(context[CmdCode.Protocol]);
+			const service = servicesMap[context[CmdCode.Protocol]];
 			await service[method](message, message?.text);
 		} else {
 			const errorMessage = `context is null or does not contain cmd ${context?.cmd} or method not found for this command`;
