@@ -1,0 +1,15 @@
+services:
+    app:
+        image: keys-bot
+        container_name: keys-bot
+        build:
+            context: .
+            dockerfile: ./Dockerfile.3xui
+        env_file: .env
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+        devices:
+            - /dev/net/tun
+        privileged: true
+        restart: always
