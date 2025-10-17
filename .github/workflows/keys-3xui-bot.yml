@@ -1,12 +1,12 @@
 name: Build and Deploy keys-bot on 3X-UI server
 
-run-name: "Build and Deploy keys-bot on 3X-UI server"
+run-name: 'Build and Deploy keys-bot on 3X-UI server'
 
 on:
     workflow_dispatch:
         inputs:
             environment:
-                description: "Target environment"
+                description: 'Target environment'
                 required: true
                 default: t
                 type: choice
@@ -28,4 +28,4 @@ jobs:
                       cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/apps/keys
                       git pull
                       docker-compose -f ./docker-compose.3xui.yml build --no-cache app
-                      docker-compose up -d app
+                      docker-compose -f ./docker-compose.3xui.yml up -d app
