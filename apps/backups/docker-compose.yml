@@ -8,8 +8,6 @@ services:
         env_file:
             - .env
         environment:
-            POSTGRES_USER: admin
-            POSTGRES_PASSWORD: JFJ4GSvryTwBW1
             POSTGRES_DB: vpn
         volumes:
             - vpn-bot_vpn-data:/var/lib/postgresql/data
