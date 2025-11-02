@@ -21,6 +21,7 @@ export enum VPNKeyCommand {
 	Delete = 'del',
 	GetFile = 'f',
 	GetUser = 'get',
+	GetQR = 'getqr',
 	Expand = 'e',
 	Export = 'ex',
 	GetOnline = 'go',

@@ -11,4 +11,8 @@ export class WireguardKeysService implements ICertificatesService {
 			extension: 'conf',
 		};
 	}
+
+	getQRCodePath(username: string): string {
+		return path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.png`);
+	}
 }

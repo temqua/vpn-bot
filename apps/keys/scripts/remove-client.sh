@@ -20,8 +20,7 @@ case $protocol in
         openvpn.sh -y --revokeclient "$client"
         ;;
     *)
-        echo "Error: Unknown protocol '$protocol'"
-        echo "Available protocols: ikev2, wireguard, openvpn"
+        echo "Unknown protocol: $protocol. Supported: ikev2, wireguard, openvpn"
         exit 1
         ;;
 esac

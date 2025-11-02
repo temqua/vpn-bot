@@ -56,6 +56,8 @@ case $protocol in
         wireguard.sh --addclient "$client"
         cd /root || exit
         mv "$client.conf" "$directory"
+        cd "$directory"
+        qrencode -o "$client.png" -t PNG < "$client".conf
         ;;
     openvpn)
         directory=$OVPN_DIR
@@ -65,7 +67,7 @@ case $protocol in
 		mv "$client.ovpn" "$directory"
         ;;
     *)
-        echo "Unknown protocol: $protocol. Supported: ikev2, wg, openvpn"
+        echo "Unknown protocol: $protocol. Supported: ikev2, wireguard, openvpn"
         exit 1
         ;;
 esac

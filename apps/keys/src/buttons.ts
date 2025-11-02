@@ -71,6 +71,16 @@ export const keyButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
+			text: 'Get QR Code',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Keys,
+				[CmdCode.Context]: {
+					cmd: VPNKeyCommand.Expand,
+					subo: VPNKeyCommand.GetQR,
+				},
+			}),
+		},
+		{
 			text: 'Export',
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Keys,

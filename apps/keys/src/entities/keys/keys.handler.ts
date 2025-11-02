@@ -49,7 +49,7 @@ class KeysCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context?.cmd === VPNKeyCommand.Delete && start) {
+		if ([VPNKeyCommand.Delete, VPNKeyCommand.GetFile, VPNKeyCommand.GetQR].includes(context?.cmd) && start) {
 			const service = servicesMap[context[CmdCode.Protocol]];
 			await service.getAll(message);
 		}

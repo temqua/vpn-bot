@@ -152,6 +152,30 @@ export class CertificatesService {
 		}
 	}
 
+	async getQRCode(message: Message, username: string) {
+		this.log(`getQRCode ${username}`);
+		const chatId = message.chat.id;
+		const errorHeader = `Error occurred while exporting ${this.protocol} QR Code for ${username}`;
+		const path = this.service.getQRCodePath(username);
+		try {
+			await access(path, constants.F_OK);
+			await bot.sendDocument(
+				chatId,
+				createReadStream(path),
+				{},
+				{
+					filename: path,
+					contentType: 'image/png',
+				},
+			);
+		} catch (error) {
+			logger.error(errorHeader);
+			logger.error(error);
+			await bot.sendMessage(chatId, errorHeader);
+			await bot.sendMessage(chatId, `${error}`);
+		}
+	}
+
 	private log(message: string) {
 		logger.log(`[${basename(__filename)}]: ${message}`);
 	}

@@ -8,6 +8,7 @@ export interface FileInfo {
 
 export interface ICertificatesService {
 	getFileInfo(username: string): FileInfo;
+	getQRCodePath?(username: string): string;
 }
 
 export interface ICommandHandler {

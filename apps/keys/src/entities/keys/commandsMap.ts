@@ -7,4 +7,5 @@ export default {
 	[VPNKeyCommand.GetFile]: 'getFile',
 	[VPNKeyCommand.GetUser]: 'getUser',
 	[VPNKeyCommand.Export]: 'export',
+	[VPNKeyCommand.GetQR]: 'getQRCode',
 };
