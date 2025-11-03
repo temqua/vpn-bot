@@ -4,12 +4,12 @@ import client from '../../../client';
 import logger from '../../../logger';
 import env from '../../../env';
 import type {
-	XClientSettings,
+	XRayClientSettings,
 	XOnlineClientsResponse,
 	XUIBaseResponse,
 	XUIInboundsResponse,
 	XUILoginResponse,
-	XUINewClient,
+	XRayNewClient,
 } from './xui.types';
 
 export class XUIApiService {
@@ -25,7 +25,7 @@ export class XUIApiService {
 			return null;
 		}
 		const id = randomUUID();
-		const newClient: XClientSettings = {
+		const newClient: XRayClientSettings = {
 			id: id,
 			flow: 'xtls-rprx-vision',
 			email: username,
@@ -36,7 +36,7 @@ export class XUIApiService {
 			tgId: telegramId ?? '',
 			reset: 0,
 		};
-		const body: XUINewClient = {
+		const body: XRayNewClient = {
 			id: inboundId ?? 1,
 			settings: JSON.stringify({
 				clients: [newClient],
@@ -57,8 +57,10 @@ export class XUIApiService {
 			return null;
 		}
 		const result = (await response.json()) as XUIBaseResponse;
-		if (result) {
+		if (result?.msg) {
 			await bot.sendMessage(chatId, result.msg);
+		}
+		if (result?.success) {
 			return id;
 		}
 		return null;

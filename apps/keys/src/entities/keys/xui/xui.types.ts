@@ -4,7 +4,7 @@ export interface XUIBaseResponse {
 	obj: unknown;
 }
 
-export type XClientSettings = {
+export type XRayClientSettings = {
 	id: string;
 	flow: string;
 	email: string;
@@ -18,19 +18,19 @@ export type XClientSettings = {
 };
 
 export type XSettings = {
-	clients: XClientSettings[];
+	clients: XRayClientSettings[];
 };
 
-export type XUINewClient = {
+export type XRayNewClient = {
 	id: number;
 	settings: string;
 };
 
 export interface XUIInboundsResponse extends XUIBaseResponse {
-	obj: XInbound[];
+	obj: XRayInbound[];
 }
 
-export type XInbound = {
+export type XRayInbound = {
 	id: number;
 	up: number;
 	down: number;

@@ -8,7 +8,7 @@ import logger from '../../../logger';
 import env from '../../../env';
 import type { KeysContext } from '../keys.handler';
 import { XUIApiService } from './xui.api-service';
-import type { SniffingSettings, StreamSettings, XInbound, XSettings } from './xui.types';
+import type { SniffingSettings, StreamSettings, XRayInbound, XSettings } from './xui.types';
 import { xuiDeleteKeyboard, xuiListKeyboard } from '../../../buttons';
 
 export class XUIService {
@@ -25,7 +25,7 @@ export class XUIService {
 		username: false,
 		inboundId: false,
 	};
-	private inbounds: XInbound[] = [];
+	private inbounds: XRayInbound[] = [];
 
 	async create(message: Message, context: KeysContext, start = false) {
 		this.log('create');
