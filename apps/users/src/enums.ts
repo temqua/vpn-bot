@@ -40,10 +40,16 @@ export enum PaymentCommand {
 	Sum = 'sum',
 }
 
+export enum PlanCommand {
+	Create = 'create',
+	List = 'list',
+}
+
 export enum CommandScope {
 	Users = 'users',
 	Expenses = 'expenses',
 	Payments = 'payments',
+	Plans = 'plans',
 }
 
 export enum UserRequest {

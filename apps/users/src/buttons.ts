@@ -1,7 +1,7 @@
 import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
 import { CmdCode, CommandScope, PaymentCommand, UserRequest, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './global.handler';
-import type { UsersContext } from './entities/users/users.handler';
+import { UsersContext } from './entities/users/users.types';
 
 export const userButtons: InlineKeyboardButton[][] = [
 	[

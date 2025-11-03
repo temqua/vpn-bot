@@ -1,17 +1,16 @@
+import ms from 'ms';
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
 import { getUserContactKeyboard } from '../buttons';
-import logger from '../logger';
-import { PlansService } from '../entities/users/plans.service';
+import { paymentsService } from '../entities/payments/payments.service';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
-import { UserRequest } from '../enums';
+import { CommandScope, PlanCommand, UserRequest } from '../enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../global.handler';
+import logger from '../logger';
 import { formatDate, isAdmin } from '../utils';
 import { expenseHelpMessage } from './expenses.commands';
 import { paymentsHelpMessage } from './payments.commands';
 import { userHelpMessage } from './users.commands';
-import ms from 'ms';
-import { PaymentsService } from '../entities/payments/payments.service';
 
 const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
 /me — для просмотра информации, которая хранится о вас
@@ -19,9 +18,6 @@ const userStartMessage = `Добро пожаловать в бот тессер
 `;
 
 const usersRepository = new UsersRepository();
-
-const plansService = new PlansService();
-const paymentsService = new PaymentsService();
 
 const mainCommandsList = {
 	plans: {
@@ -35,6 +31,10 @@ const mainCommandsList = {
 	lookup: {
 		regexp: /\/lookup$/,
 		docs: '/lookup — see user telegram id',
+	},
+	createPlan: {
+		regexp: /\/plan\s+create$/,
+		docs: '/plan create — create new plan',
 	},
 };
 
@@ -58,17 +58,16 @@ bot.onText(/\/start/, async (msg: Message) => {
 			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${user.firstName}!`);
 		}
 		await bot.sendMessage(msg.chat.id, userStartMessage);
-		if (!showPaymentsJob) {
-			showPaymentsJob = setInterval(() => {
-				paymentsService.checkUnpaid(msg);
-			}, ms('1d'));
-		}
 	}
 });
 
 bot.on('message', async (msg: Message) => {
 	logger.log(`${msg?.from?.id} (${msg?.from?.first_name}) — ${msg.text}`);
-
+	if (!showPaymentsJob) {
+		showPaymentsJob = setInterval(() => {
+			paymentsService.checkUnpaid(msg);
+		}, ms('1d'));
+	}
 	if (msg.text && ['cancel', 'Cancel'].includes(msg.text)) {
 		await bot.sendMessage(msg.chat.id, 'Отправлена команда отмены всех других команд');
 		globalHandler.finishCommand();
@@ -120,16 +119,30 @@ bot.onText(mainCommandsList.plans.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	const plans = await plansService.getAll();
-	for (const plan of plans) {
-		await bot.sendMessage(
-			msg.chat.id,
-			`${plan.name}
-Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
-Количество человек: ${plan.peopleCount}
-Продолжительность: ${plan.months} месяцев`,
-		);
+	globalHandler.execute(
+		{
+			scope: CommandScope.Plans,
+			context: {
+				cmd: PlanCommand.List,
+			},
+		},
+		msg,
+	);
+});
+
+bot.onText(mainCommandsList.createPlan.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
 	}
+	globalHandler.execute(
+		{
+			scope: CommandScope.Plans,
+			context: {
+				cmd: PlanCommand.Create,
+			},
+		},
+		msg,
+	);
 });
 
 bot.onText(/\/me$/, async (msg: Message) => {

@@ -1,36 +1,16 @@
-import type { Device, User, VPNProtocol } from '@prisma/client';
+import type { Device, VPNProtocol } from '@prisma/client';
 import type { Message, Poll } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
-import { Bank, CmdCode, VPNUserCommand } from '../../enums';
+import { Bank, VPNUserCommand } from '../../enums';
 import { globalHandler } from '../../global.handler';
-import { PaymentsService } from '../payments/payments.service';
-import { UsersService } from './users.service';
-
-export interface UsersContext {
-	[CmdCode.Command]: VPNUserCommand;
-	id?: string;
-	skip?: 1 | 0;
-	accept?: 1 | 0;
-	prop?: keyof User;
-	chatId?: number;
-	payerId?: string;
-	a?: string;
-	[CmdCode.SubOperation]?: VPNUserCommand;
-}
-
-export interface UserCreateCommandContext extends UsersContext {
-	chatId: number;
-}
-
-export interface UserUpdateCommandContext extends UsersContext {
-	prop: keyof User;
-	chatId: number;
-}
+import { paymentsService, PaymentsService } from '../payments/payments.service';
+import { usersService, UsersService } from './users.service';
+import type { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(
-		private service: UsersService = new UsersService(),
-		private paymentsService: PaymentsService = new PaymentsService(),
+		private service: UsersService,
+		private paymentsService: PaymentsService,
 	) {}
 	private state = {
 		params: new Map(),
@@ -108,4 +88,4 @@ class UsersCommandsHandler implements ICommandHandler {
 	}
 }
 
-export const userCommandsHandler = new UsersCommandsHandler();
+export const userCommandsHandler = new UsersCommandsHandler(usersService, paymentsService);

@@ -14,8 +14,28 @@ export class PlanRepository {
 
 	async getAll(): Promise<Plan[]> {
 		return await prisma.plan.findMany({
-			orderBy: {
-				price: 'desc',
+			orderBy: [
+				{
+					price: 'desc',
+				},
+				{
+					peopleCount: 'asc',
+				},
+				{
+					months: 'asc',
+				},
+			],
+		});
+	}
+
+	async create(name: string, amount: number, price: number, peopleCount: number, monthsCount: number) {
+		return await prisma.plan.create({
+			data: {
+				amount,
+				price,
+				months: monthsCount,
+				name,
+				peopleCount,
 			},
 		});
 	}

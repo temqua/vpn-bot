@@ -10,10 +10,10 @@ import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { formatDate, setActiveStep } from '../../utils';
 import { NalogService } from '../users/nalog.service';
-import { PlanRepository } from '../users/plans.repository';
-import type { UsersContext } from '../users/users.handler';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { PaymentsRepository } from './payments.repository';
+import { PlanRepository } from '../plans/plans.repository';
+import { UsersContext } from '../users/users.types';
 
 export class PaymentsService {
 	constructor(

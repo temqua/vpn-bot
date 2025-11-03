@@ -1,10 +1,12 @@
 import type { Message, Poll } from 'node-telegram-bot-api';
 import { expensesCommandsHandler, type ExpensesContext } from './entities/expenses/handler';
-import { userCommandsHandler, type UsersContext } from './entities/users/users.handler';
+import { userCommandsHandler } from './entities/users/users.handler';
 import type { ICommandHandler } from './contracts';
 import { CommandScope } from './enums';
 import logger from './logger';
 import { paymentsCommandsHandler, type PaymentsContext } from './entities/payments/payments.handler';
+import { plansCommandsHandler, PlansContext } from './entities/plans/plans.handler';
+import { UsersContext } from './entities/users/users.types';
 
 export type CommandDetails = {
 	processing?: boolean;
@@ -18,7 +20,7 @@ export type CommandDetailCompressed = {
 	c: CommandContext;
 };
 
-export type CommandContext = UsersContext | ExpensesContext | PaymentsContext;
+export type CommandContext = UsersContext | ExpensesContext | PaymentsContext | PlansContext;
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
 
@@ -56,6 +58,9 @@ class GlobalHandler {
 			case CommandScope.Payments:
 				handler = paymentsCommandsHandler;
 				break;
+			case CommandScope.Plans:
+				handler = plansCommandsHandler;
+				break;
 			default:
 				handler = expensesCommandsHandler;
 		}
@@ -72,6 +77,9 @@ class GlobalHandler {
 				break;
 			case CommandScope.Payments:
 				handler = paymentsCommandsHandler;
+				break;
+			case CommandScope.Plans:
+				handler = plansCommandsHandler;
 				break;
 			default:
 				handler = userCommandsHandler;

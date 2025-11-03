@@ -18,8 +18,8 @@ import pollOptions from '../../pollOptions';
 import { formatDate, setActiveStep } from '../../utils';
 import { PaymentsRepository } from '../payments/payments.repository';
 import { exportToSheet } from './sheets.service';
-import type { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.handler';
 import { UsersRepository, type VPNUser } from './users.repository';
+import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 
 export class UsersService {
 	constructor(private repository: UsersRepository = new UsersRepository()) {}
@@ -49,7 +49,7 @@ export class UsersService {
 		start = false,
 		selectedOptions: (Device | VPNProtocol | Bank)[] = [],
 	) {
-		this.log(`[line 51]: create. Active step ${this.getActiveStep(this.createSteps) ?? 'start'}`);
+		this.log(`create. Active step ${this.getActiveStep(this.createSteps) ?? 'start'}`);
 
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
@@ -202,7 +202,7 @@ export class UsersService {
 	}
 
 	async findByFirstName(message: Message, start: boolean) {
-		this.log('[line 204]: findByFirstName');
+		this.log('findByFirstName');
 		if (!start) {
 			const users = await this.repository.findByFirstName(message.text ?? '');
 			if (users?.length) {
@@ -219,7 +219,7 @@ export class UsersService {
 	}
 
 	async findByUsername(message: Message, start: boolean) {
-		this.log('[line 221]: findByUsername');
+		this.log('findByUsername');
 
 		if (!start) {
 			const users = await this.repository.findByUsername(message.text ?? '');
@@ -271,7 +271,7 @@ export class UsersService {
 	}
 
 	async getById(message: Message, context: UsersContext) {
-		this.log('[line 273]: getById');
+		this.log('getById');
 		const user = await this.repository.getById(Number(context.id));
 		if (user) {
 			await this.sendUserMenu(message.chat.id, user);
@@ -295,7 +295,7 @@ export class UsersService {
 		state: { init: boolean },
 		selectedOptions: (Device | VPNProtocol | Bank | BoolFieldState)[] = [],
 	) {
-		this.log('[line 297]: update');
+		this.log('update');
 		const chatId = message?.chat?.id || env.ADMIN_USER_ID;
 		const textProp = this.textProps.includes(context.prop);
 		const boolProp = this.boolProps.includes(context.prop);
@@ -380,7 +380,7 @@ export class UsersService {
 	}
 
 	async delete(msg: Message, context: UsersContext, start: boolean) {
-		this.log('[line 382]: delete');
+		this.log('delete');
 		if (!start) {
 			await this.repository.delete(Number(context.id));
 			const message = `User with id ${context.id} has been successfully removed`;
@@ -412,7 +412,7 @@ export class UsersService {
 	}
 
 	async exportPayments(message: Message) {
-		this.log('[line 414]: exportPayments');
+		this.log('exportPayments');
 
 		const paymentsData = await new PaymentsRepository().getAllForSheet();
 		const preparedPaymentsData = paymentsData.map(row => {
@@ -440,7 +440,7 @@ export class UsersService {
 	}
 
 	async export(message: Message) {
-		this.log('[line 442]: export');
+		this.log('export');
 		const data = await this.repository.list();
 		const preparedData = data.map(row => {
 			return [
@@ -469,7 +469,7 @@ export class UsersService {
 	}
 
 	async showUnpaid(message: Message) {
-		this.log('[line 471]: unpaid');
+		this.log('unpaid');
 		const users = await this.repository.getUnpaidUsers();
 		for (const user of users) {
 			if (user.payments.length) {
@@ -513,7 +513,7 @@ have no payments for next month.`,
 	}
 
 	async showTrial(message: Message) {
-		this.log('[line 506]: trial');
+		this.log('trial');
 		const users = await this.repository.getTrialUsers();
 		if (users.length) {
 			await bot.sendMessage(
