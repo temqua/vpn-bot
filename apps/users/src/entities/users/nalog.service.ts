@@ -67,13 +67,13 @@ export class NalogService {
 		return responseBody?.token;
 	}
 
-	async addNalog(token: string, amount: number): Promise<string> {
+	async addNalog(token: string, amount: number, paymentId: string): Promise<string> {
 		const body = {
 			operationTime: new Date().toISOString(),
 			requestTime: new Date().toISOString(),
 			services: [
 				{
-					name: 'Аренда сервера',
+					name: `Аренда сервера. ID платежа ${paymentId}`,
 					amount: amount,
 					quantity: 1,
 				},

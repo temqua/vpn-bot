@@ -1,7 +1,7 @@
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
 import { paymentButtons } from '../buttons';
-import { paymentsService } from '../entities/payments/payments.service';
+import { PaymentsService } from '../entities/payments/payments.service';
 import { UsersRepository } from '../entities/users/users.repository';
 import { CmdCode, CommandScope, PaymentCommand, VPNUserCommand } from '../enums';
 import { globalHandler } from '../global.handler';
@@ -37,6 +37,7 @@ export const paymentCommandsList = {
 		docs: '/payment delete — delete payment',
 	},
 };
+const paymentsService = new PaymentsService();
 
 export const paymentsHelpMessage = Object.values(paymentCommandsList)
 	.map(c => c.docs)

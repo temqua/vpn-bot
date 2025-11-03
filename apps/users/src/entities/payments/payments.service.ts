@@ -317,11 +317,11 @@ export class PaymentsService {
 		}
 	}
 
-	private async addPaymentNalog(chatId: number, username: string, amount: number) {
+	private async addPaymentNalog(chatId: number, username: string, amount: number, id: string) {
 		this.log('[line 320]: addPaymentNalog');
 		try {
 			const token = await this.nalogService.auth();
-			const paymentId = await this.nalogService.addNalog(token, amount);
+			const paymentId = await this.nalogService.addNalog(token, amount, id);
 			if (!paymentId) {
 				const errMessage = `Ошибка! При добавлении налога за пользователя ${username} не получен ID операции`;
 				logger.error(`[${basename(__filename)}]: ${errMessage}`);
@@ -430,7 +430,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 					},
 				);
 				if (nalog) {
-					await this.addPaymentNalog(chatId, user.username, amount);
+					await this.addPaymentNalog(chatId, user.username, amount, result.id);
 				}
 				if (dependants) {
 					for (const dep of user.dependants) {

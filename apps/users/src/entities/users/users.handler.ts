@@ -3,14 +3,14 @@ import type { Message, Poll } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
 import { Bank, VPNUserCommand } from '../../enums';
 import { globalHandler } from '../../global.handler';
-import { paymentsService, PaymentsService } from '../payments/payments.service';
-import { usersService, UsersService } from './users.service';
+import { PaymentsService } from '../payments/payments.service';
+import { UsersService } from './users.service';
 import type { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(
-		private service: UsersService,
-		private paymentsService: PaymentsService,
+		private service: UsersService = new UsersService(),
+		private paymentsService: PaymentsService = new PaymentsService(),
 	) {}
 	private state = {
 		params: new Map(),
@@ -88,4 +88,4 @@ class UsersCommandsHandler implements ICommandHandler {
 	}
 }
 
-export const userCommandsHandler = new UsersCommandsHandler(usersService, paymentsService);
+export const userCommandsHandler = new UsersCommandsHandler(new UsersService(), new PaymentsService());

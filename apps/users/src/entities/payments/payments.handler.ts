@@ -1,14 +1,14 @@
 import type { Message } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
 import { PaymentCommand, type CmdCode } from '../../enums';
-import { paymentsService, PaymentsService } from './payments.service';
+import { PaymentsService } from './payments.service';
 
 export interface PaymentsContext {
 	[CmdCode.Command]: PaymentCommand;
 }
 
 class PaymentsCommandsHandler implements ICommandHandler {
-	constructor(private service: PaymentsService = paymentsService) {}
+	constructor(private service: PaymentsService = new PaymentsService()) {}
 
 	async handle(context: PaymentsContext, message: Message, start = false) {
 		if (context.cmd === PaymentCommand.List) {
