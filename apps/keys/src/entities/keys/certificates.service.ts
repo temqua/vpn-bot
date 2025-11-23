@@ -74,6 +74,9 @@ export class CertificatesService {
 			}
 			logger.success(`${this.protocol} user ${username} creation was handled`);
 			await this.getFile(message, username);
+			if (this.protocol === VPNProtocol.WG) {
+				await this.getQRCode(message, username);
+			}
 		} catch (error) {
 			logger.error(errorHeader);
 			logger.error(error);
