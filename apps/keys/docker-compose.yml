@@ -5,6 +5,8 @@ services:
             dockerfile: ./Dockerfile.base
         container_name: ipsec-vpn-server
         image: vpn-base
+        environment:
+            - VPN_PROTECT_CONFIG=yes
         cap_add:
             - NET_ADMIN
         privileged: true
