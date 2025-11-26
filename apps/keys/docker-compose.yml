@@ -3,6 +3,7 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile.base
+        container_name: ipsec-vpn-server
         image: vpn-base
         cap_add:
             - NET_ADMIN
