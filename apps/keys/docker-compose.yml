@@ -4,6 +4,19 @@ services:
             context: .
             dockerfile: ./Dockerfile.base
         image: vpn-base
+        container_name: ipsec-vpn-server
+        restart: always
+        ports:
+            - 500:500
+            - 4500:4500
+        cap_add:
+            - NET_ADMIN
+        privileged: true
+        volumes:
+            - /lib/modules:/lib/modules:ro
+            - /etc/ipsec.d:/etc/ipsec.d
+            - /etc/ipsec.conf:/etc/ipsec.conf
+            - /opt/src:/opt/src
 
     app:
         image: keys-bot
