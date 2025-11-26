@@ -4,7 +4,16 @@ services:
             context: .
             dockerfile: ./Dockerfile.base
         image: vpn-base
-
+        cap_add:
+            - NET_ADMIN
+        privileged: true
+        restart: always
+        ports:
+            - 500:500
+            - 4500:4500
+        volumes:
+            - /etc/ipsec.d:/etc/ipsec.d
+            - /lib/modules:/lib/modules:ro
     app:
         image: keys-bot
         container_name: keys-bot
@@ -17,9 +26,6 @@ services:
         devices:
             - /dev/net/tun
         privileged: true
-        ports:
-            - 500:500
-            - 4500:4500        
         restart: always
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
@@ -28,6 +34,7 @@ services:
             - ./scripts:/app/scripts:ro
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh:ro
             - /usr/bin/openvpn.sh:/usr/bin/openvpn.sh:ro
+            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
