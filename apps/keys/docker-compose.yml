@@ -48,10 +48,10 @@ services:
             - /usr/bin/vnstat:/usr/bin/vnstat:ro
             # OpenVPN
             - /etc/openvpn:/etc/openvpn
-            - /etc/openvpn/server:/etc/openvpn/server
+            # - /etc/openvpn/server:/etc/openvpn/server
             # - /etc/openvpn/server/easy-rsa/easyrsa:/etc/openvpn/server/easy-rsa/easyrsa:ro
-            - /etc/openvpn/client:/etc/openvpn/client
-            - /etc/openvpn/update-resolv-conf:/etc/openvpn/update-resolv-conf:ro
+            # - /etc/openvpn/client:/etc/openvpn/client
+            # - /etc/openvpn/update-resolv-conf:/etc/openvpn/update-resolv-conf:ro
             - /var/log/openvpn:/var/log/openvpn
             - /usr/sbin/openvpn:/usr/sbin/openvpn:ro
             - /usr/bin/openssl:/usr/bin/openssl:ro
