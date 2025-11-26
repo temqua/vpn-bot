@@ -3,3 +3,5 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \ 
     qrencode wireguard unzip zip curl
+EXPOSE 500/udp
+EXPOSE 4500/udp
