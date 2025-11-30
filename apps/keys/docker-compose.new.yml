@@ -3,8 +3,20 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile.base
+        container_name: ipsec-vpn-server
         image: vpn-base
-
+        environment:
+            - VPN_PROTECT_CONFIG=yes
+        cap_add:
+            - NET_ADMIN
+        privileged: true
+        restart: always
+        ports:
+            - "500:500/udp"
+            - "4500:4500/udp"
+        volumes:
+            - /etc/ipsec.d:/etc/ipsec.d
+            - /lib/modules:/lib/modules:ro
     app:
         image: keys-bot
         container_name: keys-bot
@@ -24,15 +36,13 @@ services:
             - ${OVPN_CLIENTS_DIR}:${OVPN_CONTAINER_DIR:-/app/ovpn-clients}
             - ./scripts:/app/scripts:ro
             - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh:ro
-            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
             - /usr/bin/openvpn.sh:/usr/bin/openvpn.sh:ro
+            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
             - /etc/wireguard:/etc/wireguard
             - /etc/sysctl.conf:/etc/sysctl.conf:ro
             - /etc/sysctl.d:/etc/sysctl.d:ro
-            - /etc/ipsec.conf:/etc/ipsec.conf:ro
-            - /opt/src:/opt/src:ro
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
             - /usr/bin/vnstat:/usr/bin/vnstat:ro
