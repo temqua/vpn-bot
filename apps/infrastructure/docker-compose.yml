@@ -1,0 +1,25 @@
+services:
+    ipsec_ikev2:
+        build:
+            context: ./ikev2
+            dockerfile: ./Dockerfile
+        container_name: ipsec-vpn-server
+        image: ipsec_ikev2
+        environment:
+            - VPN_PROTECT_CONFIG=yes
+            - CREATE_PATH=/server/scripts/create.sh
+            - DELETE_PATH=/server/scripts/delete.sh
+            - EXPORT_PATH=/server/scripts/export.sh
+            - LIST_PATH=/server/scripts/list.sh
+            - IKE_CERT_DIR=/etc/ipsec.d
+        cap_add:
+            - NET_ADMIN
+        privileged: true
+        restart: always
+        ports:
+            - "500:500/udp"
+            - "4500:4500/udp"
+            - "8090:8090"
+        volumes:
+            - /etc/ipsec.d:/etc/ipsec.d
+            - /lib/modules:/lib/modules:ro

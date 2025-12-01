@@ -4,8 +4,12 @@ import env from '../../env';
 import { ICertificatesService } from '../../contracts';
 
 export class WireguardKeysService implements ICertificatesService {
+	port: number;
+	constructor() {
+		this.port = env.WG_RECEIVER_PORT
+	}
 	getFileInfo(username: string) {
-		const filePath = path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.conf`);
+		const filePath = path.resolve(homedir(), env.WG_CLIENTS_DIR, `${username}.conf`);
 		return {
 			path: filePath,
 			extension: 'conf',
@@ -13,6 +17,6 @@ export class WireguardKeysService implements ICertificatesService {
 	}
 
 	getQRCodePath(username: string): string {
-		return path.resolve(homedir(), env.WG_CONTAINER_DIR, `${username}.png`);
+		return path.resolve(homedir(), env.WG_CLIENTS_DIR, `${username}.png`);
 	}
 }
