@@ -19,9 +19,6 @@ RUN apk update && apk add zip unzip
 COPY --from=builder /src/receiver /server/receiver
 COPY --from=builder /src/scripts /server/scripts
 
-# IKEv2 порты
-EXPOSE 500/udp
-EXPOSE 4500/udp
 EXPOSE 8090
 
 CMD ["/server/receiver"]
