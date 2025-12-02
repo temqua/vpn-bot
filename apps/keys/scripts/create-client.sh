@@ -44,7 +44,7 @@ case $protocol in
         echo "Creating IKEv2 client $client in $directory"
         mkdir -p "$directory/$client"
         ikev2.sh --addclient "$client"
-        cd /etc/ipsec.d || exit
+        cd /root || exit
         mv "$client".* "$directory/$client"
         cd "$directory" || exit
         zip -r "$client.zip" "$client"
