@@ -12,8 +12,8 @@ services:
         privileged: true
         restart: always
         ports:
-            - "500:500/udp"
-            - "4500:4500/udp"
+            - '500:500/udp'
+            - '4500:4500/udp'
         volumes:
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro

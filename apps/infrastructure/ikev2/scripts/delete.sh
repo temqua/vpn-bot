@@ -13,5 +13,11 @@ echo "Command ${IKE_SH_PATH}ikev2.sh -y --revokeclient $client"
 echo "Command ${IKE_SH_PATH}ikev2.sh -y --deleteclient $client"
 ${IKE_SH_PATH}ikev2.sh -y --revokeclient "$client"
 ${IKE_SH_PATH}ikev2.sh -y --deleteclient "$client"
-echo "Remove command: rm -rf $main_cert_directory/$directory/$client" 
-rm -rf "$main_cert_directory/$directory/$client"
+if [[ $? -eq 0 ]]; then
+    echo "Remove command: rm -rf $main_cert_directory/$directory/$client" 
+    rm -rf "$main_cert_directory/$directory/$client"  
+    echo "Client '$client' successfully removed from IKEv2"
+else
+    echo "Error: failed to remove client '$client' from IKEv2"
+    exit 1
+fi

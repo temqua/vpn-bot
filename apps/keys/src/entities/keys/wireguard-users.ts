@@ -6,7 +6,7 @@ import { ICertificatesService } from '../../contracts';
 export class WireguardKeysService implements ICertificatesService {
 	port: number;
 	constructor() {
-		this.port = env.WG_RECEIVER_PORT
+		this.port = env.WG_RECEIVER_PORT;
 	}
 	getFileInfo(username: string) {
 		const filePath = path.resolve(homedir(), env.WG_CLIENTS_DIR, `${username}.conf`);

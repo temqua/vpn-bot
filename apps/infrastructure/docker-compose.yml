@@ -17,9 +17,30 @@ services:
         privileged: true
         restart: always
         ports:
-            - "500:500/udp"
-            - "4500:4500/udp"
-            - "8090:8090"
+            - '500:500/udp'
+            - '4500:4500/udp'
+            - '8090:8090'
         volumes:
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
+    wg_service:
+        build:
+            context: ./wireguard
+            dockerfile: ./Dockerfile
+        container_name: wireguard_container
+        image: wg_service
+        environment:
+            - CREATE_PATH=/server/scripts/create.sh
+            - DELETE_PATH=/server/scripts/delete.sh
+            - EXPORT_PATH=/server/scripts/export.sh
+            - LIST_PATH=/server/scripts/list.sh
+            - WG_CERT_DIR=/etc/wireguard
+        cap_add:
+            - NET_ADMIN
+        privileged: true
+        restart: always
+        ports:
+            - '51822:51822/udp'
+            - '8091:8091'
+        volumes:
+            - /etc/wireguard:/etc/wireguard

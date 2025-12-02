@@ -1,23 +1,5 @@
 #!/bin/bash
 
-# Проверяем, запущен ли скрипт в контейнере
-is_container() {
-    # Проверка 1: /.dockerenv (самый надёжный способ для Docker)
-    if [ -f "/.dockerenv" ]; then
-        return 0
-    fi
-    # 2. Проверка /proc/1/cgroup (более точная)
-    if [ -f "/proc/1/cgroup" ]; then
-        # Ищем docker, lxc, kubepods без совпадения с хостовыми путями
-        if grep -q "docker\|lxc\|kubepods" /proc/1/cgroup 2>/dev/null && 
-           ! grep -q "0::/" /proc/1/cgroup 2>/dev/null; then
-            return 0
-        fi
-    fi
-
-    return 1
-}
-
 generate_fake_cert() {
     echo "-----BEGIN FAKE CERTIFICATE-----"
     openssl rand -base64 30 | fold -w 64
@@ -60,6 +42,7 @@ case "$1" in
             echo "Error: Client name not specified."
             exit 1
         fi
+        mkdir -p "$CONFIG_DIR"
         CLIENT_NAME="$2"
         if [ -f "$CONFIG_DIR/$CLIENT_NAME.sswan" ]; then
             echo "Error: Client '$CLIENT_NAME' already exists."
