@@ -1,0 +1,6 @@
+[Service]
+ExecStart=/usr/local/bin/wgmanager
+Restart=always
+RestartSec=10
+EnvironmentFile=/etc/wgmanager/wgmanager.env
+WorkingDirectory=/etc/wgmanager

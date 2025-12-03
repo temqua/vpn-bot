@@ -5,7 +5,7 @@ const env = cleanEnv(process.env, {
 	DELETE_PATH: str({ default: '/app/scripts/remove-client.sh' }),
 	IKE_CLIENTS_DIR: str({ default: 'clients' }),
 	IKE_CERT_DIR: str({ default: '/etc/ipsec.d' }),
-	WG_CLIENTS_DIR: str({ default: '' }),
+	WG_CLIENTS_DIR: str({ default: 'clients' }),
 	OVPN_CLIENTS_DIR: str({ default: '' }),
 	IKE_RECEIVER_PORT: num({ default: 8090 }),
 	WG_RECEIVER_PORT: num({ default: 8091 }),
