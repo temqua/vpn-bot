@@ -8,8 +8,8 @@ if [[ "$LOCAL_DEBUG" == "true" ]]; then
   main_cert_directory="../debug"
   WG_SH_PATH="./"
 fi
-echo "Command: ${WG_SH_PATH}wireguard.sh --exportclient $client"
-${WG_SH_PATH}wireguard.sh --exportclient "$client"
+echo "Command: sudo bash ${WG_SH_PATH}wireguard.sh --exportclient $client"
+sudo bash ${WG_SH_PATH}wireguard.sh --exportclient "$client"
 if [[ $? -eq 0 ]]; then
   cd $main_cert_directory || exit
   rm -rf $directory/$client

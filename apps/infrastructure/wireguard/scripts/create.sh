@@ -14,8 +14,8 @@ echo "Creating WireGuard client $client"
 
 mkdir -p "$main_cert_directory/$directory"
 mkdir -p "$main_cert_directory/$directory/$client"
-echo "Command: ${WG_SH_PATH}wireguard.sh --addclient $client"
-CONFIG_DIR=$main_cert_directory ${WG_SH_PATH}wireguard.sh --addclient "$client"
+echo "Command: sudo bash ${WG_SH_PATH}wireguard.sh --addclient $client"
+CONFIG_DIR=$main_cert_directory sudo bash ${WG_SH_PATH}wireguard.sh --addclient "$client"
 if [[ $? -eq 0 ]]; then
   cd $main_cert_directory || exit
   mkdir -p "$directory/$client"

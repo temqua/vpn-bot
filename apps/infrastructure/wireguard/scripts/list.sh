@@ -4,5 +4,5 @@ if [[ "$LOCAL_DEBUG" == "true" ]]; then
   echo "Local debug enabled"
   WG_SH_PATH="./"
 fi
-echo "Command: ${WG_SH_PATH}wireguard.sh --listclients"
-${WG_SH_PATH}wireguard.sh --listclients
+echo "Command: sudo bash ${WG_SH_PATH}wireguard.sh --listclients"
+sudo bash ${WG_SH_PATH}wireguard.sh --listclients

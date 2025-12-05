@@ -10,8 +10,8 @@ if [[ "$LOCAL_DEBUG" == "true" ]]; then
   WG_SH_PATH="./"
 fi
 
-echo "Command ${WG_SH_PATH}wireguard.sh --removeclient -y $client"
-CONFIG_DIR=$main_directory/$directory/$client ${WG_SH_PATH}wireguard.sh -y --removeclient "$client"
+echo "Command sudo bash ${WG_SH_PATH}wireguard.sh --removeclient -y $client"
+CONFIG_DIR=$main_directory/$directory/$client sudo bash ${WG_SH_PATH}wireguard.sh -y --removeclient "$client"
 if [[ $? -eq 0 ]]; then
     echo "Remove command: rm -rf $main_directory/$directory/$client" 
     rm -rf "$main_directory/$directory/$client"  
