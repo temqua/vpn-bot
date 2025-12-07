@@ -57,14 +57,14 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while creating ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = this.request('create', username);
+			response = await this.request('create', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
 			return;
 		}
-		const result = await response.text();
-		bot.sendMessage(chatId, result);
 		if (response.ok) {
 			try {
 				await this.getFile(message, username);
@@ -72,13 +72,15 @@ export class CertificatesService {
 					await this.getQRCode(message, username);
 				}
 				logger.success(`${this.protocol} user ${username} creation was handled`);
-				bot.sendMessage(chatId, `${this.protocol} user ${username} creation was handled`);
 			} catch (error) {
 				logger.error(errorHeader);
 				logger.error(error);
 				bot.sendMessage(chatId, errorHeader);
 				bot.sendMessage(chatId, `${error}`);
 			}
+		} else {
+			const errMessage = `${this.protocol} user ${username} creation failed ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 	async delete(message: Message, username: string | undefined) {
@@ -87,17 +89,21 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while deleting ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = this.request('delete', username);
+			response = await this.request('delete', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
 			return;
 		}
-		const result = await response.text();
-		bot.sendMessage(chatId, result);
+
 		if (response.ok) {
-			logger.success(`${this.protocol} user ${username} deletion has been successfully handled`);
-			bot.sendMessage(chatId, `${this.protocol} user ${username} deletion has been successfully handled`);
+			const okMessage = `${this.protocol} user ${username} deletion has been successfully handled`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${this.protocol} user ${username} deletion failed ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 
@@ -108,16 +114,21 @@ export class CertificatesService {
 
 		let response;
 		try {
-			response = this.request('list');
+			response = await this.request('list');
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
 			return;
 		}
-		const result = await response.text();
-		bot.sendMessage(chatId, result);
+
 		if (response.ok) {
-			logger.success(`${this.protocol} user list has been successfully handled`);
+			const okMessage = `${this.protocol} user list fetching has been successfully handled`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${errorHeader} ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 
@@ -127,16 +138,20 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while exporting ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = this.request('export', username);
+			response = await this.request('export', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
 			return;
 		}
-		const result = await response.text();
-		bot.sendMessage(chatId, result);
 		if (response.ok) {
-			logger.success(`${this.protocol} user ${username} has been successfully exported`);
+			const okMessage = `${this.protocol} user ${username} has been successfully exported`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${errorHeader} ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 
@@ -147,15 +162,20 @@ export class CertificatesService {
 		let response;
 		try {
 			response = this.request('pause', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
 			return;
 		}
-		const result = await response.text();
-		bot.sendMessage(chatId, result);
+
 		if (response.ok) {
-			logger.success(`${this.protocol} user ${username} has been successfully exported`);
+			const okMessage = `${this.protocol} user ${username} has been successfully disabled in wg before next wg-quick@wg0.service restart`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${errorHeader} ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 

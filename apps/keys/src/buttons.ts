@@ -3,14 +3,15 @@ import { CmdCode, CommandScope, UserRequest, VPNKeyCommand, VPNProtocol } from '
 
 export const getProtocolButtons = (operation: VPNKeyCommand) => {
 	return Object.entries(VPNProtocol)
-		.filter(
-			([_, protocol]) =>
-				!(
-					([VPNKeyCommand.GetFile, VPNKeyCommand.Export].includes(operation) &&
-						[VPNProtocol.Outline, VPNProtocol.XUI].includes(protocol)) ||
-					(operation === VPNKeyCommand.Export && ![VPNProtocol.IKEv2, VPNProtocol.OpenVPN].includes(protocol))
-				),
-		)
+		.filter(([_, protocol]) => {
+			const hasDisabledOperations =
+				[VPNKeyCommand.GetFile, VPNKeyCommand.Export].includes(operation) &&
+				[VPNProtocol.Outline, VPNProtocol.XUI].includes(protocol);
+			const hasExportUnsupportedProtocols =
+				operation === VPNKeyCommand.Export && ![VPNProtocol.IKEv2, VPNProtocol.OpenVPN].includes(protocol);
+			const hasGetFileUnsupportedProtocols = operation === VPNKeyCommand.GetQR && protocol !== VPNProtocol.WG;
+			return !hasDisabledOperations && !hasExportUnsupportedProtocols && !hasGetFileUnsupportedProtocols;
+		})
 		.map(
 			([label, protocol]) =>
 				({
