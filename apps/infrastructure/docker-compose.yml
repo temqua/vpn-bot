@@ -22,6 +22,7 @@ services:
         volumes:
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
+            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
     wg_service:
         build:
             context: ./wireguard
