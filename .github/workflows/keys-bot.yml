@@ -62,5 +62,5 @@ jobs:
                       rm -rf dist
                       tar -xzf dist.tar.gz
                       rm dist.tar.gz
-                      docker-compose build --no-cache app
-                      docker-compose up -d app
+                      docker compose build --no-cache app
+                      docker compose up -d app
