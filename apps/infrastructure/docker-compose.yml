@@ -48,6 +48,7 @@ services:
             - '8091:8091'
         volumes:
             - /etc/wireguard:/etc/wireguard
+            - /usr/bin/wg:/usr/bin/wg:ro
     openvpn_service:
         build:
             context: ./openvpn
