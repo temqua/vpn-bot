@@ -1,6 +1,6 @@
 FROM golang:1.25-alpine AS builder
 WORKDIR /src
-COPY ./wgmanager.go .
+COPY ./receiver.go .
 COPY ./scripts/ ./scripts/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o receiver receiver.go
