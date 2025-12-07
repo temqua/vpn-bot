@@ -1,19 +1,15 @@
 import type { Message } from 'node-telegram-bot-api';
-import childProcess from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
-import util from 'node:util';
 import { basename } from 'path';
 import bot from '../../bot';
 import { ICertificatesService } from '../../contracts';
 import { VPNProtocol } from '../../enums';
-import env from '../../env';
 import logger from '../../logger';
 import { IKEv2KeysService } from './ikev2-users';
 import { OpenVPNKeysService } from './openvpn-users';
 import { WireguardKeysService } from './wireguard-users';
-
-const exec = util.promisify(childProcess.exec);
+import env from '../../env';
 
 export class CertificatesService {
 	private service: ICertificatesService;
@@ -61,7 +57,7 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while creating ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = await fetch(`http://0.0.0.0:${this.service.port}/create?username=${username}`);
+			response = this.request('create', username);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
@@ -91,7 +87,7 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while deleting ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = await fetch(`http://0.0.0.0:${this.service.port}/delete?username=${username}`);
+			response = this.request('delete', username);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
@@ -112,7 +108,7 @@ export class CertificatesService {
 
 		let response;
 		try {
-			response = await fetch(`http://0.0.0.0:${this.service.port}/list`);
+			response = this.request('list');
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
@@ -131,7 +127,26 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while exporting ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = await fetch(`http://0.0.0.0:${this.service.port}/export?username=${username}`);
+			response = this.request('export', username);
+		} catch (error) {
+			bot.sendMessage(chatId, errorHeader);
+			bot.sendMessage(chatId, `${error}`);
+			return;
+		}
+		const result = await response.text();
+		bot.sendMessage(chatId, result);
+		if (response.ok) {
+			logger.success(`${this.protocol} user ${username} has been successfully exported`);
+		}
+	}
+
+	async pause(message: Message, username: string) {
+		this.log(`pause ${username}`);
+		const chatId = message.chat.id;
+		const errorHeader = `Error occurred while temporary disabling ${this.protocol} client ${username}`;
+		let response;
+		try {
+			response = this.request('pause', username);
 		} catch (error) {
 			bot.sendMessage(chatId, errorHeader);
 			bot.sendMessage(chatId, `${error}`);
@@ -166,6 +181,19 @@ export class CertificatesService {
 			await bot.sendMessage(chatId, errorHeader);
 			await bot.sendMessage(chatId, `${error}`);
 		}
+	}
+
+	private async request(command: string, username?: string) {
+		const qs = username
+			? `?${new URLSearchParams({
+					username,
+				}).toString()}}`
+			: '';
+		return await fetch(`http://0.0.0.0:${this.service.port}/${command}${qs}`, {
+			headers: {
+				'X-Auth-Token': env.SERVICE_TOKEN,
+			},
+		});
 	}
 
 	private log(message: string) {

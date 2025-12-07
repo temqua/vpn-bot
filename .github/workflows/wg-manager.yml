@@ -27,11 +27,11 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5
               with:
-                go-version: "1.22"
-              
+                  go-version: '1.22'
+
             - name: Build binary
               run: |
-                CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
+                  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
               working-directory: apps/infrastructure/wireguard
 
             - name: Archive service

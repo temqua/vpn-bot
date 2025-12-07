@@ -361,7 +361,7 @@ async function createClient(msg: Message, match: RegExpMatchArray | null, protoc
 		return;
 	}
 	const username = match[1];
-	await servicesMap[protocol].create(msg, username);
+	await servicesMap.get(protocol).create(msg, username);
 }
 
 async function deleteClient(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
@@ -373,14 +373,14 @@ async function deleteClient(msg: Message, match: RegExpMatchArray | null, protoc
 		return;
 	}
 	const username = match[1];
-	await servicesMap[protocol].delete(msg, username);
+	await servicesMap.get(protocol).delete(msg, username);
 }
 
 async function getClients(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
 	if (!isAdmin(msg)) {
 		return;
 	}
-	await servicesMap[protocol].getAll(msg);
+	await servicesMap.get(protocol).getAll(msg);
 }
 
 async function getFile(msg: Message, match: RegExpMatchArray | null, protocol: VPNProtocol) {
@@ -391,5 +391,5 @@ async function getFile(msg: Message, match: RegExpMatchArray | null, protocol: V
 		await bot.sendMessage(msg.chat.id, 'Unexpected error happened with regexp match value');
 		return;
 	}
-	await servicesMap[protocol].getFile(msg, match[1]);
+	await servicesMap.get(protocol).getFile(msg, match[1]);
 }

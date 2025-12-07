@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Убираем -y из аргументов
+ARGS=()
+for arg in "$@"; do
+    if [ "$arg" != "-y" ]; then
+        ARGS+=("$arg")
+    fi
+done
+
+# Переписываем позиционные параметры
+set -- "${ARGS[@]}"
+
 generate_fake_cert() {
     echo "-----BEGIN FAKE CERTIFICATE-----"
     openssl rand -base64 30 | fold -w 64
@@ -125,14 +136,11 @@ case "$1" in
             exit 1
         fi
         CLIENT_NAME="$2"
-        if [ ! -f "$CONFIG_DIR/$CLIENT_NAME.sswan" ]; then
+        if [ ! -f "$CONFIG_DIR/$CLIENT_NAME/$CLIENT_NAME.sswan" ]; then
             echo "Error: Client '$CLIENT_NAME' does not exist."
             exit 1
         fi
         echo "Revoking (but not deleting) fake client '$CLIENT_NAME'..."
-        mv "$CONFIG_DIR/$CLIENT_NAME.sswan" "$CONFIG_DIR/$CLIENT_NAME.sswan.revoked"
-        mv "$CONFIG_DIR/$CLIENT_NAME.mobileconfig" "$CONFIG_DIR/$CLIENT_NAME.mobileconfig.revoked"
-        mv "$CONFIG_DIR/$CLIENT_NAME.p12" "$CONFIG_DIR/$CLIENT_NAME.p12.revoked"
         echo "Client '$CLIENT_NAME' revoked (fake)."
         ;;
     --deleteclient)
@@ -141,17 +149,17 @@ case "$1" in
             exit 1
         fi
         CLIENT_NAME="$2"
-        if [ ! -f "$CONFIG_DIR/$CLIENT_NAME.sswan" ]; then
+        if [ ! -f "$CONFIG_DIR/$CLIENT_NAME/$CLIENT_NAME.sswan" ]; then
             echo "Error: Client '$CLIENT_NAME' does not exist."
             exit 1
         fi
         echo "Deleting fake client '$CLIENT_NAME'..."
-        rm -f "$CONFIG_DIR/$CLIENT_NAME".{sswan,mobileconfig,p12,sswan.revoked,mobileconfig.revoked,p12.revoked}
+        rm -f "$CONFIG_DIR/$CLIENT_NAME/$CLIENT_NAME".{sswan,mobileconfig,p12,sswan.revoked,mobileconfig.revoked,p12.revoked}
         echo "Client '$CLIENT_NAME' deleted (fake)."
         ;;
     *)
         echo "Fake IKEv2 setup script (does nothing real)."
-        echo "Usage: $0 [--listclients | --exportclient <name> | --addclient <name> | --revokeclient <name> | --deleteclient <name>]"
+        echo "Usage: $0 [--listclients | --exportclient <name> | --addclient <name> | --revokeclient <name> | --deleteclient <name>] [-y]"
         exit 1
         ;;
 esac

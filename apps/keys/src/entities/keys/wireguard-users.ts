@@ -1,7 +1,6 @@
-import { homedir } from 'node:os';
 import path from 'node:path';
-import env from '../../env';
 import { ICertificatesService } from '../../contracts';
+import env from '../../env';
 
 export class WireguardKeysService implements ICertificatesService {
 	port: number;
@@ -9,7 +8,7 @@ export class WireguardKeysService implements ICertificatesService {
 		this.port = env.WG_RECEIVER_PORT;
 	}
 	getFileInfo(username: string) {
-		const filePath = path.resolve(homedir(), env.WG_CLIENTS_DIR, `${username}.conf`);
+		const filePath = path.resolve(env.WG_CLIENTS_DIR, `${username}/`, `${username}.conf`);
 		return {
 			path: filePath,
 			extension: 'conf',
@@ -17,6 +16,6 @@ export class WireguardKeysService implements ICertificatesService {
 	}
 
 	getQRCodePath(username: string): string {
-		return path.resolve(homedir(), env.WG_CLIENTS_DIR, `${username}.png`);
+		return path.resolve(env.WG_CLIENTS_DIR, `${username}/`, `${username}.png`);
 	}
 }

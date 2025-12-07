@@ -8,6 +8,8 @@ import (
 	"os/exec"
 )
 
+type Middleware func(http.HandlerFunc) http.HandlerFunc
+
 func getUsername(w http.ResponseWriter, r *http.Request) (string, bool) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
@@ -62,26 +64,6 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, out)
 }
 
-func exportHandler(w http.ResponseWriter, r *http.Request) {
-	username, ok := getUsername(w, r)
-	if !ok {
-		http.Error(w, "Expected username query param", http.StatusBadRequest)
-		return
-	}
-	path := getEnvOrFail("EXPORT_PATH")
-	out, err := runScript(path, username)
-	if err != nil {
-		message := out
-		if out == "" {
-			message = err.Error()
-		}
-		http.Error(w, message, http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprint(w, out)
-}
-
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	path := getEnvOrFail("LIST_PATH")
 	out, err := runScript(path)
@@ -91,6 +73,25 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, out)
+}
+
+func pauseHandler(w http.ResponseWriter, r *http.Request) {
+	path := getEnvOrFail("PAUSE_PATH")
+	out, err := runScript(path)
+	if err != nil {
+		http.Error(w, out, http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprint(w, out)
+}
+
+func getEnvOrFail(key string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		log.Fatalf("Env variable %s is required", key)
+	}
+	return val
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -104,6 +105,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
 func authMiddleware(next http.Handler) http.Handler {
 	token := getEnvOrFail("SERVICE_TOKEN")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -115,26 +117,17 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getEnvOrFail(key string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		log.Fatalf("Env variable %s is required", key)
-	}
-	return val
-}
-
 func main() {
-
 	http.HandleFunc("/create", createHandler)
 	http.HandleFunc("/delete", deleteHandler)
-	http.HandleFunc("/export", exportHandler)
 	http.HandleFunc("/list", listHandler)
-	port := "8090"
+	http.HandleFunc("/pause", pauseHandler)
 
 	var handler http.Handler = http.DefaultServeMux
 	handler = loggingMiddleware(handler)
 	handler = authMiddleware(handler)
 
+	port := "8091"
 	log.Println("Server started on", port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

@@ -1,6 +1,7 @@
 #!/bin/bash
+
 check_clients() {
-	num_of_clients=$(grep -c '^# BEGIN_PEER' "$WG_CONF")
+	num_of_clients=$(tail -n +2 /etc/openvpn/server/easy-rsa/pki/index.txt | grep -c "^V")
 	if [[ "$num_of_clients" = 0 ]]; then
 		echo
 		echo "There are no existing clients!"
@@ -17,7 +18,7 @@ print_client_total() {
 }
 
 show_clients() {
-	grep '^# BEGIN_PEER' "$WG_CONF" | cut -d ' ' -f 3
+	tail -n +2 /etc/openvpn/server/easy-rsa/pki/index.txt | grep "^V" | cut -d '=' -f 2 | nl -s ') '
 }
 
 check_clients

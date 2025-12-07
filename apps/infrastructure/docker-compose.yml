@@ -1,5 +1,5 @@
 services:
-    ipsec_ikev2:
+    ikev2_service:
         build:
             context: ./ikev2
             dockerfile: ./Dockerfile
@@ -11,7 +11,9 @@ services:
             - DELETE_PATH=/server/scripts/delete.sh
             - EXPORT_PATH=/server/scripts/export.sh
             - LIST_PATH=/server/scripts/list.sh
-            - IKE_CERT_DIR=/etc/ipsec.d
+            - IKE_CLIENTS_DIR=/etc/ipsec.d/clients
+        env_file:
+            - ./ikev2/.env
         cap_add:
             - NET_ADMIN
         privileged: true
@@ -27,20 +29,45 @@ services:
         build:
             context: ./wireguard
             dockerfile: ./Dockerfile
-        container_name: wireguard_container
+        container_name: wg-manager
         image: wg_service
         environment:
             - CREATE_PATH=/server/scripts/create.sh
             - DELETE_PATH=/server/scripts/delete.sh
-            - EXPORT_PATH=/server/scripts/export.sh
             - LIST_PATH=/server/scripts/list.sh
-            - WG_CERT_DIR=/etc/wireguard
+            - PAUSE_PATH=/server/scripts/pause.sh
+            - WG_CLIENTS_DIR=/etc/wireguard/clients
+            - WG_CONF=/etc/wireguard/wg0.conf
+        env_file:
+            - ./wireguard/.env
         cap_add:
             - NET_ADMIN
         privileged: true
         restart: always
         ports:
-            - '51822:51822/udp'
             - '8091:8091'
         volumes:
             - /etc/wireguard:/etc/wireguard
+    openvpn_service:
+        build:
+            context: ./openvpn
+            dockerfile: ./Dockerfile
+        container_name: openvpn-manager
+        image: openvpn_service
+        environment:
+            - CREATE_PATH=/server/scripts/create.sh
+            - DELETE_PATH=/server/scripts/delete.sh
+            - LIST_PATH=/server/scripts/list.sh
+            - EXPORT_PATH=/server/scripts/export.sh
+            - OVPN_CLIENTS_DIR=/etc/openvpn/clients
+        env_file:
+            - ./openvpn/.env
+        cap_add:
+            - NET_ADMIN
+        privileged: true
+        restart: always
+        ports:
+            - '8092:8092'
+        volumes:
+            - /etc/openvpn:/etc/openvpn
+            - /etc/openvpn/server/easy-rsa/easy-rsa:/etc/openvpn/server/easy-rsa/easy-rsa:ro

@@ -1,22 +1,24 @@
 #!/bin/bash
 client=$1
+clients_directory=$WG_CLIENTS_DIR
 
-WG_SH_PATH=""
-main_directory=$WG_CERT_DIR
-directory="clients"
-if [[ "$LOCAL_DEBUG" == "true" ]]; then
-  echo "Local debug enabled"
-  main_directory="../debug"
-  WG_SH_PATH="./"
-fi
+remove_client_conf() {
+	wg_dir="$clients_directory/$client"
+	if [ -d "$wg_dir" ]; then
+		echo "Removing $wg_dir..."
+		rm -rf "$wg_dir"
+  else
+    echo "Failed to remove $wg_dir: is not a directory"
+	fi
+}
 
-echo "Command sudo bash ${WG_SH_PATH}wireguard.sh --removeclient -y $client"
-CONFIG_DIR=$main_directory/$directory/$client sudo bash ${WG_SH_PATH}wireguard.sh -y --removeclient "$client"
-if [[ $? -eq 0 ]]; then
-    echo "Remove command: rm -rf $main_directory/$directory/$client" 
-    rm -rf "$main_directory/$directory/$client"  
-    echo "Client '$client' successfully removed from wireguard"
-else
-    echo "Error: failed to remove client '$client' from wireguard"
-    exit 1
-fi
+remove_client_wg() {
+	# The following is the right way to avoid disrupting other active connections:
+	# Remove from the live interface
+	wg set wg0 peer "$(sed -n "/^# BEGIN_PEER $client$/,\$p" "$WG_CONF" | grep -m 1 PublicKey | cut -d " " -f 3)" remove
+	# Remove from the configuration file
+	sed -i "/^# BEGIN_PEER $client$/,/^# END_PEER $client$/d" "$WG_CONF"
+	remove_client_conf
+}
+
+remove_client_wg

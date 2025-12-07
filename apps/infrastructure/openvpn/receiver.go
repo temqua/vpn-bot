@@ -93,6 +93,28 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, out)
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if r.URL.RawQuery != "" {
+			path += "?" + r.URL.RawQuery
+		}
+
+		log.Printf("%s %s", r.Method, path)
+		next.ServeHTTP(w, r)
+	})
+}
+func authMiddleware(next http.Handler) http.Handler {
+	token := getEnvOrFail("SERVICE_TOKEN")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Auth-Token") != token {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func getEnvOrFail(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
@@ -107,7 +129,12 @@ func main() {
 	http.HandleFunc("/delete", deleteHandler)
 	http.HandleFunc("/export", exportHandler)
 	http.HandleFunc("/list", listHandler)
-	port := "8091"
+	port := "8092"
+
+	var handler http.Handler = http.DefaultServeMux
+	handler = loggingMiddleware(handler)
+	handler = authMiddleware(handler)
+
 	log.Println("Server started on", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
