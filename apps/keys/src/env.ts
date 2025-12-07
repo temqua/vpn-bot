@@ -1,9 +1,7 @@
 import { cleanEnv, str, num } from 'envalid';
 
 const env = cleanEnv(process.env, {
-	CREATE_PATH: str({ default: '/app/scripts/create-client.sh' }),
-	DELETE_PATH: str({ default: '/app/scripts/remove-client.sh' }),
-	IKE_CLIENTS_DIR: str({ default: '/etc/ipsec.d/clients' }),
+	IKE_CLIENTS_DIR: str({ default: '/srv/ikev2/clients' }),
 	WG_CLIENTS_DIR: str({ default: '/srv/wireguard/clients' }),
 	OVPN_CLIENTS_DIR: str({ default: '/srv/openvpn/clients' }),
 	IKE_RECEIVER_PORT: num({ default: 8090 }),
