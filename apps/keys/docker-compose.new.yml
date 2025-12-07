@@ -8,6 +8,7 @@ services:
         environment:
             - IKE_CLIENTS_DIR=/etc/ipsec.d/clients
             - WG_CLIENTS_DIR=/etc/wireguard/clients
+            - OVPN_CLIENTS_DIR=/etc/openvpn/clients
         env_file: .env
         cap_add:
             - NET_ADMIN
@@ -18,6 +19,5 @@ services:
         volumes:
             - ${IKE_CLIENTS_DIR}:${IKE_CLIENTS_DIR}
             - ${WG_CLIENTS_DIR}:${WG_CLIENTS_DIR}
-            - ${OVPN_CLIENTS_DIR}:${OVPN_CONTAINER_DIR:-/app/ovpn-clients}
-            - ./scripts:/app/scripts:ro
+            - ${OVPN_CLIENTS_DIR}:${OVPN_CLIENTS_DIR}
             - /usr/bin/vnstat:/usr/bin/vnstat:ro
