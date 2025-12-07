@@ -7,8 +7,8 @@ services:
             dockerfile: ./Dockerfile
         environment:
             - IKE_CLIENTS_DIR=/etc/ipsec.d/clients
-            - WG_CLIENTS_DIR=/etc/wireguard/clients
-            - OVPN_CLIENTS_DIR=/etc/openvpn/clients
+            - WG_CLIENTS_DIR=/srv/wireguard/clients
+            - OVPN_CLIENTS_DIR=/srv/openvpn/clients
         env_file: .env
         cap_add:
             - NET_ADMIN

@@ -33,7 +33,7 @@ services:
             - DELETE_PATH=/server/scripts/delete.sh
             - LIST_PATH=/server/scripts/list.sh
             - PAUSE_PATH=/server/scripts/pause.sh
-            - WG_CLIENTS_DIR=/etc/wireguard/clients
+            - WG_CLIENTS_DIR=/srv/wireguard/clients
             - WG_CONF=/etc/wireguard/wg0.conf
         env_file:
             - ./wireguard/.env
@@ -43,6 +43,7 @@ services:
         restart: always
         network_mode: host
         volumes:
+            - /srv/wireguard:/srv/wireguard
             - /etc/wireguard:/etc/wireguard
             - /usr/bin/wg:/usr/bin/wg:ro
     openvpn_service:
@@ -56,7 +57,7 @@ services:
             - DELETE_PATH=/server/scripts/delete.sh
             - LIST_PATH=/server/scripts/list.sh
             - EXPORT_PATH=/server/scripts/export.sh
-            - OVPN_CLIENTS_DIR=/etc/openvpn/clients
+            - OVPN_CLIENTS_DIR=/srv/openvpn/clients
         env_file:
             - ./openvpn/.env
         cap_add:
@@ -65,5 +66,6 @@ services:
         restart: always
         network_mode: host
         volumes:
+            - /srv/openvpn:/srv/openvpn
             - /etc/openvpn:/etc/openvpn
             - /etc/openvpn/server/easy-rsa/easy-rsa:/etc/openvpn/server/easy-rsa/easy-rsa:ro
