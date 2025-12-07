@@ -10,7 +10,7 @@ FROM debian:latest
 
 WORKDIR /server
 
-RUN apt-get update && apt-get install -yqq qrencode wireguard-tools
+RUN apt-get update && apt-get install -yqq qrencode
 
 COPY --from=builder /src/receiver /server/receiver
 COPY --from=builder /src/scripts /server/scripts
