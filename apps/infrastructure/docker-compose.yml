@@ -18,10 +18,7 @@ services:
             - NET_ADMIN
         privileged: true
         restart: always
-        ports:
-            - '500:500/udp'
-            - '4500:4500/udp'
-            - '8090:8090'
+        network_mode: host
         volumes:
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
