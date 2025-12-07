@@ -7,7 +7,7 @@ if [[ "$LOCAL_DEBUG" == "true" ]]; then
   clients_directory="../debug/clients"
   IKE_SH_PATH="./"
 fi
-if [[ -z $client ]]
+if [[ -z $client ]]; then
   echo "You should enter client"
   exit 1
 fi

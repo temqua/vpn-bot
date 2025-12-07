@@ -2,7 +2,7 @@
 client=$1
 clients_directory=$OVPN_CLIENTS_DIR
 
-if [[ -z $client ]]
+if [[ -z $client ]]; then
   echo "You should enter client"
   exit 1
 fi

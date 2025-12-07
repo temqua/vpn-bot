@@ -8,7 +8,7 @@ if [[ "$LOCAL_DEBUG" == "true" ]]; then
   IKE_SH_PATH="./"
   mkdir -p $clients_directory
 fi
-if [[ -z $client ]]
+if [[ -z $client ]]; then
   echo "You should enter client"
   exit 1
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash
 client=$1
-if [[ -z $client ]]
+if [[ -z $client ]]; then
   echo "You should enter client"
   exit 1
 fi

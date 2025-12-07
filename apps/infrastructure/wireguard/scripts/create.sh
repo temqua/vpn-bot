@@ -2,7 +2,7 @@
 client=$1
 clients_directory=$WG_CLIENTS_DIR
 dns="8.8.8.8, 8.8.4.4"
-if [[ -z $client ]]
+if [[ -z $client ]]; then
   echo "You should enter client"
   exit 1
 fi
