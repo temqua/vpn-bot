@@ -6,14 +6,15 @@ COPY ./scripts/ ./scripts/
 
 # собираем статически
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o receiver receiver.go
+CMD ["/server/receiver"]
+EXPOSE 8090
 
 
 # --- Stage 2: Final image with IPsec server ---
-FROM hwdsl2/ipsec-vpn-server
-
+FROM debian:latest
 WORKDIR /server
 
-RUN apk update && apk add zip unzip
+RUN apt-get update && apt-get -yqq install libnss3-tools libnss3-dev ppp zip unzip
 
 # переносим бинарник
 COPY --from=builder /src/receiver /server/receiver

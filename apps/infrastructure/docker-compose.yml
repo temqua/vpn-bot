@@ -3,15 +3,15 @@ services:
         build:
             context: ./ikev2
             dockerfile: ./Dockerfile
-        container_name: ipsec-vpn-server
-        image: ipsec_ikev2
+        container_name: ikev2-manager
+        image: ikev2_service
         environment:
             - VPN_PROTECT_CONFIG=yes
             - CREATE_PATH=/server/scripts/create.sh
             - DELETE_PATH=/server/scripts/delete.sh
             - EXPORT_PATH=/server/scripts/export.sh
             - LIST_PATH=/server/scripts/list.sh
-            - IKE_CLIENTS_DIR=/etc/ipsec.d/clients
+            - IKE_CLIENTS_DIR=/srv/ikev2/clients
         env_file:
             - ./ikev2/.env
         cap_add:

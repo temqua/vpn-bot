@@ -14,8 +14,9 @@ mkdir -p "$clients_directory/$client"
 echo "Command: ${IKE_SH_PATH}ikev2.sh --addclient $client"
 CONFIG_DIR=$clients_directory ${IKE_SH_PATH}ikev2.sh --addclient "$client"
 if [[ $? -eq 0 ]]; then
-  cd $clients_directory || exit
-  mv "$client".* "$client"
+  cd /root || exit
+  mv "$client".* $clients_directory/$client
+  cd $clients_directory/$client || exit
   zip -r "$client.zip" "$client"
   mv "$client.zip" "$client"
 fi
