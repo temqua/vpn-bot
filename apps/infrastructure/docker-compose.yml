@@ -29,6 +29,7 @@ services:
             - /opt/src:/opt/src:ro
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
+            - /run/pluto:/run/pluto
     wg_service:
         build:
             context: ./wireguard

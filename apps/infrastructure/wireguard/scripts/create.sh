@@ -2,7 +2,10 @@
 client=$1
 clients_directory=$WG_CLIENTS_DIR
 dns="8.8.8.8, 8.8.4.4"
-
+if [[ -z $client ]]
+  echo "You should enter client"
+  exit 1
+fi
 exiterr()  { echo "Error: $1" >&2; exit 1; }
 
 select_client_ip() {

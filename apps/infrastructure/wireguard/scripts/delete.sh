@@ -1,7 +1,10 @@
 #!/bin/bash
 client=$1
 clients_directory=$WG_CLIENTS_DIR
-
+if [[ -z $client ]]
+  echo "You should enter client"
+  exit 1
+fi
 remove_client_conf() {
 	wg_dir="$clients_directory/$client"
 	if [ -d "$wg_dir" ]; then

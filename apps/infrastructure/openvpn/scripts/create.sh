@@ -2,6 +2,12 @@
 client=$1
 clients_directory=$OVPN_CLIENTS_DIR
 mkdir -p $clients_directory
+
+if [[ -z $client ]]
+  echo "You should enter client"
+  exit 1
+fi
+
 build_client_config() {
 	cd /etc/openvpn/server/easy-rsa/ || exit 1
 	(

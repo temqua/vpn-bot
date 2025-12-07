@@ -1,6 +1,10 @@
 #!/bin/bash
 client=$1
 clients_directory=$OVPN_CLIENTS_DIR
+if [[ -z $client ]]
+  echo "You should enter client"
+  exit 1
+fi
 
 remove_client_conf() {
 	ovpn_file="$clients_directory/$client.ovpn"

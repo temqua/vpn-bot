@@ -7,7 +7,10 @@ if [[ "$LOCAL_DEBUG" == "true" ]]; then
   clients_directory="../debug/clients"
   IKE_SH_PATH="./"
 fi
-
+if [[ -z $client ]]
+  echo "You should enter client"
+  exit 1
+fi
 echo "Command ${IKE_SH_PATH}ikev2.sh -y --revokeclient $client"
 echo "Command ${IKE_SH_PATH}ikev2.sh -y --deleteclient $client"
 CONFIG_DIR=$clients_directory ${IKE_SH_PATH}ikev2.sh -y --revokeclient "$client"

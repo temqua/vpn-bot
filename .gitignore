@@ -311,3 +311,4 @@ sheets-api.json
 *.env
 .env.ignored
 *.tar.gz
+debug
