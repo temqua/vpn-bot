@@ -6,14 +6,9 @@ services:
             context: .
             dockerfile: ./Dockerfile
         env_file: .env
-        cap_add:
-            - NET_ADMIN
-        devices:
-            - /dev/net/tun
-        privileged: true
         restart: always
+        network_mode: host
         volumes:
-            - ${IKE_CLIENTS_DIR}:${IKE_CLIENTS_DIR}
-            - ${WG_CLIENTS_DIR}:${WG_CLIENTS_DIR}
-            - ${OVPN_CLIENTS_DIR}:${OVPN_CLIENTS_DIR}
-            - /usr/bin/vnstat:/usr/bin/vnstat:ro
+            - ${IKE_CLIENTS_DIR}:${IKE_CLIENTS_DIR}:ro
+            - ${WG_CLIENTS_DIR}:${WG_CLIENTS_DIR}:ro
+            - ${OVPN_CLIENTS_DIR}:${OVPN_CLIENTS_DIR}:ro

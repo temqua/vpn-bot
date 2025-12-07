@@ -32,7 +32,7 @@ new_client() {
 	sed -ne '/BEGIN OpenVPN Static key/,$ p' /etc/openvpn/server/tc.key
 	echo "</tls-crypt>"
 	} > "$clients_directory/$client".ovpn
-	chmod 600 "$clients_directory/$client".ovpn
+	chmod 644 "$clients_directory/$client".ovpn
 }
 
 build_client_config

@@ -22,4 +22,5 @@ if [[ $? -eq 0 ]]; then
   cd $clients_directory || exit
   zip -r "$client.zip" "$client"
   mv "$client.zip" "$client"
+  chmod 644 $client/$client.zip
 fi

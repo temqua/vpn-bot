@@ -55,7 +55,7 @@ AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $(grep '^# ENDPOINT' "$WG_CONF" | cut -d " " -f 3):$(grep ListenPort "$WG_CONF" | cut -d " " -f 3)
 PersistentKeepalive = 25
 EOF
-	chmod 600 "$clients_directory/$client/$client".conf
+	chmod 644 "$clients_directory/$client/$client".conf
 	update_wg_conf
 	echo "$client added. Configuration available in: $clients_directory/$client/$client.conf"
   	qrencode -o "$clients_directory/$client/$client.png" -t PNG < "$clients_directory/$client/$client".conf  
