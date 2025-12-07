@@ -23,6 +23,12 @@ services:
             - /etc/ipsec.d:/etc/ipsec.d
             - /lib/modules:/lib/modules:ro
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
+            - /etc/sysctl.conf:/etc/sysctl.conf:ro
+            - /etc/sysctl.d:/etc/sysctl.d:ro
+            - /etc/ipsec.conf:/etc/ipsec.conf:ro
+            - /opt/src:/opt/src:ro
+            - /usr/local/sbin:/usr/local/sbin:ro
+            - /usr/local/libexec:/usr/local/libexec:ro
     wg_service:
         build:
             context: ./wireguard
