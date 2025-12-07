@@ -44,8 +44,7 @@ services:
             - NET_ADMIN
         privileged: true
         restart: always
-        ports:
-            - '8091:8091'
+        network_mode: host
         volumes:
             - /etc/wireguard:/etc/wireguard
             - /usr/bin/wg:/usr/bin/wg:ro
@@ -67,8 +66,7 @@ services:
             - NET_ADMIN
         privileged: true
         restart: always
-        ports:
-            - '8092:8092'
+        network_mode: host
         volumes:
             - /etc/openvpn:/etc/openvpn
             - /etc/openvpn/server/easy-rsa/easy-rsa:/etc/openvpn/server/easy-rsa/easy-rsa:ro
