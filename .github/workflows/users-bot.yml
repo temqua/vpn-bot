@@ -25,7 +25,7 @@ jobs:
 
             - name: Add sheets-api.json
               working-directory: apps/users
-              run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json                  
+              run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
 
             - name: Build Docker image
               working-directory: apps/users
