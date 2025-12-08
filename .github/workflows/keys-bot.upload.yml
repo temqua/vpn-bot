@@ -22,14 +22,14 @@ jobs:
         environment: ${{ inputs.environment }}
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4   
+              uses: actions/checkout@v4
 
             - name: Create .env file
               run: |
-                touch .env
-                echo "IKE_CLIENTS_DIR=/srv/ikev2/clients" >> .env
-                echo "WG_CLIENTS_DIR=/srv/wireguard/clients" >> .env
-                echo "OVPN_CLIENTS_DIR=/srv/openvpn/clients" >> .env              
+                  touch .env
+                  echo "IKE_CLIENTS_DIR=/srv/ikev2/clients" >> .env
+                  echo "WG_CLIENTS_DIR=/srv/wireguard/clients" >> .env
+                  echo "OVPN_CLIENTS_DIR=/srv/openvpn/clients" >> .env
               working-directory: apps/keys
 
             - name: Build Docker image
