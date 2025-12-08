@@ -29,8 +29,8 @@ jobs:
 
             - name: Add VPN server to known hosts
               run: |
-                mkdir -p ~/.ssh
-                ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts                  
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts
 
             - name: Build IKEv2 image
               working-directory: apps/infrastructure
@@ -38,22 +38,27 @@ jobs:
                   docker compose build ikev2_service
 
             - name: Upload IKEv2 to server
+              working-directory: apps/infrastructure
               run: |
                   docker save ikev2_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
 
             - name: Build WireGuard image
+              working-directory: apps/infrastructure
               run: |
                   docker compose build wg_service
 
             - name: Upload WireGuard to server
+              working-directory: apps/infrastructure
               run: |
                   docker save wg_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
 
             - name: Build OpenVPN image
+              working-directory: apps/infrastructure
               run: |
                   docker compose build openvpn_service
 
             - name: Upload OpenVPN to server
+              working-directory: apps/infrastructure
               run: |
                   docker save openvpn_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
 
