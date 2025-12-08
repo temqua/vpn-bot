@@ -5,6 +5,10 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile
+        environment:
+            - IKE_CLIENTS_DIR=/srv/ikev2/clients
+            - WG_CLIENTS_DIR=/srv/wireguard/clients
+            - OVPN_CLIENTS_DIR=/srv/openvpn/clients
         env_file: .env
         restart: always
         network_mode: host
