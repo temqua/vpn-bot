@@ -22,39 +22,18 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Build Docker image
-              run: docker compose -f ./docker-compose.bot.3xui.yml build --no-cache
+              run: docker compose -f ./docker-compose.3xui.yml build --no-cache
               working-directory: apps/keys
-
-            - name: Save Docker image
-              run: docker save keys-bot -o keys-bot.tar
-              working-directory: apps/keys
-
             - name: Upload Docker image
-              uses: appleboy/scp-action@v1
-              with:
-                  host: ${{ secrets.VPN_SERVER_HOST }}
-                  username: ${{ secrets.VPN_SERVER_USERNAME }}
-                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
-                  source: ./apps/keys/keys-bot.tar
-                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
+              working-directory: apps/keys
+              run: |
+                  docker save keys-bot:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+            - name: Upload docker-compose.yml via SSH
+              run: |
+                  cat ./apps/keys/docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml"
 
-            - name: Upload compose file
-              uses: appleboy/scp-action@v1
-              with:
-                  host: ${{ secrets.VPN_SERVER_HOST }}
-                  username: ${{ secrets.VPN_SERVER_USERNAME }}
-                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
-                  source: ./apps/keys/docker-compose.yml
-                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
-
-            - name: Load and run Docker image
-              uses: appleboy/ssh-action@v1.2.2
-              with:
-                  host: ${{ secrets.VPN_SERVER_HOST }}
-                  username: ${{ secrets.VPN_SERVER_USERNAME }}
-                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
-                  script: |
-                      cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
-                      docker load -i keys-bot.tar
-                      docker compose up -d --no-build app
-                      rm keys-bot.tar
+            - name: Restart container on server
+              run: |
+                  ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
+                    cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
+                    docker compose up -d
