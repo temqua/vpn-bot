@@ -1,14 +1,13 @@
 import { cleanEnv, str, num } from 'envalid';
 
 const env = cleanEnv(process.env, {
-	CREATE_PATH: str({ default: '/app/scripts/create-client.sh' }),
-	DELETE_PATH: str({ default: '/app/scripts/remove-client.sh' }),
-	IKE_CONTAINER_DIR: str({ default: '/app/ikev2-clients' }),
-	WG_CONTAINER_DIR: str({ default: '/app/wg-clients' }),
-	OVPN_CONTAINER_DIR: str({ default: '/app/ovpn-clients' }),
-	IKE_CLIENTS_DIR: str({ default: '' }),
-	WG_CLIENTS_DIR: str({ default: '' }),
-	OVPN_CLIENTS_DIR: str({ default: '' }),
+	IKE_CLIENTS_DIR: str({ default: '/srv/ikev2/clients' }),
+	WG_CLIENTS_DIR: str({ default: '/srv/wireguard/clients' }),
+	OVPN_CLIENTS_DIR: str({ default: '/srv/openvpn/clients' }),
+	HOST_URL: str({ default: 'http://172.17.0.1' }),
+	IKE_RECEIVER_PORT: num({ default: 8090 }),
+	WG_RECEIVER_PORT: num({ default: 8091 }),
+	OVPN_RECEIVER_PORT: num({ default: 8092 }),
 	ADMIN_USER_ID: num({ default: 190349851 }),
 	OUTLINE_API_ROOT: str({ default: '' }),
 	XUI_API_ROOT: str({ default: '' }),
@@ -16,6 +15,7 @@ const env = cleanEnv(process.env, {
 	XUI_PASSWORD: str({ default: '' }),
 	XUI_ADDRESS: str({ default: '' }),
 	BOT_TOKEN: str({ default: '' }),
+	SERVICE_TOKEN: str({ default: '' }),
 });
 
 export default env;

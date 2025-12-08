@@ -5,7 +5,7 @@ import type { ICommandHandler } from '../../contracts';
 import { CmdCode, VPNKeyCommand, VPNProtocol } from '../../enums';
 import { globalHandler } from '../../global.handler';
 import { CertificatesService } from './certificates.service';
-import commandsMap from './commandsMap';
+import { commandsMap } from './commandsMap';
 import { outlineCommandsHandler } from './outline/outline.handler';
 import { xuiCommandsHandler } from './xui/xui.handler';
 import logger from '../../logger';
@@ -44,22 +44,22 @@ class KeysCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context?.cmd === VPNKeyCommand.List) {
-			const service = servicesMap[context[CmdCode.Protocol]];
+			const service = servicesMap.get(context[CmdCode.Protocol]);
 			await service.getAll(message);
 			globalHandler.finishCommand();
 			return;
 		}
 		if ([VPNKeyCommand.Delete, VPNKeyCommand.GetFile, VPNKeyCommand.GetQR].includes(context?.cmd) && start) {
-			const service = servicesMap[context[CmdCode.Protocol]];
+			const service = servicesMap.get(context[CmdCode.Protocol]);
 			await service.getAll(message);
 		}
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter username');
 			return;
 		}
-		const method: keyof CertificatesService | undefined = commandsMap[context?.cmd];
+		const method = commandsMap.get(context?.cmd);
 		if (context?.cmd && method) {
-			const service = servicesMap[context[CmdCode.Protocol]];
+			const service = servicesMap.get(context[CmdCode.Protocol]);
 			await service[method](message, message?.text);
 		} else {
 			const errorMessage = `context is null or does not contain cmd ${context?.cmd} or method not found for this command`;

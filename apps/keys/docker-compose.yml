@@ -1,10 +1,4 @@
 services:
-    base:
-        build:
-            context: .
-            dockerfile: ./Dockerfile.base
-        image: vpn-base
-
     app:
         image: keys-bot
         container_name: keys-bot
@@ -12,38 +6,9 @@ services:
             context: .
             dockerfile: ./Dockerfile
         env_file: .env
-        cap_add:
-            - NET_ADMIN
-        devices:
-            - /dev/net/tun
-        privileged: true
         restart: always
+        network_mode: host
         volumes:
-            - ${IKE_CLIENTS_DIR}:${IKE_CONTAINER_DIR:-/app/ikev2-clients}
-            - ${WG_CLIENTS_DIR}:${WG_CONTAINER_DIR:-/app/wg-clients}
-            - ${OVPN_CLIENTS_DIR}:${OVPN_CONTAINER_DIR:-/app/ovpn-clients}
-            - ./scripts:/app/scripts:ro
-            - /usr/bin/wireguard.sh:/usr/bin/wireguard.sh:ro
-            - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
-            - /usr/bin/openvpn.sh:/usr/bin/openvpn.sh:ro
-            - /etc/ipsec.d:/etc/ipsec.d
-            - /lib/modules:/lib/modules:ro
-            - /etc/wireguard:/etc/wireguard
-            - /etc/sysctl.conf:/etc/sysctl.conf:ro
-            - /etc/sysctl.d:/etc/sysctl.d:ro
-            - /etc/ipsec.conf:/etc/ipsec.conf:ro
-            - /opt/src:/opt/src:ro
-            - /usr/local/sbin:/usr/local/sbin:ro
-            - /usr/local/libexec:/usr/local/libexec:ro
-            - /usr/bin/vnstat:/usr/bin/vnstat:ro
-            # OpenVPN
-            - /etc/openvpn:/etc/openvpn
-            # - /etc/openvpn/server:/etc/openvpn/server
-            # - /etc/openvpn/server/easy-rsa/easyrsa:/etc/openvpn/server/easy-rsa/easyrsa:ro
-            # - /etc/openvpn/client:/etc/openvpn/client
-            # - /etc/openvpn/update-resolv-conf:/etc/openvpn/update-resolv-conf:ro
-            - /var/log/openvpn:/var/log/openvpn
-            - /usr/sbin/openvpn:/usr/sbin/openvpn:ro
-            - /usr/bin/openssl:/usr/bin/openssl:ro
-            # - /etc/ssl:/etc/ssl:ro
-            # - /etc/pki:/etc/pki:ro
+            - ${IKE_CLIENTS_DIR}:${IKE_CLIENTS_DIR}:ro
+            - ${WG_CLIENTS_DIR}:${WG_CLIENTS_DIR}:ro
+            - ${OVPN_CLIENTS_DIR}:${OVPN_CLIENTS_DIR}:ro

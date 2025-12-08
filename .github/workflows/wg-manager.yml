@@ -1,6 +1,6 @@
-name: Build and Deploy keys-bot
+name: Build and Deploy wg-manager
 
-run-name: 'Build and Deploy keys-bot'
+run-name: 'Build and Deploy wg-manager'
 
 on:
     workflow_dispatch:
@@ -24,22 +24,19 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Setup Node
-              uses: actions/setup-node@v4
+            - name: Set up Go
+              uses: actions/setup-go@v5
               with:
-                  node-version: 22
+                  go-version: '1.22'
 
-            - name: Install dependencies
-              run: npm ci
-              working-directory: apps/keys
+            - name: Build binary
+              run: |
+                  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
+              working-directory: apps/infrastructure/wireguard
 
-            - name: Build
-              run: npm run build
-              working-directory: apps/keys
-
-            - name: Archive dist
-              run: tar -czf dist.tar.gz dist
-              working-directory: apps/keys
+            - name: Archive service
+              run: tar -czf service.tar.gz wgmanager wgmanager.service
+              working-directory: apps/infrastructure/wireguard
 
             - name: Upload to server
               uses: appleboy/scp-action@v1
@@ -47,8 +44,8 @@ jobs:
                   host: ${{ secrets.VPN_SERVER_HOST }}
                   username: ${{ secrets.VPN_SERVER_USERNAME }}
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
-                  source: ./apps/keys/dist.tar.gz
-                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
+                  source: ./apps/infrastructure/wireguard/service.tar.gz
+                  target: ${{ secrets.WG_SERVICE_DIRECTORY }}
 
             - name: Deploy via SSH
               uses: appleboy/ssh-action@v1.2.2
@@ -57,10 +54,9 @@ jobs:
                   username: ${{ secrets.VPN_SERVER_USERNAME }}
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
                   script: |
-                      cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/apps/keys
-                      git pull
-                      rm -rf dist
-                      tar -xzf dist.tar.gz
-                      rm dist.tar.gz
-                      docker compose build --no-cache app
-                      docker compose up -d app
+                      cd ${{ secrets.WG_SERVICE_DIRECTORY }}
+                      tar -xzf service.tar.gz
+                      rm service.tar.gz
+                      sudo mv wgmanager /usr/local/bin
+                      sudo systemctl daemon-reload
+                      sudo systemctl restart wgmanager.service

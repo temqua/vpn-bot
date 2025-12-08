@@ -1,0 +1,60 @@
+name: Build & Deploy VPN Services (No Registry)
+
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: 'Target environment'
+                required: true
+                default: t
+                type: choice
+                options:
+                    - turkey
+                    - us
+                    - neth
+                    - fin
+
+jobs:
+    build-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup SSH
+              uses: webfactory/ssh-agent@v0.8.1
+              with:
+                  ssh-private-key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+
+            - name: Build IKEv2 image
+              working-directory: apps/infrastructure
+              run: |
+                  docker compose build ikev2_service
+
+            - name: Push IKEv2 to server
+              run: |
+                  docker save ikev2_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+
+            - name: Build WireGuard image
+              run: |
+                  docker compose build wg_service
+
+            - name: Push WireGuard to server
+              run: |
+                  docker save wg_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+
+            - name: Build OpenVPN image
+              run: |
+                  docker compose build openvpn_service
+
+            - name: Push OpenVPN to server
+              run: |
+                  docker save openvpn_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+
+            - name: Restart containers on server
+              run: |
+                  ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
+                    cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/apps/infrastructure
+                    docker compose up -d
+                  '

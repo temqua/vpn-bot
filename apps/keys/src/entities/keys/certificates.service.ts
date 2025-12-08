@@ -1,19 +1,15 @@
 import type { Message } from 'node-telegram-bot-api';
-import childProcess from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import { access, constants } from 'node:fs/promises';
-import util from 'node:util';
 import { basename } from 'path';
 import bot from '../../bot';
 import { ICertificatesService } from '../../contracts';
 import { VPNProtocol } from '../../enums';
-import env from '../../env';
 import logger from '../../logger';
 import { IKEv2KeysService } from './ikev2-users';
 import { OpenVPNKeysService } from './openvpn-users';
 import { WireguardKeysService } from './wireguard-users';
-
-const exec = util.promisify(childProcess.exec);
+import env from '../../env';
 
 export class CertificatesService {
 	private service: ICertificatesService;
@@ -59,53 +55,55 @@ export class CertificatesService {
 		this.log(`create ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while creating ${this.protocol} client ${username}`;
+		let response;
 		try {
-			const command = `bash ${env.CREATE_PATH} ${username.toString()} ${this.protocol}`;
-			logger.log(command);
-			const { stdout, stderr } = await exec(command);
-			if (stdout) {
-				await bot.sendMessage(message.chat.id, stdout.toString());
-			}
-			if (stderr) {
-				logger.error(errorHeader);
-				logger.error(stderr.toString());
-				await bot.sendMessage(chatId, errorHeader);
-				await bot.sendMessage(chatId, stderr.toString());
-			}
-			logger.success(`${this.protocol} user ${username} creation was handled`);
-			await this.getFile(message, username);
-			if (this.protocol === VPNProtocol.WG) {
-				await this.getQRCode(message, username);
-			}
+			response = await this.request('create', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
-			logger.error(errorHeader);
-			logger.error(error);
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
+			bot.sendMessage(chatId, errorHeader);
+			bot.sendMessage(chatId, `${error}`);
+			return;
+		}
+		if (response.ok) {
+			try {
+				await this.getFile(message, username);
+				if (this.protocol === VPNProtocol.WG) {
+					await this.getQRCode(message, username);
+				}
+				logger.success(`${this.protocol} user ${username} creation was handled`);
+			} catch (error) {
+				logger.error(errorHeader);
+				logger.error(error);
+				bot.sendMessage(chatId, errorHeader);
+				bot.sendMessage(chatId, `${error}`);
+			}
+		} else {
+			const errMessage = `${this.protocol} user ${username} creation failed ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 	async delete(message: Message, username: string | undefined) {
 		this.log(`delete ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while deleting ${this.protocol} client ${username}`;
+		let response;
 		try {
-			const { stdout, stderr } = await exec(`bash ${env.DELETE_PATH} ${username.toString()} ${this.protocol}`);
-			if (stdout) {
-				await bot.sendMessage(chatId, stdout.toString());
-			}
-			if (stderr) {
-				logger.error(errorHeader);
-				logger.error(stderr.toString());
-				await bot.sendMessage(chatId, errorHeader);
-				await bot.sendMessage(chatId, stderr.toString());
-				return;
-			}
-			logger.success(`${this.protocol} user ${username} deletion was handled`);
+			response = await this.request('delete', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
-			logger.error(errorHeader);
-			logger.error(error);
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
+			bot.sendMessage(chatId, errorHeader);
+			bot.sendMessage(chatId, `${error}`);
+			return;
+		}
+
+		if (response.ok) {
+			const okMessage = `${this.protocol} user ${username} deletion has been successfully handled`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${this.protocol} user ${username} deletion failed ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 
@@ -113,22 +111,24 @@ export class CertificatesService {
 		this.log('getAll');
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while getting ${this.protocol} clients`;
+
+		let response;
 		try {
-			const { stdout, stderr } = await exec(`${this.protocol}.sh --listclients`);
-			if (stderr) {
-				logger.error(errorHeader);
-				logger.error(stderr.toString());
-				await bot.sendMessage(chatId, errorHeader);
-				await bot.sendMessage(chatId, stderr.toString());
-				return;
-			}
-			await bot.sendMessage(chatId, stdout);
-			logger.success(`${this.protocol} user list was handled`);
+			response = await this.request('list');
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
-			logger.error(errorHeader);
-			logger.error(error);
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
+			bot.sendMessage(chatId, errorHeader);
+			bot.sendMessage(chatId, `${error}`);
+			return;
+		}
+
+		if (response.ok) {
+			const okMessage = `${this.protocol} user list fetching has been successfully handled`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${errorHeader} ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 
@@ -136,22 +136,46 @@ export class CertificatesService {
 		this.log(`export ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while exporting ${this.protocol} client ${username}`;
+		let response;
 		try {
-			const { stdout, stderr } = await exec(`${this.protocol}.sh --exportclient ${username}`);
-			if (stderr) {
-				logger.error(errorHeader);
-				logger.error(stderr.toString());
-				await bot.sendMessage(chatId, errorHeader);
-				await bot.sendMessage(chatId, stderr.toString());
-				return;
-			}
-			await bot.sendMessage(chatId, stdout);
-			logger.success(`${this.protocol} user ${username} has been successfully exported`);
+			response = await this.request('export', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
 		} catch (error) {
-			logger.error(errorHeader);
-			logger.error(error);
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
+			bot.sendMessage(chatId, errorHeader);
+			bot.sendMessage(chatId, `${error}`);
+			return;
+		}
+		if (response.ok) {
+			const okMessage = `${this.protocol} user ${username} has been successfully exported`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${errorHeader} ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
+		}
+	}
+
+	async pause(message: Message, username: string) {
+		this.log(`pause ${username}`);
+		const chatId = message.chat.id;
+		const errorHeader = `Error occurred while temporary disabling ${this.protocol} client ${username}`;
+		let response;
+		try {
+			response = this.request('pause', username);
+			const result = await response.text();
+			bot.sendMessage(chatId, result);
+		} catch (error) {
+			bot.sendMessage(chatId, errorHeader);
+			bot.sendMessage(chatId, `${error}`);
+			return;
+		}
+
+		if (response.ok) {
+			const okMessage = `${this.protocol} user ${username} has been successfully disabled in wg before next wg-quick@wg0.service restart`;
+			logger.success(okMessage);
+		} else {
+			const errMessage = `${errorHeader} ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
 		}
 	}
 
@@ -177,6 +201,19 @@ export class CertificatesService {
 			await bot.sendMessage(chatId, errorHeader);
 			await bot.sendMessage(chatId, `${error}`);
 		}
+	}
+
+	private async request(command: string, username?: string) {
+		const qs = username
+			? `?${new URLSearchParams({
+					username,
+				}).toString()}`
+			: '';
+		return await fetch(`${env.HOST_URL}:${this.service.port}/${command}${qs}`, {
+			headers: {
+				'X-Auth-Token': env.SERVICE_TOKEN,
+			},
+		});
 	}
 
 	private log(message: string) {

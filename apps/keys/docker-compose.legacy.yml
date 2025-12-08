@@ -1,12 +1,17 @@
 services:
+    base:
+        build:
+            context: .
+            dockerfile: ./Dockerfile.base
+        image: vpn-base
+
     app:
         image: keys-bot
         container_name: keys-bot
         build:
             context: .
-            dockerfile: ./Dockerfile.dev
-        env_file: .env.local
-        network_mode: host
+            dockerfile: ./Dockerfile
+        env_file: .env
         cap_add:
             - NET_ADMIN
         devices:
@@ -33,12 +38,12 @@ services:
             - /usr/bin/vnstat:/usr/bin/vnstat:ro
             # OpenVPN
             - /etc/openvpn:/etc/openvpn
-            - /etc/openvpn/server:/etc/openvpn/server
-            - /etc/openvpn/server/easy-rsa/easyrsa:/etc/openvpn/server/easy-rsa/easyrsa:ro
-            - /etc/openvpn/client:/etc/openvpn/client
-            - /etc/openvpn/update-resolv-conf:/etc/openvpn/update-resolv-conf:ro
+            # - /etc/openvpn/server:/etc/openvpn/server
+            # - /etc/openvpn/server/easy-rsa/easyrsa:/etc/openvpn/server/easy-rsa/easyrsa:ro
+            # - /etc/openvpn/client:/etc/openvpn/client
+            # - /etc/openvpn/update-resolv-conf:/etc/openvpn/update-resolv-conf:ro
             - /var/log/openvpn:/var/log/openvpn
             - /usr/sbin/openvpn:/usr/sbin/openvpn:ro
             - /usr/bin/openssl:/usr/bin/openssl:ro
-            - /etc/ssl:/etc/ssl:ro
-            - /etc/pki:/etc/pki:ro
+            # - /etc/ssl:/etc/ssl:ro
+            # - /etc/pki:/etc/pki:ro
