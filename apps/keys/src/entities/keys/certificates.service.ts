@@ -207,7 +207,7 @@ export class CertificatesService {
 		const qs = username
 			? `?${new URLSearchParams({
 					username,
-				}).toString()}}`
+				}).toString()}`
 			: '';
 		return await fetch(`${env.HOST_URL}:${this.service.port}/${command}${qs}`, {
 			headers: {
