@@ -1,6 +1,6 @@
-name: Build and Deploy users-bot
+name: Build and Transfer users-bot
 
-run-name: 'Build and Deploy users-bot'
+run-name: 'Build and Transfer users-bot'
 
 on:
     workflow_dispatch:
