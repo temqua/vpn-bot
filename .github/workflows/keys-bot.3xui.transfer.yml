@@ -29,14 +29,14 @@ jobs:
               working-directory: apps/keys
               run: |
                   docker save keys-bot:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
-                  
+
             - name: Upload docker-compose.yml via SSH
               working-directory: apps/keys            
               run: |
-                  cat docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml"
+                  cat docker-compose.bot.3xui.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml"
 
             - name: Restart container on server
               run: |
                   ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
                     cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
-                    docker compose up -d
+                    docker compose -f ./docker-compose.bot.3xui.yml
