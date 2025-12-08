@@ -24,6 +24,14 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4   
 
+            - name: Create .env file
+              run: |
+                touch .env
+                echo "IKE_CLIENTS_DIR=/srv/ikev2/clients" >> .env
+                echo "WG_CLIENTS_DIR=/srv/wireguard/clients" >> .env
+                echo "OVPN_CLIENTS_DIR=/srv/openvpn/clients" >> .env              
+              working-directory: apps/keys
+
             - name: Build Docker image
               run: docker compose -f ./docker-compose.yml build --no-cache
               working-directory: apps/keys

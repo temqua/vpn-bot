@@ -9,6 +9,6 @@ services:
         restart: always
         network_mode: host
         volumes:
-            - /srv/ikev2/clients:${IKE_CLIENTS_DIR}:ro
-            - /srv/wireguard/clients:${WG_CLIENTS_DIR}:ro
-            - /srv/openvpn/clients:${OVPN_CLIENTS_DIR}:ro
+            - ${IKE_CLIENTS_DIR}:${IKE_CLIENTS_DIR}:ro
+            - ${WG_CLIENTS_DIR}:${WG_CLIENTS_DIR}:ro
+            - ${OVPN_CLIENTS_DIR}:${OVPN_CLIENTS_DIR}:ro
