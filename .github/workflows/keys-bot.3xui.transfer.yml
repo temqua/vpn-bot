@@ -29,7 +29,7 @@ jobs:
             - name: Add VPN server to known hosts
               run: |
                   mkdir -p ~/.ssh
-                  ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts              
+                  ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts
 
             - name: Build Docker image
               working-directory: apps/keys
@@ -41,7 +41,7 @@ jobs:
                   docker save keys-bot:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
 
             - name: Upload docker-compose.yml via SSH
-              working-directory: apps/keys            
+              working-directory: apps/keys
               run: |
                   cat docker-compose.bot.3xui.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml"
 
@@ -49,4 +49,5 @@ jobs:
               run: |
                   ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
                     cd ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
-                    docker compose -f ./docker-compose.bot.3xui.yml
+                    docker compose -f ./docker-compose.bot.3xui.yml up -d
+                  '
