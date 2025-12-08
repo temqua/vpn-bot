@@ -1,7 +1,7 @@
 {
 	"name": "vpn-ecosystem",
-	"version": "3.2.0",
-	"description": "Bunch of Telegram bots for Tesseract VPN management",
+	"version": "4.0.0",
+	"description": "Infrastructure and bunch of Telegram bots for Tesseract VPN management",
 	"main": "src/main.ts",
 	"type": "module",
 	"scripts": {
