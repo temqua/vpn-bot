@@ -23,6 +23,10 @@ jobs:
                   mkdir -p ~/.ssh
                   ssh-keyscan -H ${{ secrets.DB_SERVER_HOST }} >> ~/.ssh/known_hosts
 
+            - name: Add sheets-api.json
+              working-directory: apps/users
+              run: cat ${{ secrets.SHEETS_API }} > sheets-api.json                  
+
             - name: Build Docker image
               working-directory: apps/users
               run: docker compose build --no-cache
