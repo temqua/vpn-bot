@@ -1,0 +1,96 @@
+name: Build & Deploy VPN Infrastructure
+
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: 'Target environment'
+                required: true
+                default: t
+                type: choice
+                options:
+                    - turkey
+                    - us
+                    - neth
+                    - fin
+
+jobs:
+    build-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Build IKEv2 image
+              working-directory: apps/infrastructure
+              run: |
+                  docker compose build ikev2_service
+
+            - name: Save IKEv2 image
+              run: docker save ikev2_service -o ikev2_service.tar
+              working-directory: apps/infrastructure
+
+            - name: Upload IKEv2 image
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ secrets.VPN_SERVER_HOST }}
+                  username: ${{ secrets.VPN_SERVER_USERNAME }}
+                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+                  source: ./apps/infrastructure/ikev2_service.tar
+                  target: ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
+
+            - name: Build WireGuard image
+              working-directory: apps/infrastructure
+              run: |
+                  docker compose build wg_service
+
+            - name: Save WireGuard image
+              run: docker save wg_service -o wg_service.tar
+              working-directory: apps/infrastructure
+
+            - name: Upload WireGuard image
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ secrets.VPN_SERVER_HOST }}
+                  username: ${{ secrets.VPN_SERVER_USERNAME }}
+                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+                  source: ./apps/infrastructure/wg_service.tar
+                  target: ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
+
+            - name: Build OpenVPN image
+              working-directory: apps/infrastructure
+              run: |
+                  docker compose build opevpn_service
+
+            - name: Save OpenVPN image
+              working-directory: apps/infrastructure
+              run: docker save opevpn_service -o opevpn_service.tar
+
+            - name: Upload OpenVPN image
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ secrets.VPN_SERVER_HOST }}
+                  username: ${{ secrets.VPN_SERVER_USERNAME }}
+                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+                  source: ./apps/infrastructure/opevpn_service.tar
+                  target: ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
+
+            - name: Upload compose file
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ secrets.VPN_SERVER_HOST }}
+                  username: ${{ secrets.VPN_SERVER_USERNAME }}
+                  key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+                  source: ./apps/infrastructure/docker-compose.yml
+                  target: ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
+
+            - name: Restart containers on server
+              run: ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
+                  cd ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
+                  docker load -i ikev2_service.tar
+                  docker load -i wg_service.tar
+                  docker load -i openvpn_service.tar
+                  docker compose up -d
+                  rm ikev2_service.tar wg_service.tar openvpn_service.tar
+                  '
