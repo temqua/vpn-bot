@@ -47,7 +47,7 @@ jobs:
                   username: ${{ secrets.VPN_SERVER_USERNAME }}
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
                   source: ./apps/keys/keys-bot.tar
-                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
+                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/keys-bot.tar
 
             - name: Upload compose file
               uses: appleboy/scp-action@v1
@@ -56,7 +56,7 @@ jobs:
                   username: ${{ secrets.VPN_SERVER_USERNAME }}
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
                   source: ./apps/keys/docker-compose.yml
-                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
+                  target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml
 
             - name: Load and run Docker image
               uses: appleboy/ssh-action@v1.2.2

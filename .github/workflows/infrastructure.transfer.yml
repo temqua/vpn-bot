@@ -69,7 +69,7 @@ jobs:
                   username: ${{ secrets.VPN_SERVER_USERNAME }}
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
                   source: ./apps/infrastructure/docker-compose.yml
-                  target: ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
+                  target: ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}/docker-compose.yml
 
             - name: Restart containers on server
               run: |
