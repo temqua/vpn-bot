@@ -22,15 +22,18 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Build Docker image
-              run: docker compose -f ./docker-compose.3xui.yml build --no-cache
               working-directory: apps/keys
+              run: docker compose -f ./docker-compose.bot.3xui.yml build --no-cache
+
             - name: Upload Docker image
               working-directory: apps/keys
               run: |
                   docker save keys-bot:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+                  
             - name: Upload docker-compose.yml via SSH
+              working-directory: apps/keys            
               run: |
-                  cat ./apps/keys/docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml"
+                  cat docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_APP_DIRECTORY }}/docker-compose.yml"
 
             - name: Restart container on server
               run: |
