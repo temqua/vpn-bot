@@ -1,6 +1,6 @@
-name: Build and Deploy keys-bot
+name: Build and Transfer keys-bot
 
-run-name: 'Build and Deploy keys-bot by save/load'
+run-name: 'Build and Transfer keys-bot'
 
 on:
     workflow_dispatch:

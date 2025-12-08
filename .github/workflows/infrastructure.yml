@@ -1,4 +1,4 @@
-name: Build & Deploy VPN Services (No Registry)
+name: Build & Deploy VPN Infrastructure
 
 on:
     workflow_dispatch:
