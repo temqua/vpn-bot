@@ -4,6 +4,7 @@ const env = cleanEnv(process.env, {
 	IKE_CLIENTS_DIR: str({ default: '/srv/ikev2/clients' }),
 	WG_CLIENTS_DIR: str({ default: '/srv/wireguard/clients' }),
 	OVPN_CLIENTS_DIR: str({ default: '/srv/openvpn/clients' }),
+	HOST_URL: str({ default: 'http://172.17.0.1' }),
 	IKE_RECEIVER_PORT: num({ default: 8090 }),
 	WG_RECEIVER_PORT: num({ default: 8091 }),
 	OVPN_RECEIVER_PORT: num({ default: 8092 }),

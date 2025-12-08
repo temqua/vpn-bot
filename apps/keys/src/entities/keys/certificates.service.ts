@@ -209,7 +209,7 @@ export class CertificatesService {
 					username,
 				}).toString()}}`
 			: '';
-		return await fetch(`http://0.0.0.0:${this.service.port}/${command}${qs}`, {
+		return await fetch(`${env.HOST_URL}:${this.service.port}/${command}${qs}`, {
 			headers: {
 				'X-Auth-Token': env.SERVICE_TOKEN,
 			},
