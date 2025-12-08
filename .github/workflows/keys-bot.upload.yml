@@ -46,7 +46,7 @@ jobs:
                   host: ${{ secrets.VPN_SERVER_HOST }}
                   username: ${{ secrets.VPN_SERVER_USERNAME }}
                   key: ${{ secrets.VPN_SERVER_SSH_KEY }}
-                  source: ./keys-bot.tar
+                  source: ./apps/keys/keys-bot.tar
                   target: ${{ secrets.VPN_SERVER_APP_DIRECTORY }}
 
             - name: Load and run Docker image
