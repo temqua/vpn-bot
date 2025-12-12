@@ -27,6 +27,12 @@ CONF_FILE="/etc/ipsec.d/.vpnconfig"
 IKEV2_CONF="/etc/ipsec.d/ikev2.conf"
 IPSEC_CONF="/etc/ipsec.conf"
 
+get_server_address() {
+  server_addr=$(grep -s "leftcert=" "$IKEV2_CONF" | cut -f2 -d= | head -n 1)
+  [ -z "$server_addr" ] && server_addr=$(grep -s "leftcert=" "$IPSEC_CONF" | cut -f2 -d= | head -n 1)
+  check_ip "$server_addr" || check_dns_name "$server_addr" || exiterr "Could not get VPN server address."
+}
+
   print_client_info() {
 cat <<'EOF'
 Client configuration is available at:

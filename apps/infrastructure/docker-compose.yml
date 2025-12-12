@@ -21,6 +21,7 @@ services:
         network_mode: host
         volumes:
             - /etc/ipsec.d:/etc/ipsec.d
+            - /etc/ipsec.d/.vpnconfig:/etc/ipsec.d/.vpnconfig:ro
             - /srv/ikev2:/srv/ikev2
             - /lib/modules:/lib/modules:ro
             - /usr/bin/ikev2.sh:/usr/bin/ikev2.sh:ro
