@@ -116,10 +116,13 @@ get_p12_password() {
 
 create_mobileconfig() {
     [ -z "${server_addr:-}" ] && get_server_address
-    p12_base64=$(base64 -w 52 "$CLIENT_PATH.p12")
+    p12_file_enc="$CLIENT_PATH.enc.p12"
+    p12_base64=$(base64 -w 52 "$p12_file_enc")
+    /bin/rm -f "$p12_file_enc"
+    [ -z "$p12_base64" ] && exiterr "Could not encode .p12 file."
     ca_base64=$(certutil -L -d "$CERT_DB" -n "$CA_NAME" -a | grep -v CERTIFICATE)
     uuid1=$(uuidgen)
-
+    [ -z "$uuid1" ] && exiterr "Could not generate UUID value."
     mc_file="$CLIENT_PATH.mobileconfig"
 cat > "$mc_file" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
