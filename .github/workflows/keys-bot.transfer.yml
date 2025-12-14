@@ -49,7 +49,13 @@ jobs:
             - name: Upload Docker image
               working-directory: apps/keys
               run: |
-                  docker save keys-bot:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+                  docker save keys-bot:latest \
+                  | gzip \
+                  | ssh -o ServerAliveInterval=15 \
+                          -o ServerAliveCountMax=8 \
+                          ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
+                          'gunzip | docker load'
+
             - name: Upload docker-compose.yml via SSH
               working-directory: apps/keys
               run: |

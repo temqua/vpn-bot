@@ -41,8 +41,12 @@ jobs:
             - name: Upload IKEv2 to server
               working-directory: apps/infrastructure
               run: |
-                  docker save ikev2_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
-
+                  docker save ikev2_service:latest \
+                  | gzip \
+                  | ssh -o ServerAliveInterval=15 \
+                          -o ServerAliveCountMax=8 \
+                          ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
+                          'gunzip | docker load'
             - name: Build WireGuard image
               working-directory: apps/infrastructure
               run: |
@@ -51,7 +55,12 @@ jobs:
             - name: Upload WireGuard to server
               working-directory: apps/infrastructure
               run: |
-                  docker save wg_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+                  docker save wg_service:latest \
+                  | gzip \
+                  | ssh -o ServerAliveInterval=15 \
+                          -o ServerAliveCountMax=8 \
+                          ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
+                          'gunzip | docker load'
 
             - name: Build OpenVPN image
               working-directory: apps/infrastructure
@@ -61,7 +70,12 @@ jobs:
             - name: Upload OpenVPN to server
               working-directory: apps/infrastructure
               run: |
-                  docker save openvpn_service:latest | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} 'docker load'
+                  docker save openvpn_service:latest \
+                  | gzip \
+                  | ssh -o ServerAliveInterval=15 \
+                          -o ServerAliveCountMax=8 \
+                          ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
+                          'gunzip | docker load'
 
             - name: Upload docker-compose.yml via SSH
               run: |
