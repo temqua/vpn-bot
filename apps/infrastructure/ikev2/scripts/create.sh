@@ -59,13 +59,7 @@ create_client_cert() {
         --extKeyUsage serverAuth,clientAuth -8 "$client_name" >/dev/null 2>&1
 }
 
-install_base64_uuidgen() {
-    apt-get -yqq update
-    apt-get -yqq install -y coreutils uuid-runtime jq >/dev/null
-}
-
 export_p12_file() {
-    install_base64_uuidgen
     p12_file="$CLIENT_PATH.p12"
     pk12util -d "$CERT_DB" -n "$client_name" -o "$p12_file" >/dev/null
     chmod 600 "$p12_file"
