@@ -14,7 +14,7 @@ EXPOSE 8090
 FROM debian:latest
 WORKDIR /server
 
-RUN apt-get update && apt-get -yqq install libnss3-tools libnss3-dev ppp zip unzip
+RUN apt-get update && apt-get -yqq install libnss3-tools libnss3-dev ppp zip unzip jq libplist-utils
 
 # переносим бинарник
 COPY --from=builder /src/receiver /server/receiver
