@@ -155,5 +155,7 @@ create_android_profile
 print_client_info
 
 # Создание zip-архива
-cd "$clients_directory/$client_name"
-zip -r "$client_name.zip" "$client_name.*"
+cd "$clients_directory"
+zip -r "$client_name.zip" "$client_name"
+mv "$client_name.zip" "$client_name"
+chmod 666 $client_name/$client_name.zip
