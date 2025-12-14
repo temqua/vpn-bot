@@ -32,6 +32,7 @@ services:
             - /usr/local/sbin:/usr/local/sbin:ro
             - /usr/local/libexec:/usr/local/libexec:ro
             - /run/pluto:/run/pluto
+            - /usr/bin/openssl:/usr/bin/openssl:ro
     wg_service:
         build:
             context: ./wireguard
