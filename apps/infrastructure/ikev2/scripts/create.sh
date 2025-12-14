@@ -24,6 +24,7 @@ CERT_DB="sql:/etc/ipsec.d"
 IKEV2_CONF="/etc/ipsec.d/ikev2.conf"
 IPSEC_CONF="/etc/ipsec.conf"
 CONF_FILE="/etc/ipsec.d/.vpnconfig"
+CONF_DIR="/etc/ipsec.d"
 client_validity=120  # дни
 
 # -------------------------------
@@ -102,7 +103,7 @@ create_p12_password() {
 }
 
 get_p12_password() {
-    p12_password=$(grep -s '^IKEV2_CONFIG_PASSWORD=.\+' "$CONF_FILE" | tail -n 1 | cut -f2- -d= | sed -e "s/^'//" -e "s/'$//")
+    p12_password=$(grep -s 'IKEV2_CONFIG_PASSWORD=.\+' "$CONF_FILE" | tail -n 1 | cut -f2- -d= | sed -e "s/^'//" -e "s/'$//")
     if [ -z "$p12_password" ]; then
       create_p12_password
       if [ -n "$CONF_FILE" ] && [ -n "$CONF_DIR" ]; then
