@@ -31,8 +31,8 @@ client_validity=120  # дни
 # -------------------------------
 
 get_server_address() {
-    server_addr=$(grep -s "^leftcert=" "$IKEV2_CONF" | head -n1 | cut -d= -f2- | xargs)
-    [ -z "$server_addr" ] && server_addr=$(grep -s "^leftcert=" "$IPSEC_CONF" | head -n1 | cut -d= -f2- | xargs)
+    server_addr=$(grep -s "leftcert=" "$IKEV2_CONF" | head -n1 | cut -d= -f2- | xargs)
+    [ -z "$server_addr" ] && server_addr=$(grep -s "leftid=" "$IPSEC_CONF" | head -n1 | cut -d= -f2- | xargs)
     if [ -z "$server_addr" ]; then
         echo "Could not get VPN server address."
         exit 1
