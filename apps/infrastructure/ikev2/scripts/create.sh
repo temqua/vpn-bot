@@ -23,7 +23,7 @@ CA_NAME="IKEv2 VPN CA"
 CERT_DB="sql:/etc/ipsec.d"
 IKEV2_CONF="/etc/ipsec.d/ikev2.conf"
 IPSEC_CONF="/etc/ipsec.conf"
-
+CONF_FILE="/etc/ipsec.d/.vpnconfig"
 client_validity=120  # дни
 
 # -------------------------------
@@ -61,8 +61,32 @@ create_client_cert() {
 
 export_p12_file() {
     p12_file="$CLIENT_PATH.p12"
-    pk12util -d "$CERT_DB" -n "$client_name" -o "$p12_file" -W ""
+    pk12util -d "$CERT_DB" -n "$client_name" -o "$p12_file" -W "$p12_password"
     chmod 600 "$p12_file"
+}
+
+create_p12_password() {
+    p12_password=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' </dev/urandom | head -c 18)
+    [ -z "$p12_password" ] && {
+        echo "Error: could not generate p12 password" >&2
+        exit 1
+    }
+}
+
+get_p12_password() {
+    if [ -f "$CONF_FILE" ]; then
+        p12_password=$(grep '^IKEV2_CONFIG_PASSWORD=' "$CONF_FILE" \
+            | tail -n1 \
+            | cut -d= -f2- \
+            | sed "s/^'//;s/'$//")
+    fi
+
+    if [ -z "${p12_password:-}" ]; then
+        create_p12_password
+        mkdir -p "$(dirname "$CONF_FILE")"
+        echo "IKEV2_CONFIG_PASSWORD='$p12_password'" >> "$CONF_FILE"
+        chmod 600 "$CONF_FILE"
+    fi
 }
 
 create_mobileconfig() {
