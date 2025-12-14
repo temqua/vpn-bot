@@ -59,10 +59,10 @@ export class CertificatesService {
 		try {
 			response = await this.request('create', username);
 			const result = await response.text();
-			bot.sendMessage(chatId, result);
+			await bot.sendMessage(chatId, result);
 		} catch (error) {
-			bot.sendMessage(chatId, errorHeader);
-			bot.sendMessage(chatId, `${error}`);
+			await bot.sendMessage(chatId, errorHeader);
+			await bot.sendMessage(chatId, `${error}`);
 			return;
 		}
 		if (response.ok) {
@@ -75,8 +75,8 @@ export class CertificatesService {
 			} catch (error) {
 				logger.error(errorHeader);
 				logger.error(error);
-				bot.sendMessage(chatId, errorHeader);
-				bot.sendMessage(chatId, `${error}`);
+				await bot.sendMessage(chatId, errorHeader);
+				await bot.sendMessage(chatId, `${error}`);
 			}
 		} else {
 			const errMessage = `${this.protocol} user ${username} creation failed ${response.status} ${response.statusText}`;
