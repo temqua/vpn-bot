@@ -167,12 +167,6 @@ $ca_base64
 </plist>
 EOF
     chmod 600 "$mc_file"
-
-    # Проверка синтаксиса mobileconfig
-    if ! plistutil -lint "$mc_file"; then
-        echo "Error: mobileconfig file is invalid!"
-        exit 1
-    fi
 }
 
 create_android_profile() {
