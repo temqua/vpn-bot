@@ -46,6 +46,12 @@ $CLIENT_PATH.p12 (Windows & Linux)
 $CLIENT_PATH.sswan (Android)
 $CLIENT_PATH.mobileconfig (iOS & macOS)
 EOF
+cat <<EOF
+
+*IMPORTANT* Password for client config files:
+$p12_password
+Write this down, you'll need it for import!
+EOF
 }
 
 create_client_cert() {
@@ -60,10 +66,32 @@ create_client_cert() {
 }
 
 export_p12_file() {
-    p12_file="$CLIENT_PATH.p12"
-    pk12util -d "$CERT_DB" -n "$client_name" -o "$p12_file" -W "$p12_password"
-    chmod 600 "$p12_file"
+  echo "Creating client configuration..."
+  get_p12_password
+  p12_file="$CLIENT_PATH.p12"
+  p12_file_enc="$CLIENT_PATH.enc.p12"
+  pk12util -W "$p12_password" -d "$CERT_DB" -n "$client_name" -o "$p12_file_enc" >/dev/null || exit 1
+  ca_crt="$CLIENT_PATH.ca.crt"
+  client_crt="$CLIENT_PATH.client.crt"
+  client_key="$CLIENT_PATH.client.key"
+  pem_file="$CLIENT_PATH.temp.pem"
+  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -cacerts -nokeys -out "$ca_crt" || exit 1
+  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -clcerts -nokeys -out "$client_crt" || exit 1
+  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -passout "pass:$p12_password" \
+    -nocerts -out "$client_key" || exit 1
+  cat "$client_key" "$client_crt" "$ca_crt" > "$pem_file"
+  /bin/rm -f "$client_key" "$client_crt" "$ca_crt"
+  openssl pkcs12 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in "$pem_file" -out "$p12_file_enc" \
+    -legacy -name "$client_name" -passin "pass:$p12_password" -passout "pass:$p12_password" || exit 1
+  if [ "$use_config_password" = 0 ]; then
+    openssl pkcs12 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in "$pem_file" -out "$p12_file" \
+      -legacy -name "$client_name" -passin "pass:$p12_password" -passout pass: || exit 1
+  fi
+  /bin/rm -f "$pem_file"
+  /bin/cp -f "$p12_file_enc" "$p12_file"
+  chmod 600 "$p12_file"
 }
+
 
 create_p12_password() {
     p12_password=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' </dev/urandom | head -c 18)
@@ -74,18 +102,14 @@ create_p12_password() {
 }
 
 get_p12_password() {
-    if [ -f "$CONF_FILE" ]; then
-        p12_password=$(grep '^IKEV2_CONFIG_PASSWORD=' "$CONF_FILE" \
-            | tail -n1 \
-            | cut -d= -f2- \
-            | sed "s/^'//;s/'$//")
-    fi
-
-    if [ -z "${p12_password:-}" ]; then
-        create_p12_password
-        mkdir -p "$(dirname "$CONF_FILE")"
-        echo "IKEV2_CONFIG_PASSWORD='$p12_password'" >> "$CONF_FILE"
+    p12_password=$(grep -s '^IKEV2_CONFIG_PASSWORD=.\+' "$CONF_FILE" | tail -n 1 | cut -f2- -d= | sed -e "s/^'//" -e "s/'$//")
+    if [ -z "$p12_password" ]; then
+      create_p12_password
+      if [ -n "$CONF_FILE" ] && [ -n "$CONF_DIR" ]; then
+        mkdir -p "$CONF_DIR"
+        printf '%s\n' "IKEV2_CONFIG_PASSWORD='$p12_password'" >> "$CONF_FILE"
         chmod 600 "$CONF_FILE"
+      fi
     fi
 }
 
