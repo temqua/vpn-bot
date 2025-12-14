@@ -56,12 +56,12 @@ create_client_cert() {
         -k rsa -g 3072 -v "$client_validity" \
         -d "$CERT_DB" -t ",," \
         --keyUsage digitalSignature,keyEncipherment \
-        --extKeyUsage serverAuth,clientAuth -8 "$client_name" >/dev/null 2>&1
+        --extKeyUsage serverAuth,clientAuth -8 "$client_name"
 }
 
 export_p12_file() {
     p12_file="$CLIENT_PATH.p12"
-    pk12util -d "$CERT_DB" -n "$client_name" -o "$p12_file" >/dev/null
+    pk12util -d "$CERT_DB" -n "$client_name" -o "$p12_file" -W ""
     chmod 600 "$p12_file"
 }
 
@@ -117,7 +117,7 @@ EOF
     chmod 600 "$mc_file"
 
     # Проверка синтаксиса mobileconfig
-    if ! plistutil -lint "$mc_file" >/dev/null 2>&1; then
+    if ! plistutil -lint "$mc_file"; then
         echo "Error: mobileconfig file is invalid!"
         exit 1
     fi
@@ -142,7 +142,7 @@ EOF
     chmod 600 "$sswan_file"
 
     # Проверка синтаксиса JSON
-    if ! jq . "$sswan_file" >/dev/null 2>&1; then
+    if ! jq . "$sswan_file"; then
         echo "Error: sswan file is invalid!"
         exit 1
     fi
