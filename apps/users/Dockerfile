@@ -1,8 +1,8 @@
-FROM node:lts-alpine
+FROM oven/bun:latest
 WORKDIR /app
-COPY package.json package-lock.json tsconfig.json tsconfig.base.json sheets-api.json ./
+COPY package.json bun.lock tsconfig.json tsconfig.base.json sheets-api.json ./
 COPY src/ ./src
 COPY prisma/ ./prisma
-RUN npm ci && npm run build && NODE_ENV=production npm ci --omit=dev
+RUN bun install --frozen-lockfile --verbose && bunx prisma generate && bun install --omit dev --frozen-lockfile --verbose
 
-CMD ["node", "dist/src/index.js"]
+CMD ["bun", "src/index.ts"]

@@ -1,8 +1,8 @@
-FROM node:lts-bookworm-slim
+FROM oven/bun:latest
 WORKDIR /app
 
-COPY package.json package-lock.json tsconfig.json ./
+COPY package.json bun.lock tsconfig.json ./
 COPY src/ ./src
 
-RUN npm ci && npm run build && NODE_ENV=production npm ci --omit=dev
-CMD [ "node", "dist/src/index.js" ]
+RUN bun install --omit dev --frozen-lockfile
+CMD [ "bun", "src/index.ts" ]

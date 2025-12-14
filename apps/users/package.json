@@ -1,28 +1,30 @@
 {
 	"name": "users-bot",
-	"version": "3.2.0",
+	"version": "3.3.0",
 	"scripts": {
-		"build": "prisma generate && rimraf dist && tsc",
+		"build": "prisma generate",
 		"prestart": "npx prisma generate",
-		"start": "node dist/src/main.js",
-		"seed": "ts-node prisma/seed.ts",
+		"start": "bun src/main.ts",
+		"seed": "bun prisma/seed.ts",
 		"migration": "prisma migrate dev"
 	},
+	"type": "module",
 	"peerDependencies": {
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
-		"@prisma/client": "^6.14.0",
+		"@prisma/adapter-pg": "^7.1.0",
+		"@prisma/client": "^7.1.0",
 		"date-fns": "^4.1.0",
 		"dotenv": "^17.2.1",
 		"envalid": "^8.1.0",
-		"googleapis": "^156.0.0",
-		"node-telegram-bot-api": "^0.66.0"
+		"googleapis": "^168.0.0",
+		"node-telegram-bot-api": "^0.67.0"
 	},
 	"devDependencies": {
 		"@types/ms": "^2.1.0",
-		"@types/node-telegram-bot-api": "^0.64.10",
-		"prisma": "^6.14.0",
+		"@types/node-telegram-bot-api": "^0.64.13",
+		"prisma": "^7.1.0",
 		"rimraf": "^6.0.1"
 	}
 }

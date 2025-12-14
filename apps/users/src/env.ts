@@ -7,6 +7,7 @@ const env = cleanEnv(process.env, {
 	NALOG_USERNAME: str({ default: '' }),
 	NALOG_PASSWORD: str({ default: '' }),
 	NALOG_DEVICE_ID: str({ default: '' }),
+	DATABASE_URL: str({ default: '' }),
 });
 
 export default env;

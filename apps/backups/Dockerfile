@@ -1,9 +1,9 @@
-FROM node:lts-alpine
+FROM oven/bun:alpine
 WORKDIR /backups
 
-RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/main' > /etc/apk/repositories
+RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main/' > /etc/apk/repositories
 RUN apk update && apk upgrade && apk add postgresql17-client
-COPY package.json package-lock.json .env tsconfig.json /backups/
+COPY package.json bun.lock .env tsconfig.json /backups/
 COPY src/ ./src
-RUN npm install && npm run build && npm ci --omit=dev
-CMD [ "node", "dist/src/index.js" ]
+RUN bun install --omit dev --frozen-lockfile
+CMD [ "bun", "src/index.ts" ]
