@@ -63,7 +63,7 @@ create_client_cert() {
         -k rsa -g 3072 -v "$client_validity" \
         -d "$CERT_DB" -t ",," \
         --keyUsage digitalSignature,keyEncipherment \
-        --extKeyUsage serverAuth,clientAuth -8 "$client_name"
+        --extKeyUsage serverAuth,clientAuth -8 "$client_name" >/dev/null 2>&1
 }
 
 export_p12_file() {
@@ -71,22 +71,22 @@ export_p12_file() {
   get_p12_password
   p12_file="$CLIENT_PATH.p12"
   p12_file_enc="$CLIENT_PATH.enc.p12"
-  pk12util -W "$p12_password" -d "$CERT_DB" -n "$client_name" -o "$p12_file_enc" >/dev/null || exit 1
+  pk12util -W "$p12_password" -d "$CERT_DB" -n "$client_name" -o "$p12_file_enc" >/dev/null 2>&1
   ca_crt="$CLIENT_PATH.ca.crt"
   client_crt="$CLIENT_PATH.client.crt"
   client_key="$CLIENT_PATH.client.key"
   pem_file="$CLIENT_PATH.temp.pem"
-  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -cacerts -nokeys -out "$ca_crt" || exit 1
-  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -clcerts -nokeys -out "$client_crt" || exit 1
+  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -cacerts -nokeys -out "$ca_crt" 
+  openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -clcerts -nokeys -out "$client_crt"
   openssl pkcs12 -in "$p12_file_enc" -passin "pass:$p12_password" -passout "pass:$p12_password" \
-    -nocerts -out "$client_key" || exit 1
+    -nocerts -out "$client_key"
   cat "$client_key" "$client_crt" "$ca_crt" > "$pem_file"
   /bin/rm -f "$client_key" "$client_crt" "$ca_crt"
   openssl pkcs12 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in "$pem_file" -out "$p12_file_enc" \
-    -legacy -name "$client_name" -passin "pass:$p12_password" -passout "pass:$p12_password" || exit 1
+    -legacy -name "$client_name" -passin "pass:$p12_password" -passout "pass:$p12_password"
   if [ "$use_config_password" = 0 ]; then
     openssl pkcs12 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in "$pem_file" -out "$p12_file" \
-      -legacy -name "$client_name" -passin "pass:$p12_password" -passout pass: || exit 1
+      -legacy -name "$client_name" -passin "pass:$p12_password" -passout pass:
   fi
   /bin/rm -f "$pem_file"
   /bin/cp -f "$p12_file_enc" "$p12_file"
