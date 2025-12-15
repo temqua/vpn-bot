@@ -188,7 +188,7 @@ EOF
     chmod 600 "$sswan_file"
 
     # Проверка синтаксиса JSON
-    if ! jq . "$sswan_file"; then
+    if ! jq . "$sswan_file" >/dev/null 2>&1; then
         echo "Error: sswan file is invalid!"
         exit 1
     fi
