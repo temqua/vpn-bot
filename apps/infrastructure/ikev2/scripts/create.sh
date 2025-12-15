@@ -63,7 +63,7 @@ create_client_cert() {
         -k rsa -g 3072 -v "$client_validity" \
         -d "$CERT_DB" -t ",," \
         --keyUsage digitalSignature,keyEncipherment \
-        --extKeyUsage serverAuth,clientAuth -8 "$client_name" >/dev/null 2>&1
+        --extKeyUsage serverAuth,clientAuth -8 "$client_name" >/dev/null 2>&1 || exiterr "Failed to create client certificate."
 }
 
 export_p12_file() {
@@ -95,7 +95,7 @@ export_p12_file() {
 
 
 create_p12_password() {
-    p12_password=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' </dev/urandom | head -c 18)
+    p12_password=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' </dev/urandom 2>/dev/null | head -c 18)
     [ -z "$p12_password" ] && {
         echo "Error: could not generate p12 password" >&2
         exit 1
