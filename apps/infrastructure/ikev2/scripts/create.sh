@@ -136,33 +136,148 @@ cat > "$mc_file" <<EOF
       <dict>
         <key>AuthenticationMethod</key>
         <string>Certificate</string>
+        <key>ChildSecurityAssociationParameters</key>
+        <dict>
+          <key>DiffieHellmanGroup</key>
+          <integer>19</integer>
+          <key>EncryptionAlgorithm</key>
+          <string>AES-256-GCM</string>
+          <key>LifeTimeInMinutes</key>
+          <integer>1410</integer>
+        </dict>
+        <key>DeadPeerDetectionRate</key>
+        <string>Medium</string>
+        <key>DisableRedirect</key>
+        <true/>
+        <key>EnableCertificateRevocationCheck</key>
+        <integer>0</integer>
+        <key>EnablePFS</key>
+        <integer>0</integer>
+        <key>IKESecurityAssociationParameters</key>
+        <dict>
+          <key>DiffieHellmanGroup</key>
+          <integer>19</integer>
+          <key>EncryptionAlgorithm</key>
+          <string>AES-256-GCM</string>
+          <key>IntegrityAlgorithm</key>
+          <string>SHA2-256</string>
+          <key>LifeTimeInMinutes</key>
+          <integer>1410</integer>
+        </dict>
         <key>LocalIdentifier</key>
         <string>$client_name</string>
+        <key>PayloadCertificateUUID</key>
+        <string>$uuid1</string>
+        <key>OnDemandEnabled</key>
+        <integer>0</integer>
+        <key>OnDemandRules</key>
+        <array>
+          <dict>
+            <key>InterfaceTypeMatch</key>
+            <string>WiFi</string>
+            <key>URLStringProbe</key>
+            <string>http://captive.apple.com/hotspot-detect.html</string>
+            <key>Action</key>
+            <string>Connect</string>
+          </dict>
+          <dict>
+            <key>InterfaceTypeMatch</key>
+            <string>Cellular</string>
+            <key>Action</key>
+            <string>Disconnect</string>
+          </dict>
+          <dict>
+            <key>Action</key>
+            <string>Ignore</string>
+          </dict>
+        </array>
         <key>RemoteAddress</key>
         <string>$server_addr</string>
         <key>RemoteIdentifier</key>
         <string>$server_addr</string>
+        <key>UseConfigurationAttributeInternalIPSubnet</key>
+        <integer>0</integer>
       </dict>
-      <key>PayloadCertificateUUID</key>
-      <string>$uuid1</string>
+      <key>IPv4</key>
+      <dict>
+        <key>OverridePrimary</key>
+        <integer>1</integer>
+      </dict>
+      <key>PayloadDescription</key>
+      <string>Configures VPN settings</string>
+      <key>PayloadDisplayName</key>
+      <string>VPN</string>
+      <key>PayloadOrganization</key>
+      <string>IKEv2 VPN</string>
+      <key>PayloadIdentifier</key>
+      <string>com.apple.vpn.managed.$(uuidgen)</string>
+      <key>PayloadType</key>
+      <string>com.apple.vpn.managed</string>
+      <key>PayloadUUID</key>
+      <string>$(uuidgen)</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>Proxies</key>
+      <dict>
+        <key>HTTPEnable</key>
+        <integer>0</integer>
+        <key>HTTPSEnable</key>
+        <integer>0</integer>
+      </dict>
+      <key>UserDefinedName</key>
+      <string>$server_addr</string>
+      <key>VPNType</key>
+      <string>IKEv2</string>
     </dict>
     <dict>
-      <key>PayloadContent</key>
-      <data>
-$p12_base64
-      </data>
       <key>PayloadCertificateFileName</key>
       <string>$client_name</string>
+      <key>PayloadContent</key>
+      <data>$p12_base64</data>
+      <key>PayloadDescription</key>
+      <string>Adds a PKCS#12-formatted certificate</string>
+      <key>PayloadDisplayName</key>
+      <string>$client_name</string>
+      <key>PayloadIdentifier</key>
+      <string>com.apple.security.pkcs12.$(uuidgen)</string>
+      <key>PayloadType</key>
+      <string>com.apple.security.pkcs12</string>
+      <key>PayloadUUID</key>
+      <string>$uuid1</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
     </dict>
     <dict>
       <key>PayloadContent</key>
-      <data>
-$ca_base64
-      </data>
+      <data>$ca_base64</data>
       <key>PayloadCertificateFileName</key>
       <string>ikev2vpnca</string>
+      <key>PayloadDescription</key>
+      <string>Adds a CA root certificate</string>
+      <key>PayloadDisplayName</key>
+      <string>Certificate Authority (CA)</string>
+      <key>PayloadIdentifier</key>
+      <string>com.apple.security.root.$(uuidgen)</string>
+      <key>PayloadType</key>
+      <string>com.apple.security.root</string>
+      <key>PayloadUUID</key>
+      <string>$(uuidgen)</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
     </dict>
   </array>
+  <key>PayloadDisplayName</key>
+  <string>IKEv2 VPN $server_addr</string>
+  <key>PayloadIdentifier</key>
+  <string>com.apple.vpn.managed.$(uuidgen)</string>
+  <key>PayloadRemovalDisallowed</key>
+  <false/>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>$(uuidgen)</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
 </dict>
 </plist>
 EOF
