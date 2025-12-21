@@ -17,7 +17,9 @@
 			"type": "typescript",
 			"tsconfig": "apps/keys/tsconfig.json",
 			"option": "watch",
-			"problemMatcher": ["$tsc-watch"],
+			"problemMatcher": [
+				"$tsc-watch"
+			],
 			"group": "build",
 			"label": "tsc: watch - apps/keys/tsconfig.json"
 		},
@@ -25,7 +27,9 @@
 			"type": "typescript",
 			"tsconfig": "apps/users/tsconfig.json",
 			"option": "watch",
-			"problemMatcher": ["$tsc-watch"],
+			"problemMatcher": [
+				"$tsc-watch"
+			],
 			"group": "build",
 			"label": "tsc: watch - apps/users/tsconfig.json"
 		},
@@ -33,16 +37,28 @@
 			"type": "typescript",
 			"tsconfig": "apps/users/tsconfig.dev.json",
 			"option": "watch",
-			"problemMatcher": ["$tsc-watch"],
+			"problemMatcher": [
+				"$tsc-watch"
+			],
 			"group": "build",
 			"label": "tsc: watch - apps/users/tsconfig.dev.json"
 		},
 		{
 			"type": "typescript",
 			"tsconfig": "apps/users/tsconfig.dev.json",
-			"problemMatcher": ["$tsc"],
+			"problemMatcher": [
+				"$tsc"
+			],
 			"group": "build",
 			"label": "tsc: build - apps/users/tsconfig.dev.json"
+		},
+		{
+			"type": "npm",
+			"script": "dev",
+			"path": "apps/site",
+			"problemMatcher": [],
+			"label": "npm: dev - apps/site",
+			"detail": "vite dev"
 		}
 	]
 }
