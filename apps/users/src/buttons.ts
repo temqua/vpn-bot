@@ -81,6 +81,15 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+		{
+			text: 'Export Expenses',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					cmd: VPNUserCommand.ExportExpenses,
+				},
+			}),
+		},
 	],
 ];
 
@@ -261,6 +270,7 @@ export const updateProps = [
 	'active',
 	'free',
 	'payerId',
+	'subLink',
 ];
 
 const createUserOperationsInlineKeyboard = (id: number) => {
@@ -305,6 +315,39 @@ export const getFrequestPaymentAmountsKeyboard = (amounts: number[]): SendBasicO
 		},
 	};
 };
+
+export function getYesNoKeyboard(command = VPNUserCommand.Pay, scope = CommandScope.Users): SendBasicOptions {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						text: 'Yes',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: scope,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: command,
+								accept: 1,
+							},
+							[CmdCode.Processing]: 1,
+						} as CommandDetailCompressed),
+					},
+					{
+						text: 'No',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: scope,
+							[CmdCode.Context]: {
+								cmd: command,
+								accept: 0,
+							},
+							[CmdCode.Processing]: 1,
+						} as CommandDetailCompressed),
+					},
+				],
+			],
+		},
+	};
+}
 
 export const yesNoKeyboard: SendBasicOptions = {
 	reply_markup: {

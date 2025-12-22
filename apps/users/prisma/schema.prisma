@@ -26,6 +26,7 @@ model User {
   active       Boolean       @default(true)
   bank         String?
   currency     String        @default("RUB")
+  subLink      String?       @map(name: "subscription_url") @default("") 
   payerId      Int?          @map(name: "payer_id")
   devices      Device[]      @default([])
   protocols    VPNProtocol[] @default([])

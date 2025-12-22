@@ -3,17 +3,17 @@ import { addMonths, parse, subMonths } from 'date-fns';
 import type { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
-import { acceptKeyboard, getFrequestPaymentAmountsKeyboard, yesNoKeyboard } from '../../buttons';
+import { acceptKeyboard, getFrequestPaymentAmountsKeyboard, getYesNoKeyboard } from '../../buttons';
 import { UserRequest } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { formatDate, setActiveStep } from '../../utils';
+import { PlanRepository } from '../plans/plans.repository';
 import { NalogService } from '../users/nalog.service';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
-import { PaymentsRepository } from './payments.repository';
-import { PlanRepository } from '../plans/plans.repository';
 import { UsersContext } from '../users/users.types';
+import { PaymentsRepository } from './payments.repository';
 
 export class PaymentsService {
 	constructor(
@@ -280,7 +280,7 @@ export class PaymentsService {
 				}
 			}
 			delete context.accept;
-			await bot.sendMessage(chatId, `Добавить налог?`, yesNoKeyboard);
+			await bot.sendMessage(chatId, `Добавить налог?`, getYesNoKeyboard());
 			this.params.set('nalog', false);
 			this.setPaymentStep('nalog');
 			return;
@@ -288,7 +288,7 @@ export class PaymentsService {
 		if (this.paymentSteps.nalog) {
 			this.params.set('nalog', Boolean(context?.accept));
 			if (user.dependants.length) {
-				await bot.sendMessage(chatId, `Добавить платежи для дочерних юзеров?`, yesNoKeyboard);
+				await bot.sendMessage(chatId, `Добавить платежи для дочерних юзеров?`, getYesNoKeyboard());
 				this.params.set('dependants', false);
 				this.setPaymentStep('dependants');
 				return;

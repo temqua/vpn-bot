@@ -4,11 +4,10 @@
 	"scripts": {
 		"build": "prisma generate",
 		"prestart": "npx prisma generate",
-		"start": "bun src/main.ts",
+		"start": "bun src/index.ts",
 		"seed": "bun prisma/seed.ts",
 		"migration": "prisma migrate dev"
 	},
-	"type": "module",
 	"peerDependencies": {
 		"typescript": "^5.0.0"
 	},

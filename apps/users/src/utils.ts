@@ -16,3 +16,7 @@ export function setActiveStep(current: string, steps: { [key: string]: boolean }
 		steps[current] = true;
 	});
 }
+
+export const isJSONErrorResponse = (response: Response) => {
+	return response.body && !response.ok && response.headers.get('content-type')?.includes('json');
+};

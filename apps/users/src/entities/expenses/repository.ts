@@ -1,6 +1,6 @@
 import { ExpenseCategory } from '@prisma/client';
-import type { Decimal } from '@prisma/client/runtime/library';
 import { prisma } from '../../prisma';
+import { Decimal } from '@prisma/client/runtime/client';
 
 export class ExpensesRepository {
 	async create(category: ExpenseCategory, amount: Decimal, description: string = '') {

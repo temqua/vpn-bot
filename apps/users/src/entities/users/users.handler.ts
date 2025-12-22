@@ -37,6 +37,12 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
+		if (context.cmd === VPNUserCommand.ExportExpenses) {
+			await this.service.exportExpenses(message);
+			this.state.init = false;
+			globalHandler.finishCommand();
+			return;
+		}
 		if (context.cmd === VPNUserCommand.Pay) {
 			await this.paymentsService.pay(message, context, this.state.init);
 		}

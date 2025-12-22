@@ -7,6 +7,7 @@ import {
 	createUserOperationsKeyboard,
 	getUserContactKeyboard,
 	getUserMenu,
+	getYesNoKeyboard,
 	payersKeyboard,
 	skipKeyboard,
 } from '../../buttons';
@@ -17,12 +18,17 @@ import logger from '../../logger';
 import pollOptions from '../../pollOptions';
 import { formatDate, setActiveStep } from '../../utils';
 import { PaymentsRepository } from '../payments/payments.repository';
+import { PasarguardService } from './pasarguard.service';
 import { exportToSheet } from './sheets.service';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
+import { ExpensesRepository } from '../expenses/repository';
 
 export class UsersService {
-	constructor(private repository: UsersRepository = new UsersRepository()) {}
+	constructor(
+		private repository: UsersRepository = new UsersRepository(),
+		private pasarguardService: PasarguardService = new PasarguardService(),
+	) {}
 
 	params = new Map();
 	createSteps: { [key: string]: boolean } = {
@@ -34,6 +40,7 @@ export class UsersService {
 		devices: false,
 		protocols: false,
 		bank: false,
+		pasarguard: false,
 	};
 	updateSteps = {
 		payerSearch: false,
@@ -106,6 +113,13 @@ export class UsersService {
 				this.params.set('telegram_link', message?.text);
 			}
 			delete context.skip;
+			await bot.sendMessage(chatId, 'Create user in pasarguard?', getYesNoKeyboard(VPNUserCommand.Create));
+			this.setCreateStep('subLink');
+			return;
+		}
+		if (this.createSteps.subLink) {
+			this.params.set('pasarguard', context.accept);
+			delete context.accept;
 			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
 				allows_multiple_answers: true,
 			});
@@ -145,6 +159,7 @@ export class UsersService {
 		}
 		const params = this.params;
 		const username = params.get('username');
+
 		try {
 			const newUser: User = await this.repository.create(
 				username,
@@ -158,6 +173,22 @@ export class UsersService {
 			);
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			await this.sendNewUserMenu(chatId, newUser);
+			if (params.get('pasarguard')) {
+				let pgUsername = `${username}_${newUser.id}`;
+				if (newUser.telegramId) {
+					pgUsername = pgUsername.concat('_', newUser.telegramId);
+				}
+				const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
+				if (newPasarguardUser) {
+					await bot.sendMessage(
+						chatId,
+						`User ${newPasarguardUser.username} has been successfully created in pasarguard. Subscription link: ${newPasarguardUser.subscription_url}`,
+					);
+				}
+				await this.repository.update(newUser.id, {
+					subLink: newPasarguardUser.subscription_url,
+				});
+			}
 		} catch (error) {
 			logger.error(
 				`[${basename(__filename)}]: Unexpected error occurred while creating user ${username}: ${error}`,
@@ -439,6 +470,29 @@ export class UsersService {
 		}
 	}
 
+	async exportExpenses(message: Message) {
+		this.log('exportExpenses');
+
+		const expensesData = await new ExpensesRepository().list();
+		const preparedExpensesData = expensesData.map(row => {
+			return [
+				row.id ?? '',
+				row.paymentDate ? new Date(row.paymentDate).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
+				row.amount.toNumber() ?? 0,
+				row.category ?? '',
+				row.description ?? '',
+			];
+		});
+		try {
+			await exportToSheet(env.SHEET_ID, 'Expenses!A2', preparedExpensesData);
+			logger.success(`${basename(__filename)}}: Expenses data successfully exported to Google Sheets!`);
+			await bot.sendMessage(message.chat.id, '✅ Expenses data successfully exported to Google Sheets!');
+		} catch (error) {
+			logger.error(`[${basename(__filename)}]: Expenses sync process finished with error: ${error}`);
+			await bot.sendMessage(message.chat.id, `❌ Expenses sync process finished with error: ${error}`);
+		}
+	}
+
 	async export(message: Message) {
 		this.log('export');
 		const data = await this.repository.list();
@@ -485,11 +539,6 @@ export class UsersService {
 						parse_mode: 'MarkdownV2',
 					},
 				);
-				await bot.sendMessage(message.chat.id, 'Possible operations with user', {
-					reply_markup: {
-						inline_keyboard: getUserMenu(user.id),
-					},
-				});
 			} else if (user.createdAt > subMonths(new Date(), 1)) {
 				await bot.sendMessage(
 					message.chat.id,
@@ -507,6 +556,27 @@ ${users
 	.join('\n')} 
 have no payments for next month.`,
 			);
+			const userButtons: InlineKeyboardButton[][] = users.map(user => {
+				return [
+					{
+						text: user.username,
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.GetById,
+								id: user.id,
+							},
+						}),
+					},
+				];
+			});
+			await bot.sendMessage(message.chat.id, 'Select user', {
+				reply_markup: {
+					inline_keyboard: userButtons,
+				},
+			});
+		} else {
+			await bot.sendMessage(message.chat.id, 'All users paid the bills 👍');
 		}
 
 		globalHandler.finishCommand();
@@ -522,6 +592,27 @@ have no payments for next month.`,
 ${users.map(u => `${u.username} ${u.telegramLink ?? ''} created at: ${formatDate(u.createdAt, 'dd.MM.yyyy')}`).join('\n')} 
 currently have a trial period `,
 			);
+			const userButtons: InlineKeyboardButton[][] = users.map(user => {
+				return [
+					{
+						text: user.username,
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.GetById,
+								id: user.id,
+							},
+						}),
+					},
+				];
+			});
+			await bot.sendMessage(message.chat.id, 'Select user', {
+				reply_markup: {
+					inline_keyboard: userButtons,
+				},
+			});
+		} else {
+			await bot.sendMessage(message.chat.id, 'No trial users found');
 		}
 		globalHandler.finishCommand();
 	}
