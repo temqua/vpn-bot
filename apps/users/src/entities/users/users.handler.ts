@@ -77,6 +77,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.ShowUnpaid) {
 			await this.service.showUnpaid(message);
 		}
+		if (context.cmd === VPNUserCommand.NotifyUnpaid) {
+			await this.service.notifyUnpaid();
+		}
 		if (context.cmd === VPNUserCommand.ShowTrial) {
 			await this.service.showTrial(message);
 		}

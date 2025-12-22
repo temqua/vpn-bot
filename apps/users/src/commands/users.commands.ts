@@ -177,3 +177,15 @@ setInterval(() => {
 		} as Message,
 	);
 }, ms('1d'));
+
+setInterval(() => {
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				cmd: VPNUserCommand.NotifyUnpaid,
+			},
+		},
+		{} as Message,
+	);
+}, ms('1d'));

@@ -42,9 +42,6 @@ const mainHelpMessage = Object.values(mainCommandsList)
 	.map(c => c.docs)
 	.join('\n');
 
-let showPaymentsJob;
-const paymentsService = new PaymentsService();
-
 bot.onText(/\/start/, async (msg: Message) => {
 	logger.success('Ready');
 	if (isAdmin(msg)) {
@@ -64,11 +61,6 @@ bot.onText(/\/start/, async (msg: Message) => {
 
 bot.on('message', async (msg: Message) => {
 	logger.log(`${msg?.from?.id} (${msg?.from?.first_name}) — ${msg.text}`);
-	if (!showPaymentsJob) {
-		showPaymentsJob = setInterval(() => {
-			paymentsService.checkUnpaid(msg);
-		}, ms('1d'));
-	}
 	if (msg.text && ['cancel', 'Cancel'].includes(msg.text)) {
 		await bot.sendMessage(msg.chat.id, 'Отправлена команда отмены всех других команд');
 		globalHandler.finishCommand();

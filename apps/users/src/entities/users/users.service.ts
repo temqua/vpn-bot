@@ -523,7 +523,7 @@ export class UsersService {
 	}
 
 	async showUnpaid(message: Message) {
-		this.log('unpaid');
+		this.log('showUnpaid');
 		const users = await this.repository.getUnpaidUsers();
 		for (const user of users) {
 			if (user.payments.length) {
@@ -615,6 +615,26 @@ currently have a trial period `,
 			await bot.sendMessage(message.chat.id, 'No trial users found');
 		}
 		globalHandler.finishCommand();
+	}
+
+	async notifyUnpaid() {
+		this.log('notifyUnpaid');
+		const users = await this.repository.getUnpaidUsers();
+		for (const user of users) {
+			if (user.telegramId) {
+				const message = user.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
+				bot.sendMessage(
+					user.telegramId,
+					`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн ему https://t.me/whirliswaiting
+150 рублей стоит месяц
+800 полгода
+1500 год
+2200700156700659 т-банк
+2202205048878992 сбер
+`,
+				);
+			}
+		}
 	}
 
 	private setCreateStep(current: string) {
