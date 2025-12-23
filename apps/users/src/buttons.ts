@@ -418,7 +418,7 @@ export const getUserMenu = (userId: number) => {
 	];
 };
 
-export const payersKeyboard = {
+export const payersKeyboard: SendBasicOptions = {
 	reply_markup: {
 		inline_keyboard: [
 			[
@@ -449,4 +449,37 @@ export const payersKeyboard = {
 			],
 		],
 	},
+};
+
+export const getUserKeyboard = (userId: number): SendBasicOptions => {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						text: '💸 История платежей',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.ShowPayments,
+								id: userId,
+							},
+						}),
+					},
+				],
+				[
+					{
+						text: '⟳ Ссылка на подписку',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.ShowSubLink,
+								id: userId,
+							},
+						}),
+					},
+				],
+			],
+		},
+	};
 };

@@ -1,7 +1,6 @@
-import ms from 'ms';
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
-import { getUserContactKeyboard } from '../buttons';
+import { getUserContactKeyboard, getUserKeyboard } from '../buttons';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
 import { CommandScope, PlanCommand, UserRequest } from '../enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../global.handler';
@@ -10,11 +9,9 @@ import { formatDate, isAdmin } from '../utils';
 import { expenseHelpMessage } from './expenses.commands';
 import { paymentsHelpMessage } from './payments.commands';
 import { userHelpMessage } from './users.commands';
-import { PaymentsService } from '../entities/payments/payments.service';
 
 const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
 /me — для просмотра информации, которая хранится о вас
-/payments — для просмотра истории ваших платежей
 `;
 
 const usersRepository = new UsersRepository();
@@ -55,7 +52,8 @@ bot.onText(/\/start/, async (msg: Message) => {
 		if (user) {
 			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${user.firstName}!`);
 		}
-		await bot.sendMessage(msg.chat.id, userStartMessage);
+
+		await bot.sendMessage(msg.chat.id, userStartMessage, getUserKeyboard(user.id));
 	}
 });
 
@@ -151,15 +149,15 @@ function formatUserInfo(user: VPNUser) {
 	return `
 О вас хранится следующая информация:
 Username: ${user.username}
-First Name: ${user.firstName}
-Last Name: ${user.lastName}
-Telegram Link: ${user.telegramLink}
+Имя: ${user.firstName}
+Фамилия: ${user.lastName}
+Ссылка на Telegram: ${user.telegramLink}
 Telegram Id: ${user.telegramId}
-Devices: ${user.devices.join(', ')}
-Protocols: ${user.protocols.join(', ')}
-Created At: ${formatDate(user.createdAt)}
-${user.bank ? 'Bank: ' + user.bank : ''}
+Устройства: ${user.devices.join(', ')}
+Протоколы: ${user.protocols.join(', ')}
+Дата создания: ${formatDate(user.createdAt)}
+${user.bank ? 'Банк: ' + user.bank : ''}
 ${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}
-${user.active ? '' : 'Inactive'}
+${user.active ? '' : 'Неактивен'}
 	`;
 }

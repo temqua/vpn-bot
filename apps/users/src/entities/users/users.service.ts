@@ -46,7 +46,7 @@ export class UsersService {
 		payerSearch: false,
 		apply: false,
 	};
-	private textProps = ['telegramLink', 'firstName', 'lastName', 'username'];
+	private textProps = ['telegramLink', 'firstName', 'lastName', 'username', 'subLink'];
 	private boolProps = ['active', 'free'];
 	private numberProps = ['price'];
 
@@ -637,6 +637,19 @@ currently have a trial period `,
 		}
 	}
 
+	async showSubscriptionURL(message: Message, context: UsersContext) {
+		this.log('showSubscriptionURL');
+		const user = await this.repository.getById(Number(context.id));
+		if (user?.subLink) {
+			bot.sendMessage(message.chat.id, `Ваша ссылка ${user.subLink}`);
+		} else {
+			bot.sendMessage(
+				message.chat.id,
+				`Не обнаружено подписок. Напишите в личные сообщения https://t.me/tesseract_vpn.`,
+			);
+		}
+	}
+
 	private setCreateStep(current: string) {
 		setActiveStep(current, this.createSteps);
 	}
@@ -769,6 +782,7 @@ Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Protocols: ${user.protocols.join(', ')}
 Price: ${user.price}
+Subscription link: ${user.subLink}
 Created At: ${formatDate(user.createdAt)}\n`;
 		if (user.bank) {
 			baseInfo = baseInfo.concat(`Bank: ${user.bank}\n`);

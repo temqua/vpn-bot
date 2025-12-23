@@ -43,6 +43,11 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
+		if (context.cmd === VPNUserCommand.ShowSubLink) {
+			await this.service.showSubscriptionURL(message, context);
+			globalHandler.finishCommand();
+			return;
+		}
 		if (context.cmd === VPNUserCommand.Pay) {
 			await this.paymentsService.pay(message, context, this.state.init);
 		}

@@ -340,10 +340,10 @@ export class PaymentsService {
 
 	private formatPayment(p: Payment) {
 		return `UUID: \`${p.id}\`				
-Payment Date: ${formatDate(p.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)}
-Months Count: ${p.monthsCount}
-Expires On: ${p.expiresOn ? formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`) : 'unset'}
-Amount: ${p.amount} ${p.currency}
+Дата оплаты: ${formatDate(p.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)}
+Количество месяцев: ${p.monthsCount}
+Оплачено до: ${p.expiresOn ? formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`) : 'unset'}
+Сумма: ${p.amount} ${p.currency}
 ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 	}
 

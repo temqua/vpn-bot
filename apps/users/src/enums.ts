@@ -30,6 +30,7 @@ export enum VPNUserCommand {
 	ShowPayments = 'sp',
 	ShowUnpaid = 'su',
 	NotifyUnpaid = 'nu',
+	ShowSubLink = 'ssl',
 	ShowTrial = 'st',
 }
 
