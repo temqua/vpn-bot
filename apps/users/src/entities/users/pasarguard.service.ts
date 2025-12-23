@@ -116,4 +116,20 @@ export class PasarguardService {
 
 		return result;
 	}
+
+	async deleteUser(username: string) {
+		const token = await this.auth();
+		const response = await client.delete(`${this.apiRoot}/api/user/${username}`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		if (!response.ok && isJSONErrorResponse(response)) {
+			const responseBody = (await response.json()) as PasarguardErrorResponse;
+			const detail =
+				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
+			throw new Error(detail);
+		}
+		return response.ok;
+	}
 }

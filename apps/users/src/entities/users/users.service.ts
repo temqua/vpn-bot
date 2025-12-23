@@ -4,11 +4,15 @@ import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-teleg
 import { basename } from 'path';
 import bot from '../../bot';
 import {
+	createSubscriptionButton,
 	createUserOperationsKeyboard,
+	deleteSubscriptionButton,
 	getUserContactKeyboard,
+	getUserKeyboard,
 	getUserMenu,
 	getYesNoKeyboard,
 	payersKeyboard,
+	replySetNullPropKeyboard,
 	skipKeyboard,
 } from '../../buttons';
 import { Bank, BoolFieldState, CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../enums';
@@ -23,6 +27,7 @@ import { exportToSheet } from './sheets.service';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 import { ExpensesRepository } from '../expenses/repository';
+import { introMessage, userStartMessage } from '../../consts';
 
 export class UsersService {
 	constructor(
@@ -174,20 +179,8 @@ export class UsersService {
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			await this.sendNewUserMenu(chatId, newUser);
 			if (params.get('pasarguard')) {
-				let pgUsername = `${username}_${newUser.id}`;
-				if (newUser.telegramId) {
-					pgUsername = pgUsername.concat('_', newUser.telegramId);
-				}
-				const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
-				if (newPasarguardUser) {
-					await bot.sendMessage(
-						chatId,
-						`User ${newPasarguardUser.username} has been successfully created in pasarguard. Subscription link: ${newPasarguardUser.subscription_url}`,
-					);
-				}
-				await this.repository.update(newUser.id, {
-					subLink: newPasarguardUser.subscription_url,
-				});
+				this.createPasarguardUser(chatId, newUser);
+				bot.sendMessage(chatId, userStartMessage, getUserKeyboard(chatId));
 			}
 		} catch (error) {
 			logger.error(
@@ -379,7 +372,7 @@ export class UsersService {
 			}
 			return;
 		}
-		if ((textProp || numberProp) && ['null', 'undefined'].includes(typeof message?.text)) {
+		if (numberProp && ['null', 'undefined'].includes(typeof message?.text)) {
 			bot.sendMessage(chatId, `message.text is null/empty ${message?.text}`);
 			this.params.clear();
 			globalHandler.finishCommand();
@@ -400,7 +393,9 @@ export class UsersService {
 		}
 
 		let newValue: string[] | number | string | boolean = '';
-		if (textProp) {
+		if (context.setNull) {
+			newValue = null;
+		} else if (textProp) {
 			newValue = message?.text as string;
 		} else if (numberProp) {
 			newValue = Number(message?.text);
@@ -639,14 +634,60 @@ currently have a trial period `,
 
 	async showSubscriptionURL(message: Message, context: UsersContext) {
 		this.log('showSubscriptionURL');
-		const user = await this.repository.getById(Number(context.id));
+		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
-			bot.sendMessage(message.chat.id, `Ваша ссылка ${user.subLink}`);
-		} else {
 			bot.sendMessage(
 				message.chat.id,
-				`Не обнаружено подписок. Напишите в личные сообщения https://t.me/tesseract_vpn.`,
+				`Ваша ссылка \`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
+				{
+					parse_mode: 'MarkdownV2',
+				},
 			);
+
+			bot.sendMessage(message.chat.id, 'Управление подпиской', deleteSubscriptionButton);
+		} else {
+			const isUnpaid = await this.repository.isUserUnpaid(user.id);
+			if (isUnpaid) {
+				bot.sendMessage(
+					message.chat.id,
+					`Не обнаружено подписок. Напишите в личные сообщения https://t.me/tesseract_vpn.`,
+				);
+			} else {
+				bot.sendMessage(
+					message.chat.id,
+					'У вас пока нет подписок. Вы можете создать новую',
+					createSubscriptionButton,
+				);
+			}
+		}
+	}
+
+	async showSubGuide(chatId: number) {
+		bot.sendMessage(chatId, introMessage, {
+			parse_mode: 'MarkdownV2',
+		});
+		bot.sendMessage(chatId, userStartMessage, getUserKeyboard(chatId));
+	}
+
+	async createSubscription(message: Message) {
+		this.log('createSubscription');
+		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		await this.createPasarguardUser(message.chat.id, user);
+	}
+
+	async deleteSubscription(message: Message) {
+		this.log('deleteSubscription');
+		try {
+			const user = await this.repository.getByTelegramId(message.chat.id.toString());
+			const result = await this.deletePasarguardUser(user);
+			if (result) {
+				await this.repository.update(user.id, {
+					subLink: null,
+				});
+				bot.sendMessage(message.chat.id, 'Подписка была успешно удалена');
+			}
+		} catch (error) {
+			bot.sendMessage(message.chat.id, `Ошибка удаления ${error.message}`);
 		}
 	}
 
@@ -664,7 +705,7 @@ currently have a trial period `,
 		const numberProp = this.numberProps.includes(context.prop);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (textProp || numberProp) {
-			await bot.sendMessage(chatId, `Enter ${context.prop}`);
+			await bot.sendMessage(chatId, `Enter ${context.prop}`, replySetNullPropKeyboard(context.prop, context.id));
 		} else if (context.prop === 'telegramId') {
 			await bot.sendMessage(chatId, 'Share user:', {
 				reply_markup: getUserContactKeyboard(UserRequest.Update),
@@ -807,6 +848,40 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			);
 		}
 		return userInfo;
+	}
+
+	private async createPasarguardUser(chatId: number, user: User) {
+		let pgUsername = `${user.username}_${user.id}`;
+		if (user.telegramId) {
+			pgUsername = pgUsername.concat('_', user.telegramId);
+		}
+		const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
+		if (newPasarguardUser) {
+			bot.sendMessage(chatId, `Пользователь ${newPasarguardUser.username} успешно создан в pasarguard.`);
+			bot.sendMessage(
+				chatId,
+				`Ваша ссылка \`https://pg.tesseractnpv.com${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
+				{
+					parse_mode: 'MarkdownV2',
+				},
+			);
+			this.showSubGuide(chatId);
+			await this.repository.update(user.id, {
+				subLink: newPasarguardUser.subscription_url,
+			});
+			return newPasarguardUser;
+		} else {
+			await bot.sendMessage(chatId, 'Ошибка во время создания subscription-ссылки');
+			return null;
+		}
+	}
+
+	private async deletePasarguardUser(user: User) {
+		let pgUsername = `${user.username}_${user.id}`;
+		if (user.telegramId) {
+			pgUsername = pgUsername.concat('_', user.telegramId);
+		}
+		return await this.pasarguardService.deleteUser(pgUsername);
 	}
 
 	private log(message: string) {

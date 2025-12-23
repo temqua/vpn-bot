@@ -6,6 +6,7 @@ import { globalHandler } from '../../global.handler';
 import { PaymentsService } from '../payments/payments.service';
 import { UsersService } from './users.service';
 import type { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
+import logger from '../../logger';
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(
@@ -19,6 +20,7 @@ class UsersCommandsHandler implements ICommandHandler {
 	async handle(context: UsersContext, message: Message, start = false) {
 		context.chatId = message.chat.id;
 		this.state.init = start;
+		logger.log(`[users.handler.ts]: command: ${context.cmd}, start: ${start}`);
 		if (context.cmd === VPNUserCommand.List) {
 			await this.service.list(message);
 			this.state.init = false;
@@ -48,6 +50,21 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
+		if (context.cmd === VPNUserCommand.ShowSubLinkGuide) {
+			await this.service.showSubGuide(message.chat.id);
+			globalHandler.finishCommand();
+			return;
+		}
+		if (context.cmd === VPNUserCommand.CreateSubscription) {
+			await this.service.createSubscription(message);
+			globalHandler.finishCommand();
+			return;
+		}
+		if (context.cmd === VPNUserCommand.DeleteSubscription) {
+			await this.service.deleteSubscription(message);
+			globalHandler.finishCommand();
+			return;
+		}
 		if (context.cmd === VPNUserCommand.Pay) {
 			await this.paymentsService.pay(message, context, this.state.init);
 		}
@@ -70,6 +87,11 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.expand(message, context);
 		}
 		if (context.cmd === VPNUserCommand.Update) {
+			await this.service.update(message, context as UserUpdateCommandContext, this.state);
+		}
+
+		if (context.cmd === VPNUserCommand.UpdateNull) {
+			(context as UserUpdateCommandContext).setNull = true;
 			await this.service.update(message, context as UserUpdateCommandContext, this.state);
 		}
 		if (context.cmd === VPNUserCommand.Delete) {

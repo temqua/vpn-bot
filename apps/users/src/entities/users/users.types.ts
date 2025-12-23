@@ -20,4 +20,5 @@ export interface UserCreateCommandContext extends UsersContext {
 export interface UserUpdateCommandContext extends UsersContext {
 	prop: keyof User;
 	chatId: number;
+	setNull?: boolean;
 }

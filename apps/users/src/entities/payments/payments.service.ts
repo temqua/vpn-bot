@@ -310,7 +310,7 @@ export class PaymentsService {
 
 	async checkUnpaid(msg: Message) {
 		this.log('[line 312]: checkUnpaid');
-		const unpaid = await this.usersRepository.isUserUnpaid(msg.from.id.toString());
+		const unpaid = await this.usersRepository.isTelegramUserUnpaid(msg.chat.id.toString());
 		if (unpaid) {
 			const message = unpaid.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
 			bot.sendMessage(msg.chat.id, `Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн`);

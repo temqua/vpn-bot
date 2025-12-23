@@ -2,6 +2,7 @@ import type { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from
 import { CmdCode, CommandScope, PaymentCommand, UserRequest, VPNUserCommand } from './enums';
 import type { CommandDetailCompressed } from './global.handler';
 import { UsersContext } from './entities/users/users.types';
+import { User } from '@prisma/client';
 
 export const userButtons: InlineKeyboardButton[][] = [
 	[
@@ -451,6 +452,29 @@ export const payersKeyboard: SendBasicOptions = {
 	},
 };
 
+export const replySetNullPropKeyboard = (prop: keyof User, userId: string): SendBasicOptions => {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.UpdateNull,
+								prop,
+								id: userId,
+							},
+							[CmdCode.Processing]: 1,
+						}),
+						text: 'Set null',
+					},
+				],
+			],
+		},
+	};
+};
+
 export const getUserKeyboard = (userId: number): SendBasicOptions => {
 	return {
 		reply_markup: {
@@ -469,7 +493,7 @@ export const getUserKeyboard = (userId: number): SendBasicOptions => {
 				],
 				[
 					{
-						text: '⟳ Ссылка на подписку',
+						text: '🔄 Подписка',
 						callback_data: JSON.stringify({
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
@@ -479,7 +503,54 @@ export const getUserKeyboard = (userId: number): SendBasicOptions => {
 						}),
 					},
 				],
+				[
+					{
+						text: '📖 Гайд',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.ShowSubLinkGuide,
+							},
+						}),
+					},
+				],
 			],
 		},
 	};
+};
+
+export const deleteSubscriptionButton: SendBasicOptions = {
+	reply_markup: {
+		inline_keyboard: [
+			[
+				{
+					text: 'Удалить подписку',
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.DeleteSubscription,
+						},
+					}),
+				},
+			],
+		],
+	},
+};
+
+export const createSubscriptionButton: SendBasicOptions = {
+	reply_markup: {
+		inline_keyboard: [
+			[
+				{
+					text: 'Создать подписку',
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.CreateSubscription,
+						},
+					}),
+				},
+			],
+		],
+	},
 };

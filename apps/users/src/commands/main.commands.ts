@@ -9,11 +9,8 @@ import { formatDate, isAdmin } from '../utils';
 import { expenseHelpMessage } from './expenses.commands';
 import { paymentsHelpMessage } from './payments.commands';
 import { userHelpMessage } from './users.commands';
-
-const userStartMessage = `Добро пожаловать в бот тессеракт впн. 
-/me — для просмотра информации, которая хранится о вас
-`;
-
+import TelegramBot from 'node-telegram-bot-api';
+import { userStartMessage } from '../consts';
 const usersRepository = new UsersRepository();
 
 const mainCommandsList = {
@@ -50,10 +47,10 @@ bot.onText(/\/start/, async (msg: Message) => {
 	} else {
 		const user = await usersRepository.getByTelegramId(msg?.from?.id.toString() ?? '');
 		if (user) {
-			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${user.firstName}!`);
+			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${msg?.from?.first_name}!`);
 		}
-
-		await bot.sendMessage(msg.chat.id, userStartMessage, getUserKeyboard(user.id));
+		bot.sendMessage(msg.chat.id, 'Добро пожаловать в бот тессеракт впн.');
+		bot.sendMessage(msg.chat.id, userStartMessage, getUserKeyboard(user.id));
 	}
 });
 
@@ -79,8 +76,13 @@ bot.on('poll', p => {
 	globalHandler.handlePoll(p);
 });
 
-bot.on('callback_query', async query => {
+bot.on('callback_query', async (query: TelegramBot.CallbackQuery) => {
 	const callbackDataString = query.data;
+	try {
+		bot.answerCallbackQuery(query.id);
+	} catch (error) {
+		logger.error(error);
+	}
 	if (callbackDataString) {
 		const parsed: CommandDetailCompressed = JSON.parse(callbackDataString);
 		const data: CommandDetails = {

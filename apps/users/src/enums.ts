@@ -15,13 +15,16 @@ export enum ExpenseCommand {
 
 export enum VPNUserCommand {
 	Create = 'cr',
+	CreateSubscription = 'crs',
 	List = 'list',
 	Delete = 'del',
+	DeleteSubscription = 'dels',
 	GetById = 'getid',
 	FindByUsername = 'findus',
 	GetByTelegramId = 'gettg',
 	FindByFirstName = 'findfn',
 	Update = 'u',
+	UpdateNull = 'un',
 	Pay = 'pay',
 	Export = 'ex',
 	ExportPayments = 'exp',
@@ -31,6 +34,7 @@ export enum VPNUserCommand {
 	ShowUnpaid = 'su',
 	NotifyUnpaid = 'nu',
 	ShowSubLink = 'ssl',
+	ShowSubLinkGuide = 'sslg',
 	ShowTrial = 'st',
 }
 
