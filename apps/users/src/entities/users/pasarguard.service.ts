@@ -1,5 +1,6 @@
 import client from '../../client';
 import env from '../../env';
+import logger from '../../logger';
 import { isJSONErrorResponse } from '../../utils';
 
 type PasarguardAuthResponse = {
@@ -107,10 +108,10 @@ export class PasarguardService {
 			const responseBody = (await response.json()) as PasarguardErrorResponse;
 			const detail =
 				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
-			throw new Error(detail);
+			logger.error(detail);
 		}
 		if (!response.ok) {
-			throw new Error(`${response.status} ${response.statusText}`);
+			logger.error(`${response.status} ${response.statusText}`);
 		}
 		const result = (await response.json()) as PasarguardCreateResponse;
 
@@ -128,7 +129,8 @@ export class PasarguardService {
 			const responseBody = (await response.json()) as PasarguardErrorResponse;
 			const detail =
 				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
-			throw new Error(detail);
+			logger.error(detail);
+			return false;
 		}
 		return response.ok;
 	}

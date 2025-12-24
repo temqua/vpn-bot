@@ -685,6 +685,8 @@ currently have a trial period `,
 					subLink: null,
 				});
 				bot.sendMessage(message.chat.id, 'Подписка была успешно удалена');
+			} else {
+				bot.sendMessage(message.chat.id, `Ошибка удаления. Обратитесь к @whirliswaiting`);
 			}
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка удаления ${error.message}`);
