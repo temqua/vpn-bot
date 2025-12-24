@@ -36,6 +36,7 @@ export enum VPNUserCommand {
 	ShowSubLink = 'ssl',
 	ShowSubLinkGuide = 'sslg',
 	ShowTrial = 'st',
+	ShowPlans = 'shpl',
 }
 
 export enum PaymentCommand {

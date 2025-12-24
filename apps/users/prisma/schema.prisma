@@ -13,26 +13,28 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  username     String        @unique
-  telegramId   String?       @unique @map(name: "telegram_id")
-  telegramLink String?       @unique @map(name: "telegram_link")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  firstName    String?       @map(name: "first_name")
-  lastName     String?       @map(name: "last_name")
-  languageCode String?       @default("ru") @map(name: "language_code")
-  price        Int           @default(150) @map(name: "price")
-  free         Boolean       @default(false) @map(name: "is_free")
-  active       Boolean       @default(true)
-  bank         String?
-  currency     String        @default("RUB")
-  subLink      String?       @map(name: "subscription_url") @default("") 
-  payerId      Int?          @map(name: "payer_id")
-  devices      Device[]      @default([])
-  protocols    VPNProtocol[] @default([])
-  payments     Payment[]
-  payer        User?         @relation("UserToPayer", fields: [payerId], references: [id])
-  dependants   User[]        @relation("UserToPayer")
+  id                 Int            @id @default(autoincrement())
+  username           String         @unique
+  telegramId         String?        @unique @map(name: "telegram_id")
+  telegramLink       String?        @unique @map(name: "telegram_link")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  firstName          String?        @map(name: "first_name")
+  lastName           String?        @map(name: "last_name")
+  languageCode       String?        @default("ru") @map(name: "language_code")
+  price              Int            @default(150) @map(name: "price")
+  free               Boolean        @default(false) @map(name: "is_free")
+  active             Boolean        @default(true)
+  bank               String?
+  currency           String         @default("RUB")
+  subLink            String?        @default("") @map(name: "subscription_url")
+  pasarguardUsername String?        @unique @map(name: "pasarguard_username")
+  pasarguardId       Int?           @map(name: "pasarguard_id")
+  payerId            Int?           @map(name: "payer_id")
+  devices            Device[]       @default([])
+  payments           Payment[]
+  payer              User?          @relation("UserToPayer", fields: [payerId], references: [id])
+  dependants         User[]         @relation("UserToPayer")
+  servers            ServersUsers[]
 
   @@map("users")
 }
@@ -80,6 +82,27 @@ model Plan {
   @@map("plans")
 }
 
+model VPNServer {
+  id    Int            @id @default(autoincrement())
+  name  String
+  ip    String
+  users ServersUsers[]
+
+  @@map("vpn_servers")
+}
+
+model ServersUsers {
+  user       User        @relation(fields: [userId], references: [id])
+  userId     Int
+  server     VPNServer   @relation(fields: [serverId], references: [id])
+  serverId   Int
+  protocol   VPNProtocol
+  assignedAt DateTime    @default(now())
+
+  @@id([userId, serverId, protocol])
+  @@map("servers_users")
+}
+
 enum Device {
   Android
   iOS
@@ -94,8 +117,6 @@ enum Device {
 enum VPNProtocol {
   WireGuard
   IKEv2
-  Outline
-  VLess
   OpenVPN
 
   @@map("vpn_protocol")

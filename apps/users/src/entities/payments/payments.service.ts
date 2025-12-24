@@ -38,7 +38,12 @@ export class PaymentsService {
 	};
 
 	async showPayments(message: Message, context: UsersContext) {
-		const payments = await this.repository.getAllByUserId(Number(context.id));
+		let userId: string = context.id;
+		if (!context.id) {
+			const user = await this.usersRepository.getByTelegramId(message.chat.id.toString());
+			userId = user.id.toString();
+		}
+		const payments = await this.repository.getAllByUserId(Number(userId));
 		if (!payments.length) {
 			await bot.sendMessage(message.chat.id, 'Не найдено платежей для данного пользователя');
 		}

@@ -1,7 +1,7 @@
-import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
+import type { Device, Payment, User } from '@prisma/client';
+import { subMonths, subWeeks } from 'date-fns';
 import type { Bank } from '../../enums';
 import { prisma } from '../../prisma';
-import { subMonths, subWeeks } from 'date-fns';
 
 export type VPNUser = User & {
 	payer: User | null;
@@ -17,7 +17,6 @@ export class UsersRepository {
 		telegramLink: string | null,
 		lastName: string | null,
 		devices: Device[],
-		protocols: VPNProtocol[],
 		bank: Bank,
 	): Promise<User> {
 		return await prisma.user.create({
@@ -28,7 +27,6 @@ export class UsersRepository {
 				telegramId,
 				lastName,
 				devices,
-				protocols,
 				bank,
 			},
 		});
@@ -216,6 +214,33 @@ export class UsersRepository {
 					lt: subMonths(new Date(), 1),
 				},
 				id,
+			},
+		});
+	}
+
+	async isUserPaid(id: number) {
+		return await prisma.user.findFirst({
+			where: {
+				id,
+				OR: [
+					{
+						createdAt: {
+							lt: subMonths(new Date(), 1),
+						},
+						payments: {
+							some: {
+								expiresOn: {
+									gt: new Date(),
+								},
+							},
+						},
+					},
+					{
+						createdAt: {
+							gt: subMonths(new Date(), 1),
+						},
+					},
+				],
 			},
 		});
 	}

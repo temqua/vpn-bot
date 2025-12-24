@@ -7,11 +7,13 @@ import { PaymentsService } from '../payments/payments.service';
 import { UsersService } from './users.service';
 import type { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 import logger from '../../logger';
+import { PlansService } from '../plans/plans.service';
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(
 		private service: UsersService = new UsersService(),
 		private paymentsService: PaymentsService = new PaymentsService(),
+		private plansService: PlansService = new PlansService(),
 	) {}
 	private state = {
 		params: new Map(),
@@ -103,6 +105,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		}
 		if (context.cmd === VPNUserCommand.ShowUnpaid) {
 			await this.service.showUnpaid(message);
+		}
+		if (context.cmd === VPNUserCommand.ShowPlans) {
+			await this.plansService.showForUser(message.chat.id);
 		}
 		if (context.cmd === VPNUserCommand.NotifyUnpaid) {
 			await this.service.notifyUnpaid();

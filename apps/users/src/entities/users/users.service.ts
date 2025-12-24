@@ -137,18 +137,6 @@ export class UsersService {
 				this.params.set('devices', selectedOptions);
 			}
 			delete context.skip;
-			await bot.sendPoll(chatId, 'Choose protocols', pollOptions.protocols, {
-				allows_multiple_answers: true,
-			});
-			await bot.sendMessage(chatId, 'Skip', skipKeyboard);
-			this.setCreateStep('protocols');
-			return;
-		}
-		if (this.createSteps.protocols) {
-			if (!context.skip) {
-				this.params.set('protocols', selectedOptions);
-			}
-			delete context.skip;
 			await bot.sendPoll(chatId, 'Choose bank', pollOptions.bank, {
 				allows_multiple_answers: false,
 			});
@@ -173,14 +161,12 @@ export class UsersService {
 				params.get('telegram_link'),
 				params.get('last_name'),
 				params.get('devices'),
-				params.get('protocols'),
 				params.get('bank'),
 			);
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			await this.sendNewUserMenu(chatId, newUser);
 			if (params.get('pasarguard')) {
 				this.createPasarguardUser(chatId, newUser);
-				bot.sendMessage(chatId, userStartMessage, getUserKeyboard(chatId));
 			}
 		} catch (error) {
 			logger.error(
@@ -501,7 +487,6 @@ export class UsersService {
 				row.id ? row.id.toString() : '',
 				row.price ? row.price.toString() : '',
 				row.devices?.length ? row.devices.join(', ') : '',
-				row.protocols?.length ? row.protocols.join(', ') : '',
 				row.createdAt ? new Date(row.createdAt).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
 				row.free ? true : false,
 			];
@@ -646,17 +631,18 @@ currently have a trial period `,
 
 			bot.sendMessage(message.chat.id, 'Управление подпиской', deleteSubscriptionButton);
 		} else {
-			const isUnpaid = await this.repository.isUserUnpaid(user.id);
-			if (isUnpaid) {
-				bot.sendMessage(
-					message.chat.id,
-					`Не обнаружено подписок. Напишите в личные сообщения https://t.me/tesseract_vpn.`,
-				);
-			} else {
+			const isPaid = await this.repository.isUserPaid(user.id);
+
+			if (isPaid) {
 				bot.sendMessage(
 					message.chat.id,
 					'У вас пока нет подписок. Вы можете создать новую',
 					createSubscriptionButton,
+				);
+			} else {
+				bot.sendMessage(
+					message.chat.id,
+					`Не обнаружено платежей. Напишите в личные сообщения https://t.me/tesseract_vpn`,
 				);
 			}
 		}
@@ -666,23 +652,27 @@ currently have a trial period `,
 		bot.sendMessage(chatId, introMessage, {
 			parse_mode: 'MarkdownV2',
 		});
-		bot.sendMessage(chatId, userStartMessage, getUserKeyboard(chatId));
+		bot.sendMessage(chatId, userStartMessage, getUserKeyboard());
 	}
 
 	async createSubscription(message: Message) {
 		this.log('createSubscription');
+		bot.sendMessage(message.chat.id, 'Создаём подписку...');
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		await this.createPasarguardUser(message.chat.id, user);
 	}
 
 	async deleteSubscription(message: Message) {
 		this.log('deleteSubscription');
+		bot.sendMessage(message.chat.id, 'Удаляем подписку...');
+		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		try {
-			const user = await this.repository.getByTelegramId(message.chat.id.toString());
 			const result = await this.deletePasarguardUser(user);
 			if (result) {
 				await this.repository.update(user.id, {
 					subLink: null,
+					pasarguardUsername: null,
+					pasarguardId: null,
 				});
 				bot.sendMessage(message.chat.id, 'Подписка была успешно удалена');
 			} else {
@@ -690,6 +680,8 @@ currently have a trial period `,
 			}
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка удаления ${error.message}`);
+		} finally {
+			bot.sendMessage(message.chat.id, userStartMessage, getUserKeyboard());
 		}
 	}
 
@@ -823,7 +815,6 @@ Last Name: ${user.lastName}
 Telegram Link: ${user.telegramLink}
 Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
-Protocols: ${user.protocols.join(', ')}
 Price: ${user.price}
 Subscription link: ${user.subLink}
 Created At: ${formatDate(user.createdAt)}\n`;
@@ -870,6 +861,8 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			this.showSubGuide(chatId);
 			await this.repository.update(user.id, {
 				subLink: newPasarguardUser.subscription_url,
+				pasarguardUsername: newPasarguardUser.username,
+				pasarguardId: newPasarguardUser.id,
 			});
 			return newPasarguardUser;
 		} else {
@@ -879,11 +872,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 	}
 
 	private async deletePasarguardUser(user: User) {
-		let pgUsername = `${user.username}_${user.id}`;
-		if (user.telegramId) {
-			pgUsername = pgUsername.concat('_', user.telegramId);
-		}
-		return await this.pasarguardService.deleteUser(pgUsername);
+		return await this.pasarguardService.deleteUser(user.pasarguardUsername);
 	}
 
 	private log(message: string) {

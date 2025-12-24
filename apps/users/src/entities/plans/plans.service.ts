@@ -1,14 +1,18 @@
 import { Message } from 'node-telegram-bot-api';
-import { PlanRepository } from './plans.repository';
-import env from '../../env';
-import bot from '../../bot';
-import { setActiveStep } from '../../utils';
 import { basename } from 'path';
-import logger from '../../logger';
+import bot from '../../bot';
+import env from '../../env';
 import { globalHandler } from '../../global.handler';
+import logger from '../../logger';
+import { setActiveStep } from '../../utils';
+import { UsersRepository } from '../users/users.repository';
+import { PlanRepository } from './plans.repository';
 
 export class PlansService {
-	constructor(private readonly repo: PlanRepository = new PlanRepository()) {}
+	constructor(
+		private readonly repo: PlanRepository = new PlanRepository(),
+		private readonly usersRepo: UsersRepository = new UsersRepository(),
+	) {}
 
 	createSteps: { [key: string]: boolean } = {
 		name: false,
@@ -25,9 +29,30 @@ export class PlansService {
 			await bot.sendMessage(
 				chatId,
 				`${plan.name}
-		Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
 		Количество человек: ${plan.peopleCount}
+		Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
 		Продолжительность: ${plan.months} месяцев`,
+			);
+		}
+		globalHandler.finishCommand();
+	}
+
+	async showForUser(chatId: number) {
+		const user = await this.usersRepo.getByTelegramId(chatId.toString());
+		const plans = await this.repo.getByPrice(user.price);
+		await bot.sendMessage(
+			chatId,
+			`За 1 человека
+Стоимость ${user.price} RUB
+На срок 1 месяц`,
+		);
+		for (const plan of plans) {
+			await bot.sendMessage(
+				chatId,
+				`
+За ${plan.peopleCount} человек${plan.peopleCount === 1 ? 'а' : ''}
+Стоимость ${plan.amount} ${plan.currency}
+На срок ${plan.months} месяц${plan.months > 1 ? 'ев' : ''}`,
 			);
 		}
 		globalHandler.finishCommand();

@@ -28,6 +28,22 @@ export class PlanRepository {
 		});
 	}
 
+	async getByPrice(price: number) {
+		return await prisma.plan.findMany({
+			where: {
+				price,
+			},
+			orderBy: [
+				{
+					peopleCount: 'asc',
+				},
+				{
+					months: 'asc',
+				},
+			],
+		});
+	}
+
 	async create(name: string, amount: number, price: number, peopleCount: number, monthsCount: number) {
 		return await prisma.plan.create({
 			data: {

@@ -48,9 +48,14 @@ bot.onText(/\/start/, async (msg: Message) => {
 		const user = await usersRepository.getByTelegramId(msg?.from?.id.toString() ?? '');
 		if (user) {
 			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${msg?.from?.first_name}!`);
+			bot.sendMessage(msg.chat.id, 'Добро пожаловать в бот тессеракт впн.');
+			bot.sendMessage(msg.chat.id, userStartMessage, getUserKeyboard());
+		} else {
+			await bot.sendMessage(
+				msg.chat.id,
+				`Здравствуйте, ${msg?.from?.first_name}! Напишите в личные сообщения https://t.me/tesseract_vpn для регистрации в системе.`,
+			);
 		}
-		bot.sendMessage(msg.chat.id, 'Добро пожаловать в бот тессеракт впн.');
-		bot.sendMessage(msg.chat.id, userStartMessage, getUserKeyboard(user.id));
 	}
 });
 
@@ -156,7 +161,6 @@ Username: ${user.username}
 Ссылка на Telegram: ${user.telegramLink}
 Telegram Id: ${user.telegramId}
 Устройства: ${user.devices.join(', ')}
-Протоколы: ${user.protocols.join(', ')}
 Дата создания: ${formatDate(user.createdAt)}
 ${user.bank ? 'Банк: ' + user.bank : ''}
 ${user.payer?.username ? 'Payer: ' + user.payer?.username : ''}${user.dependants?.length ? 'Dependants: ' + user.dependants?.map(u => u.username).join(', ') : ''}

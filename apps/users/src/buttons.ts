@@ -475,7 +475,7 @@ export const replySetNullPropKeyboard = (prop: keyof User, userId: string): Send
 	};
 };
 
-export const getUserKeyboard = (userId: number): SendBasicOptions => {
+export const getUserKeyboard = (): SendBasicOptions => {
 	return {
 		reply_markup: {
 			inline_keyboard: [
@@ -486,7 +486,6 @@ export const getUserKeyboard = (userId: number): SendBasicOptions => {
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
 								[CmdCode.Command]: VPNUserCommand.ShowPayments,
-								id: userId,
 							},
 						}),
 					},
@@ -498,7 +497,6 @@ export const getUserKeyboard = (userId: number): SendBasicOptions => {
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
 								[CmdCode.Command]: VPNUserCommand.ShowSubLink,
-								id: userId,
 							},
 						}),
 					},
@@ -510,6 +508,17 @@ export const getUserKeyboard = (userId: number): SendBasicOptions => {
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
 								[CmdCode.Command]: VPNUserCommand.ShowSubLinkGuide,
+							},
+						}),
+					},
+				],
+				[
+					{
+						text: '💵 Цены',
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.ShowPlans,
 							},
 						}),
 					},

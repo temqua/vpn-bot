@@ -109,9 +109,11 @@ export class PasarguardService {
 			const detail =
 				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
 			logger.error(detail);
+			return null;
 		}
 		if (!response.ok) {
 			logger.error(`${response.status} ${response.statusText}`);
+			return null;
 		}
 		const result = (await response.json()) as PasarguardCreateResponse;
 
