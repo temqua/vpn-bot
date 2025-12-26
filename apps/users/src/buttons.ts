@@ -492,7 +492,7 @@ export const getUserKeyboard = (): SendBasicOptions => {
 				],
 				[
 					{
-						text: '🔄 Подписка',
+						text: '🔑 Ключи и Subscription-ссылки',
 						callback_data: JSON.stringify({
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {

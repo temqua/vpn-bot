@@ -621,9 +621,10 @@ currently have a trial period `,
 		this.log('showSubscriptionURL');
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
+			bot.sendMessage(message.chat.id, 'Ваша ссылка');
 			bot.sendMessage(
 				message.chat.id,
-				`Ваша ссылка \`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
+				`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
 				{
 					parse_mode: 'MarkdownV2',
 				},
@@ -853,7 +854,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			bot.sendMessage(chatId, `Пользователь ${newPasarguardUser.username} успешно создан в pasarguard.`);
 			bot.sendMessage(
 				chatId,
-				`Ваша ссылка \`https://pg.tesseractnpv.com${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
+				`\`https://pg.tesseractnpv.com${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
 				{
 					parse_mode: 'MarkdownV2',
 				},
