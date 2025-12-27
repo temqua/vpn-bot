@@ -6,7 +6,8 @@
 		"prestart": "npx prisma generate",
 		"start": "bun src/index.ts",
 		"seed": "bun prisma/seed.ts",
-		"migration": "prisma migrate dev"
+		"migration": "prisma migrate dev",
+		"migrate": "prisma migrate deploy"
 	},
 	"peerDependencies": {
 		"typescript": "^5.0.0"
