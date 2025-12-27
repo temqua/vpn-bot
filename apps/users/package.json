@@ -1,8 +1,8 @@
 {
 	"name": "users-bot",
-	"version": "3.3.0",
+	"version": "3.4.0",
 	"scripts": {
-		"build": "prisma generate",
+		"generate": "prisma generate",
 		"prestart": "npx prisma generate",
 		"start": "bun src/index.ts",
 		"seed": "bun prisma/seed.ts",

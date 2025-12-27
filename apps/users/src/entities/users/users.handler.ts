@@ -115,6 +115,15 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.ShowTrial) {
 			await this.service.showTrial(message);
 		}
+		if (context.cmd === VPNUserCommand.CreateKey) {
+			await this.service.createKey(message, context, start);
+		}
+		if (context.cmd === VPNUserCommand.Keys) {
+			await this.service.listKeys(message, context);
+		}
+		if (context.cmd === VPNUserCommand.DeleteKey) {
+			await this.service.deleteKey(message, context, start);
+		}
 	}
 
 	async handlePoll(context: UsersContext, poll: Poll) {

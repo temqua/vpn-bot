@@ -1,11 +1,11 @@
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
-import { paymentButtons } from '../buttons';
 import { PaymentsService } from '../entities/payments/payments.service';
 import { UsersRepository } from '../entities/users/users.repository';
 import { CmdCode, CommandScope, PaymentCommand, VPNUserCommand } from '../enums';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
+import { paymentButtons } from '../entities/payments/payments.buttons';
 
 export const paymentCommandsList = {
 	menu: {

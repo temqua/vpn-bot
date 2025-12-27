@@ -11,6 +11,11 @@ const env = cleanEnv(process.env, {
 	PASARGUARD_ROOT: str({ default: '' }),
 	PASARGUARD_USERNAME: str({ default: '' }),
 	PASARGUARD_PASSWORD: str({ default: '' }),
+	SERVICE_TOKEN: str({ default: '' }),
+	HOST_URL: str({ default: 'http://172.17.0.1' }),
+	IKE_RECEIVER_PORT: num({ default: 8090 }),
+	WG_RECEIVER_PORT: num({ default: 8091 }),
+	OVPN_RECEIVER_PORT: num({ default: 8092 }),
 });
 
 export default env;

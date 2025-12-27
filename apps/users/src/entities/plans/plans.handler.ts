@@ -1,11 +1,8 @@
 import type { Message } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
-import { CmdCode, PlanCommand } from '../../enums';
+import { PlanCommand } from '../../enums';
 import { PlansService } from './plans.service';
-
-export interface PlansContext {
-	[CmdCode.Command]: PlanCommand;
-}
+import { PlansContext } from './plans.types';
 
 export class PlansCommandsHandler implements ICommandHandler {
 	constructor(private service: PlansService = new PlansService()) {}
@@ -16,6 +13,9 @@ export class PlansCommandsHandler implements ICommandHandler {
 		}
 		if (context.cmd === PlanCommand.Create) {
 			await this.service.create(message, start);
+		}
+		if (context.cmd === PlanCommand.Delete) {
+			await this.service.delete(message, context, start);
 		}
 	}
 }

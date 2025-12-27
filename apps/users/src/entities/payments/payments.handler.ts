@@ -1,11 +1,8 @@
 import type { Message } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
-import { PaymentCommand, type CmdCode } from '../../enums';
+import { PaymentCommand } from '../../enums';
 import { PaymentsService } from './payments.service';
-
-export interface PaymentsContext {
-	[CmdCode.Command]: PaymentCommand;
-}
+import type { PaymentsContext } from './payments.types';
 
 class PaymentsCommandsHandler implements ICommandHandler {
 	constructor(private service: PaymentsService = new PaymentsService()) {}

@@ -4,8 +4,13 @@ import { isAdmin } from '../utils';
 import bot from '../bot';
 import { CmdCode, CommandScope, ExpenseCommand } from '../enums';
 import { globalHandler } from '../global.handler';
+import { expensesButtons } from '../entities/expenses/expenses.buttons';
 
 export const expenseCommandsList = {
+	menu: {
+		regexp: /\/expense$/,
+		docs: '/expense — show expenses menu',
+	},
 	all: {
 		regexp: /\/expenses$/,
 		docs: '/expenses — show expenses list',
@@ -39,6 +44,18 @@ export const expenseCommandsList = {
 export const expenseHelpMessage = Object.values(expenseCommandsList)
 	.map(c => c.docs)
 	.join('\n');
+
+bot.onText(expenseCommandsList.menu.regexp, async (msg: Message) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const inlineKeyboard = {
+		reply_markup: {
+			inline_keyboard: expensesButtons,
+		},
+	};
+	await bot.sendMessage(msg.chat.id, 'Select operation', inlineKeyboard);
+});
 
 bot.onText(expenseCommandsList.all.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {

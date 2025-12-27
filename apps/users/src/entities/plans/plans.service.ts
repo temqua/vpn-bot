@@ -7,10 +7,12 @@ import logger from '../../logger';
 import { setActiveStep } from '../../utils';
 import { UsersRepository } from '../users/users.repository';
 import { PlanRepository } from './plans.repository';
+import { PlansContext } from './plans.types';
+import { CmdCode, CommandScope, PlanCommand } from '../../enums';
 
 export class PlansService {
 	constructor(
-		private readonly repo: PlanRepository = new PlanRepository(),
+		private readonly repository: PlanRepository = new PlanRepository(),
 		private readonly usersRepo: UsersRepository = new UsersRepository(),
 	) {}
 
@@ -24,7 +26,8 @@ export class PlansService {
 	params = new Map();
 
 	async showAll(chatId: number) {
-		const plans = await this.repo.getAll();
+		this.log('showAll');
+		const plans = await this.repository.getAll();
 		for (const plan of plans) {
 			await bot.sendMessage(
 				chatId,
@@ -38,8 +41,9 @@ export class PlansService {
 	}
 
 	async showForUser(chatId: number) {
+		this.log('showForUser');
 		const user = await this.usersRepo.getByTelegramId(chatId.toString());
-		const plans = await this.repo.getByPrice(user.price);
+		const plans = await this.repository.getByPrice(user.price);
 		await bot.sendMessage(
 			chatId,
 			`За 1 человека
@@ -59,6 +63,7 @@ export class PlansService {
 	}
 
 	async create(message: Message | null, start = false) {
+		this.log('create');
 		const chatId = message ? message.chat.id : env.ADMIN_USER_ID;
 		if (start) {
 			await bot.sendMessage(chatId, 'Enter new plan name');
@@ -98,7 +103,7 @@ export class PlansService {
 			const amount = Number(params.get('amount'));
 			const monthsCount = Number(params.get('monthsCount'));
 			this.validate();
-			const created = await this.repo.create(params.get('name'), amount, price, peopleCount, monthsCount);
+			const created = await this.repository.create(params.get('name'), amount, price, peopleCount, monthsCount);
 			if (created) {
 				await bot.sendMessage(
 					chatId,
@@ -119,6 +124,38 @@ export class PlansService {
 		}
 	}
 
+	async delete(msg: Message, context: PlansContext, start = false) {
+		this.log('delete');
+		if (!start) {
+			await this.repository.delete(Number(context.id));
+			const message = `Plan with id ${context.id} has been successfully removed`;
+			logger.success(`[${basename(__filename)}]: ${message}`);
+			await bot.sendMessage(msg.chat.id, message);
+			globalHandler.finishCommand();
+			return;
+		}
+		const plans = await this.repository.getAll();
+		const buttons = plans.map(({ name, id }) => [
+			{
+				text: name,
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Plans,
+					[CmdCode.Context]: {
+						cmd: PlanCommand.Delete,
+						id,
+					},
+					[CmdCode.Processing]: 1,
+				}),
+			},
+		]);
+		const inlineKeyboard = {
+			reply_markup: {
+				inline_keyboard: [...buttons],
+			},
+		};
+		await bot.sendMessage(msg.chat.id, 'Select plan to delete:', inlineKeyboard);
+	}
+
 	private setCreateStep(current: string) {
 		setActiveStep(current, this.createSteps);
 	}
@@ -126,6 +163,10 @@ export class PlansService {
 		Object.keys(this.createSteps).forEach(k => {
 			this.createSteps[k] = false;
 		});
+	}
+
+	private log(message: string) {
+		logger.log(`[${basename(__filename)}]: ${message}`);
 	}
 
 	private validate() {

@@ -82,10 +82,10 @@ model Plan {
   @@map("plans")
 }
 
-model VPNServer {
+model VpnServer {
   id    Int            @id @default(autoincrement())
   name  String
-  ip    String
+  url   String
   users ServersUsers[]
 
   @@map("vpn_servers")
@@ -94,9 +94,10 @@ model VPNServer {
 model ServersUsers {
   user       User        @relation(fields: [userId], references: [id])
   userId     Int
-  server     VPNServer   @relation(fields: [serverId], references: [id])
+  server     VpnServer   @relation(fields: [serverId], references: [id])
   serverId   Int
   protocol   VPNProtocol
+  username   String?
   assignedAt DateTime    @default(now())
 
   @@id([userId, serverId, protocol])

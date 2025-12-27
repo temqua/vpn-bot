@@ -1,23 +1,21 @@
 import type { Message } from 'node-telegram-bot-api';
+import TelegramBot from 'node-telegram-bot-api';
 import bot from '../bot';
-import { getUserContactKeyboard, getUserKeyboard } from '../buttons';
+import { userStartMessage } from '../consts';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
-import { CommandScope, PlanCommand, UserRequest } from '../enums';
+import { UserRequest } from '../enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../global.handler';
 import logger from '../logger';
 import { formatDate, isAdmin } from '../utils';
 import { expenseHelpMessage } from './expenses.commands';
 import { paymentsHelpMessage } from './payments.commands';
 import { userHelpMessage } from './users.commands';
-import TelegramBot from 'node-telegram-bot-api';
-import { userStartMessage } from '../consts';
+import { getUserContactKeyboard, getUserKeyboard } from '../entities/users/users.buttons';
+import { serversHelpMessage } from './servers.commands';
+import { plansHelpMessage } from './plans.commands';
 const usersRepository = new UsersRepository();
 
 const mainCommandsList = {
-	plans: {
-		regexp: /\/plans$/,
-		docs: '/plans — show users plans',
-	},
 	ping: {
 		regexp: /\/ping$/,
 		docs: '/ping — test if bot working',
@@ -25,10 +23,6 @@ const mainCommandsList = {
 	lookup: {
 		regexp: /\/lookup$/,
 		docs: '/lookup — see user telegram id',
-	},
-	createPlan: {
-		regexp: /\/plan\s+create$/,
-		docs: '/plan create — create new plan',
 	},
 };
 
@@ -44,6 +38,8 @@ bot.onText(/\/start/, async (msg: Message) => {
 		await bot.sendMessage(msg.chat.id, expenseHelpMessage);
 		await bot.sendMessage(msg.chat.id, paymentsHelpMessage);
 		await bot.sendMessage(msg.chat.id, userHelpMessage);
+		await bot.sendMessage(msg.chat.id, plansHelpMessage);
+		await bot.sendMessage(msg.chat.id, serversHelpMessage);
 	} else {
 		const user = await usersRepository.getByTelegramId(msg?.from?.id.toString() ?? '');
 		if (user) {
@@ -111,36 +107,6 @@ bot.onText(mainCommandsList.lookup.regexp, async (msg: Message) => {
 	await bot.sendMessage(msg.chat.id, 'Share user:', {
 		reply_markup: getUserContactKeyboard(UserRequest.Lookup),
 	});
-});
-
-bot.onText(mainCommandsList.plans.regexp, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Plans,
-			context: {
-				cmd: PlanCommand.List,
-			},
-		},
-		msg,
-	);
-});
-
-bot.onText(mainCommandsList.createPlan.regexp, async (msg: Message) => {
-	if (!isAdmin(msg)) {
-		return;
-	}
-	globalHandler.execute(
-		{
-			scope: CommandScope.Plans,
-			context: {
-				cmd: PlanCommand.Create,
-			},
-		},
-		msg,
-	);
 });
 
 bot.onText(/\/me$/, async (msg: Message) => {

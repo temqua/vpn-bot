@@ -1,27 +1,16 @@
 import { ExpenseCategory } from '@prisma/client';
-import type { Message, Poll } from 'node-telegram-bot-api';
+import { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
-import type { ICommandHandler } from '../../contracts';
-import { CmdCode, ExpenseCommand } from '../../enums';
+import { CmdCode, CommandScope, ExpenseCommand } from '../../enums';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import pollOptions from '../../pollOptions';
-import { setActiveStep } from '../../utils';
-import { ExpensesRepository } from './repository';
+import { formatDate, setActiveStep } from '../../utils';
+import { ExpensesRepository } from './expenses.repository';
+import { ExpenseCreateContext, ExpensesContext } from './expenses.types';
 
-export interface ExpensesContext {
-	category?: ExpenseCategory;
-	amount?: number;
-	chatId?: number;
-	[CmdCode.Command]: ExpenseCommand;
-}
-
-export interface ExpenseCreateContext extends ExpensesContext {
-	chatId: number;
-}
-
-class ExpensesHandler implements ICommandHandler {
+export class ExpensesService {
 	constructor(private repository: ExpensesRepository = new ExpensesRepository()) {}
 	params = new Map();
 	createSteps = {
@@ -29,18 +18,8 @@ class ExpensesHandler implements ICommandHandler {
 		amount: false,
 		description: false,
 	};
-
-	async handle(context: ExpensesContext, message: Message | null, start = false) {
-		if (context.cmd === ExpenseCommand.Create) {
-			this.create(context as ExpenseCreateContext, message, start);
-		} else if (context.cmd === ExpenseCommand.List) {
-			this.list(message as Message);
-		} else {
-			this.sum(context, message as Message);
-		}
-	}
-
 	async create(context: ExpenseCreateContext, message: Message | null, start = false) {
+		this.log('create');
 		context.chatId = message?.chat?.id ?? context.chatId;
 		if (start) {
 			this.setCreateStep('category');
@@ -80,11 +59,19 @@ class ExpensesHandler implements ICommandHandler {
 	}
 
 	async list(message: Message) {
+		this.log('list');
 		const expenses = await this.repository.list();
 		for (const expense of expenses) {
 			await bot.sendMessage(
 				message.chat.id,
-				`Found expense ${expense.id} in category ${expense.category} at ${expense.paymentDate}. ${expense.amount} ${expense.currency}. Additional info: ${expense.description}`,
+				`\`${expense.id.replace(/[-.*#_]/g, match => `\\${match}`)} \`
+Category: **${expense.category.replace(/[-.*#_]/g, match => `\\${match}`)}**
+Date: ${formatDate(expense.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)} 
+${expense.amount.toString().replace(/[-.*#_]/g, match => `\\${match}`)} ${expense.currency} 
+Additional info: ${expense.description.replace(/[-.*#_]/g, match => `\\${match}`)}`,
+				{
+					parse_mode: 'MarkdownV2',
+				},
 			);
 		}
 		if (!expenses.length) {
@@ -95,6 +82,7 @@ class ExpensesHandler implements ICommandHandler {
 	}
 
 	async sum(context: ExpensesContext, message: Message) {
+		this.log('sum');
 		if (context.category) {
 			if (context.category === ExpenseCategory.Nalog) {
 				await this.sumNalogs(message);
@@ -112,6 +100,38 @@ class ExpensesHandler implements ICommandHandler {
 		globalHandler.finishCommand();
 	}
 
+	async delete(msg: Message, context: ExpensesContext, start = false) {
+		this.log('delete');
+		if (!start) {
+			await this.repository.delete(context.id);
+			const message = `Expense with id ${context.id} has been successfully removed`;
+			logger.success(`[${basename(__filename)}]: ${message}`);
+			await bot.sendMessage(msg.chat.id, message);
+			globalHandler.finishCommand();
+			return;
+		}
+		const expenses = await this.repository.list();
+		const buttons = expenses.map(({ description, id }) => [
+			{
+				text: description,
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Expenses,
+					[CmdCode.Context]: {
+						cmd: ExpenseCommand.Delete,
+						id,
+					},
+					[CmdCode.Processing]: 1,
+				}),
+			},
+		]);
+		const inlineKeyboard = {
+			reply_markup: {
+				inline_keyboard: [...buttons],
+			},
+		};
+		await bot.sendMessage(msg.chat.id, 'Select expense to delete:', inlineKeyboard);
+	}
+
 	async sumNalogs(message: Message) {
 		const result = await this.repository.sumNalogs();
 		await bot.sendMessage(message.chat.id, `Sum of nalog expenses: ${result._sum.amount}`);
@@ -122,15 +142,11 @@ class ExpensesHandler implements ICommandHandler {
 		await bot.sendMessage(message.chat.id, `Sum of server expenses: ${result._sum.amount}`);
 	}
 
-	async handlePoll(context: ExpensesContext, poll: Poll) {
-		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text as ExpenseCategory);
-		context.category = selected[0];
-		this.handle(context, null, false);
-	}
-
 	private setCreateStep(current: string) {
 		setActiveStep(current, this.createSteps);
 	}
-}
 
-export const expensesCommandsHandler = new ExpensesHandler();
+	private log(message: string) {
+		logger.log(`[${basename(__filename)}]: ${message}`);
+	}
+}

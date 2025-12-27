@@ -1,12 +1,17 @@
 import type { Message, Poll } from 'node-telegram-bot-api';
-import { expensesCommandsHandler, type ExpensesContext } from './entities/expenses/handler';
-import { userCommandsHandler } from './entities/users/users.handler';
 import type { ICommandHandler } from './contracts';
+import { expensesCommandsHandler } from './entities/expenses/expenses.handler';
+import type { ExpensesContext } from './entities/expenses/expenses.types';
+import { paymentsCommandsHandler } from './entities/payments/payments.handler';
+import type { PaymentsContext } from './entities/payments/payments.types';
+import { plansCommandsHandler } from './entities/plans/plans.handler';
+import type { PlansContext } from './entities/plans/plans.types';
+import { serversCommandsHandler } from './entities/servers/servers.handler';
+import type { ServersContext } from './entities/servers/servers.types';
+import { userCommandsHandler } from './entities/users/users.handler';
+import type { UsersContext } from './entities/users/users.types';
 import { CommandScope } from './enums';
 import logger from './logger';
-import { paymentsCommandsHandler, type PaymentsContext } from './entities/payments/payments.handler';
-import { plansCommandsHandler, PlansContext } from './entities/plans/plans.handler';
-import { UsersContext } from './entities/users/users.types';
 
 export type CommandDetails = {
 	processing?: boolean;
@@ -20,7 +25,7 @@ export type CommandDetailCompressed = {
 	c: CommandContext;
 };
 
-export type CommandContext = UsersContext | ExpensesContext | PaymentsContext | PlansContext;
+export type CommandContext = UsersContext | ExpensesContext | PaymentsContext | PlansContext | ServersContext;
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
 
@@ -61,6 +66,9 @@ class GlobalHandler {
 			case CommandScope.Plans:
 				handler = plansCommandsHandler;
 				break;
+			case CommandScope.Servers:
+				handler = serversCommandsHandler;
+				break;
 			default:
 				handler = expensesCommandsHandler;
 		}
@@ -80,6 +88,9 @@ class GlobalHandler {
 				break;
 			case CommandScope.Plans:
 				handler = plansCommandsHandler;
+				break;
+			case CommandScope.Servers:
+				handler = serversCommandsHandler;
 				break;
 			default:
 				handler = userCommandsHandler;

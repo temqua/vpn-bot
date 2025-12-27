@@ -55,4 +55,12 @@ export class PlanRepository {
 			},
 		});
 	}
+
+	async delete(id: number) {
+		return await prisma.plan.delete({
+			where: {
+				id,
+			},
+		});
+	}
 }

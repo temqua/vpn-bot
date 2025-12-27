@@ -11,18 +11,30 @@ export enum ExpenseCommand {
 	Create = 'cr',
 	List = 'list',
 	Sum = 'sum',
+	Delete = 'del',
+}
+
+export enum ServerCommand {
+	Create = 'cr',
+	List = 'list',
+	ListUsers = 'listu',
+	Edit = 'e',
+	Delete = 'del',
 }
 
 export enum VPNUserCommand {
 	Create = 'cr',
 	CreateSubscription = 'crs',
+	CreateKey = 'crk',
 	List = 'list',
 	Delete = 'del',
 	DeleteSubscription = 'dels',
+	DeleteKey = 'delk',
 	GetById = 'getid',
 	FindByUsername = 'findus',
 	GetByTelegramId = 'gettg',
 	FindByFirstName = 'findfn',
+	Keys = 'ks',
 	Update = 'u',
 	UpdateNull = 'un',
 	Pay = 'pay',
@@ -51,6 +63,7 @@ export enum PaymentCommand {
 export enum PlanCommand {
 	Create = 'create',
 	List = 'list',
+	Delete = 'del',
 }
 
 export enum CommandScope {
@@ -58,6 +71,7 @@ export enum CommandScope {
 	Expenses = 'expenses',
 	Payments = 'payments',
 	Plans = 'plans',
+	Servers = 'servers',
 }
 
 export enum UserRequest {

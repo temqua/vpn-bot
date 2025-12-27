@@ -1,8 +1,20 @@
-import type { Device, User, VPNProtocol } from '@prisma/client';
+import { Device, User, VPNProtocol } from '@prisma/client';
 import { subMonths } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
+import { getYesNoKeyboard } from '../../buttons';
+import { introMessage, userStartMessage } from '../../consts';
+import { Bank, BoolFieldState, CmdCode, CommandScope, ServerCommand, UserRequest, VPNUserCommand } from '../../enums';
+import env from '../../env';
+import { globalHandler } from '../../global.handler';
+import logger from '../../logger';
+import pollOptions from '../../pollOptions';
+import { formatDate, setActiveStep } from '../../utils';
+import { ExpensesRepository } from '../expenses/expenses.repository';
+import { PaymentsRepository } from '../payments/payments.repository';
+import { PasarguardService } from './pasarguard.service';
+import { exportToSheet } from './sheets.service';
 import {
 	createSubscriptionButton,
 	createUserOperationsKeyboard,
@@ -10,32 +22,23 @@ import {
 	getUserContactKeyboard,
 	getUserKeyboard,
 	getUserMenu,
-	getYesNoKeyboard,
 	payersKeyboard,
 	replySetNullPropKeyboard,
 	skipKeyboard,
-} from '../../buttons';
-import { Bank, BoolFieldState, CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../enums';
-import env from '../../env';
-import { globalHandler } from '../../global.handler';
-import logger from '../../logger';
-import pollOptions from '../../pollOptions';
-import { formatDate, setActiveStep } from '../../utils';
-import { PaymentsRepository } from '../payments/payments.repository';
-import { PasarguardService } from './pasarguard.service';
-import { exportToSheet } from './sheets.service';
+} from './users.buttons';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
-import { ExpensesRepository } from '../expenses/repository';
-import { introMessage, userStartMessage } from '../../consts';
+import { ServersRepository } from '../servers/servers.repository';
 
 export class UsersService {
 	constructor(
 		private repository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
+		private serversRepository: ServersRepository = new ServersRepository(),
 	) {}
 
 	params = new Map();
+	createKeyParams = new Map();
 	createSteps: { [key: string]: boolean } = {
 		telegramId: false,
 		username: false,
@@ -46,6 +49,11 @@ export class UsersService {
 		protocols: false,
 		bank: false,
 		pasarguard: false,
+	};
+	createKeySteps = {
+		serverId: false,
+		userId: false,
+		protocol: false,
 	};
 	updateSteps = {
 		payerSearch: false,
@@ -394,11 +402,17 @@ export class UsersService {
 	async delete(msg: Message, context: UsersContext, start: boolean) {
 		this.log('delete');
 		if (!start) {
-			await this.repository.delete(Number(context.id));
-			const message = `User with id ${context.id} has been successfully removed`;
-			logger.success(`[${basename(__filename)}]: ${message}`);
-			await bot.sendMessage(msg.chat.id, message);
-			globalHandler.finishCommand();
+			try {
+				await this.repository.delete(Number(context.id));
+				const message = `User with id ${context.id} has been successfully removed`;
+				logger.success(`[${basename(__filename)}]: ${message}`);
+				await bot.sendMessage(msg.chat.id, message);
+			} catch (error) {
+				await bot.sendMessage(msg.chat.id, `Error occurred while deleting user: ${error}`);
+			} finally {
+				globalHandler.finishCommand();
+			}
+
 			return;
 		}
 		const users = await this.repository.list();
@@ -686,8 +700,113 @@ currently have a trial period `,
 		}
 	}
 
+	async createKey(message: Message, context: UsersContext, start: boolean) {
+		if (!start) {
+			if (this.createKeySteps.serverId) {
+				this.createKeyParams.set('serverId', context.sid);
+				const buttons = Object.values(VPNProtocol).map(p => [
+					{
+						text: p,
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.CreateKey,
+								pr: p,
+							},
+							[CmdCode.Processing]: 1,
+						}),
+					},
+				]);
+				await bot.sendMessage(message.chat.id, 'Select protocol', {
+					reply_markup: {
+						inline_keyboard: [...buttons],
+					},
+				});
+				this.setCreateKeyStep('protocol');
+				return;
+			}
+			if (this.createKeySteps.protocol) {
+				this.createKeyParams.set('protocol', context.pr);
+				this.setCreateKeyStep('username');
+				await bot.sendMessage(message.chat.id, 'Enter username');
+				return;
+			}
+			try {
+				const created = await this.createUserServer(
+					this.createKeyParams.get('userId'),
+					this.createKeyParams.get('serverId'),
+					this.createKeyParams.get('protocol'),
+					message.text,
+				);
+				if (created) {
+					await bot.sendMessage(
+						message.chat.id,
+						`Successfully created key ${created.username} for user ${created.user.username} on server ${created.server.name}`,
+					);
+				}
+			} catch (err) {
+				bot.sendMessage(message.chat.id, `Error occurred while creating user server ${err}`);
+			} finally {
+				this.createKeyParams.clear();
+				this.resetCreateKeySteps();
+				globalHandler.finishCommand();
+			}
+			return;
+		}
+		this.createKeyParams.set('userId', context.id);
+		const servers = await this.serversRepository.getAll();
+		const buttons = servers.map(server => {
+			return [
+				{
+					text: `${server.name} (${server.url})`,
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.CreateKey,
+							sid: server.id,
+						},
+						[CmdCode.Processing]: 1,
+					}),
+				},
+			];
+		});
+		await bot.sendMessage(message.chat.id, 'Select server', {
+			reply_markup: {
+				inline_keyboard: [...buttons],
+			},
+		});
+		this.setCreateKeyStep('serverId');
+	}
+
+	async listKeys(message: Message, context: UsersContext) {
+		const list = await this.repository.listUserServers(Number(context.id));
+		for (const record of list) {
+			await bot.sendMessage(
+				message.chat.id,
+				`${record.server.name} (${record.server.url})
+${record.protocol}
+${record.username} 
+Created at ${formatDate(record.assignedAt)}`,
+			);
+		}
+		if (!list.length) {
+			bot.sendMessage(message.chat.id, 'No keys found for user');
+		}
+		globalHandler.finishCommand();
+	}
+
+	async deleteKey(message: Message, context: UsersContext, start: boolean) {}
+
+	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {
+		return await this.repository.createUserServer(Number(userId), Number(serverId), protocol, username);
+	}
+
 	private setCreateStep(current: string) {
 		setActiveStep(current, this.createSteps);
+	}
+
+	private setCreateKeyStep(current: string) {
+		setActiveStep(current, this.createKeySteps);
 	}
 
 	private setUpdateStep(current: string) {
@@ -787,6 +906,12 @@ currently have a trial period `,
 	private resetCreateSteps() {
 		Object.keys(this.createSteps).forEach(k => {
 			this.createSteps[k] = false;
+		});
+	}
+
+	private resetCreateKeySteps() {
+		Object.keys(this.createKeySteps).forEach(k => {
+			this.createKeySteps[k] = false;
 		});
 	}
 

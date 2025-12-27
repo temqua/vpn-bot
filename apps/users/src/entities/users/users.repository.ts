@@ -1,4 +1,4 @@
-import type { Device, Payment, User } from '@prisma/client';
+import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
 import { subMonths, subWeeks } from 'date-fns';
 import type { Bank } from '../../enums';
 import { prisma } from '../../prisma';
@@ -253,6 +253,40 @@ export class UsersRepository {
 				createdAt: {
 					gt: subWeeks(new Date(), 3),
 				},
+			},
+		});
+	}
+
+	async createUserServer(userId: number, serverId: number, protocol: VPNProtocol, username: string) {
+		return await prisma.serversUsers.create({
+			data: {
+				serverId,
+				userId,
+				protocol,
+				username,
+			},
+			include: {
+				server: {},
+				user: {},
+			},
+		});
+	}
+
+	async deleteUserServer(userId: number, serverId: number, protocol: VPNProtocol) {
+		// 		return await prisma.serversUsers.delete({
+		// where: {
+		// }
+		// 		});
+	}
+
+	async listUserServers(userId: number) {
+		return await prisma.serversUsers.findMany({
+			where: {
+				userId,
+			},
+			include: {
+				server: {},
+				user: {},
 			},
 		});
 	}

@@ -1,7 +1,7 @@
 import ms from 'ms';
 import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
-import { findUserButtons, userButtons } from '../buttons';
+import { findUserButtons, userButtons } from '../entities/users/users.buttons';
 import { usersService } from '../entities/users/users.service';
 import { CommandScope, VPNUserCommand } from '../enums';
 import env from '../env';
