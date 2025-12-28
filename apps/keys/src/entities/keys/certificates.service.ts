@@ -211,7 +211,7 @@ export class CertificatesService {
 			: '';
 		return await fetch(`${env.HOST_URL}:${this.service.port}/${command}${qs}`, {
 			headers: {
-				'X-Auth-Token': env.SERVICE_TOKEN,
+				'Authorization': env.SERVICE_TOKEN,
 			},
 		});
 	}

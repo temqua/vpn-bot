@@ -29,6 +29,7 @@ import {
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 import { ServersRepository } from '../servers/servers.repository';
+import { CertificatesService } from '../keys/certificates.service';
 
 export class UsersService {
 	constructor(
@@ -617,18 +618,23 @@ currently have a trial period `,
 		for (const user of users) {
 			if (user.telegramId) {
 				const message = user.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
-				bot.sendMessage(
-					user.telegramId,
-					`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн ему https://t.me/whirliswaiting
+				try {
+					await bot.sendMessage(
+						user.telegramId,
+						`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн ему https://t.me/whirliswaiting
 150 рублей стоит месяц
 800 полгода
 1500 год
 2200700156700659 т-банк
 2202205048878992 сбер
 `,
-				);
+					);
+				} catch (err) {
+					logger.error(err);
+				}
 			}
 		}
+		globalHandler.finishCommand();
 	}
 
 	async showSubscriptionURL(message: Message, context: UsersContext) {
@@ -675,6 +681,7 @@ currently have a trial period `,
 		bot.sendMessage(message.chat.id, 'Создаём подписку...');
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		await this.createPasarguardUser(message.chat.id, user);
+		bot.sendMessage(message.chat.id, userStartMessage, getUserKeyboard());
 	}
 
 	async deleteSubscription(message: Message) {
@@ -711,8 +718,8 @@ currently have a trial period `,
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
 								[CmdCode.Command]: VPNUserCommand.CreateKey,
-								pr: p,
-							},
+								pr: p.substring(0, 1),
+							} as UsersContext,
 							[CmdCode.Processing]: 1,
 						}),
 					},
@@ -726,7 +733,13 @@ currently have a trial period `,
 				return;
 			}
 			if (this.createKeySteps.protocol) {
-				this.createKeyParams.set('protocol', context.pr);
+				const protocol =
+					context.pr === 'I'
+						? VPNProtocol.IKEv2
+						: context.pr === 'W'
+							? VPNProtocol.WireGuard
+							: VPNProtocol.OpenVPN;
+				this.createKeyParams.set('protocol', protocol);
 				this.setCreateKeyStep('username');
 				await bot.sendMessage(message.chat.id, 'Enter username');
 				return;
@@ -741,11 +754,13 @@ currently have a trial period `,
 				if (created) {
 					await bot.sendMessage(
 						message.chat.id,
-						`Successfully created key ${created.username} for user ${created.user.username} on server ${created.server.name}`,
+						`Successfully created database record key ${created.username} for user ${created.user.username} on server ${created.server.name}`,
 					);
 				}
+				const service = new CertificatesService(created.protocol, created.server.url);
+				await service.create(message, created.username);
 			} catch (err) {
-				bot.sendMessage(message.chat.id, `Error occurred while creating user server ${err}`);
+				bot.sendMessage(message.chat.id, `Error occurred while creating user key for server ${err}`);
 			} finally {
 				this.createKeyParams.clear();
 				this.resetCreateKeySteps();
@@ -787,6 +802,26 @@ currently have a trial period `,
 ${record.protocol}
 ${record.username} 
 Created at ${formatDate(record.assignedAt)}`,
+				{
+					reply_markup: {
+						inline_keyboard: [
+							[
+								{
+									text: 'Delete',
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Users,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: VPNUserCommand.DeleteKey,
+											sid: record.serverId,
+											id: record.userId,
+											pr: record.protocol.substring(0, 1),
+										},
+									}),
+								},
+							],
+						],
+					},
+				},
 			);
 		}
 		if (!list.length) {
@@ -795,7 +830,28 @@ Created at ${formatDate(record.assignedAt)}`,
 		globalHandler.finishCommand();
 	}
 
-	async deleteKey(message: Message, context: UsersContext, start: boolean) {}
+	async deleteKey(message: Message, context: UsersContext, start: boolean) {
+		const protocol =
+			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
+		const record = await this.repository.getUserServer(Number(context.id), Number(context.sid), protocol);
+
+		try {
+			await this.repository.deleteUserServer(Number(context.id), Number(context.sid), protocol);
+			bot.sendMessage(
+				message.chat.id,
+				`Successfully delete record from database for ${protocol} key and user ${record.user.username}`,
+			);
+			const service = new CertificatesService(protocol, record.server.url);
+			await service.delete(message, record.user.username);
+		} catch (error) {
+			bot.sendMessage(
+				message.chat.id,
+				`Error occurred while deleting ${protocol} key for user ${record.user.username} ${error}`,
+			);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
 
 	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {
 		return await this.repository.createUserServer(Number(userId), Number(serverId), protocol, username);

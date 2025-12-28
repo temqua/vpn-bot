@@ -273,10 +273,29 @@ export class UsersRepository {
 	}
 
 	async deleteUserServer(userId: number, serverId: number, protocol: VPNProtocol) {
-		// 		return await prisma.serversUsers.delete({
-		// where: {
-		// }
-		// 		});
+		return await prisma.serversUsers.delete({
+			where: {
+				userId_serverId_protocol: {
+					userId,
+					serverId,
+					protocol,
+				},
+			},
+		});
+	}
+
+	async getUserServer(userId: number, serverId: number, protocol: VPNProtocol) {
+		return await prisma.serversUsers.findFirst({
+			where: {
+				userId,
+				serverId,
+				protocol,
+			},
+			include: {
+				server: {},
+				user: {},
+			},
+		});
 	}
 
 	async listUserServers(userId: number) {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 func getUsername(w http.ResponseWriter, r *http.Request) (string, bool) {
@@ -93,6 +94,38 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, out)
 }
 
+func fileHandler(w http.ResponseWriter, r *http.Request) {
+	username, ok := getUsername(w, r)
+	if !ok {
+		http.Error(w, "Expected username query param", http.StatusBadRequest)
+		return
+	}
+	baseDir := getEnvOrFail("OVPN_CLIENTS_DIR")
+	filePath := filepath.Join(
+		baseDir,
+		username+".ovpn",
+	)
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		http.Error(w, "Invalid path "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if _, err := os.Stat(absPath); err != nil {
+		if os.IsNotExist(err) {
+			http.Error(w, "File "+absPath+" not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/x-openvpn-profile")
+	w.Header().Set(
+		"Content-Disposition",
+		fmt.Sprintf(`attachment; filename="%s.ovpn"`, username),
+	)
+	http.ServeFile(w, r, absPath)
+}
+
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
@@ -107,7 +140,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func authMiddleware(next http.Handler) http.Handler {
 	token := getEnvOrFail("SERVICE_TOKEN")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("X-Auth-Token") != token {
+		if r.Header.Get("Authorization") != token {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -129,6 +162,10 @@ func main() {
 	http.HandleFunc("/delete", deleteHandler)
 	http.HandleFunc("/export", exportHandler)
 	http.HandleFunc("/list", listHandler)
+	http.HandleFunc("/file", fileHandler)
+	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "PONG")
+	})
 	port := "8092"
 
 	var handler http.Handler = http.DefaultServeMux
@@ -136,5 +173,6 @@ func main() {
 	handler = authMiddleware(handler)
 
 	log.Println("Server started on", port)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	log.Fatal(http.ListenAndServeTLS(":"+port, "/etc/ssl/certs/api/cert.pem", "/etc/ssl/certs/api/key.pem", handler))
+
 }

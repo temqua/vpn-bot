@@ -32,6 +32,7 @@ services:
             - /usr/local/libexec:/usr/local/libexec:ro
             - /run/pluto:/run/pluto
             - /usr/bin/openssl:/usr/bin/openssl:ro
+            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
     wg_service:
         build:
             context: ./wireguard
@@ -45,6 +46,7 @@ services:
             - PAUSE_PATH=/server/scripts/pause.sh
             - WG_CLIENTS_DIR=/srv/wireguard/clients
             - WG_CONF=/etc/wireguard/wg0.conf
+            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
         env_file:
             - ./wireguard/.env
         cap_add:
@@ -68,6 +70,7 @@ services:
             - LIST_PATH=/server/scripts/list.sh
             - EXPORT_PATH=/server/scripts/export.sh
             - OVPN_CLIENTS_DIR=/srv/openvpn/clients
+            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
         env_file:
             - ./openvpn/.env
         cap_add:

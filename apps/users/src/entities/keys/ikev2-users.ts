@@ -6,4 +6,8 @@ export class IKEv2KeysService implements ICertificatesService {
 	constructor() {
 		this.port = env.IKE_RECEIVER_PORT;
 	}
+
+	getExtension(): string {
+		return 'zip';
+	}
 }

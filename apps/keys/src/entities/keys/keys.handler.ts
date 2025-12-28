@@ -4,12 +4,11 @@ import { getProtocolButtons } from '../../buttons';
 import type { ICommandHandler } from '../../contracts';
 import { CmdCode, VPNKeyCommand, VPNProtocol } from '../../enums';
 import { globalHandler } from '../../global.handler';
-import { CertificatesService } from './certificates.service';
+import logger from '../../logger';
 import { commandsMap } from './commandsMap';
 import { outlineCommandsHandler } from './outline/outline.handler';
-import { xuiCommandsHandler } from './xui/xui.handler';
-import logger from '../../logger';
 import { servicesMap } from './services-map';
+import { xuiCommandsHandler } from './xui/xui.handler';
 
 export interface KeysContext {
 	[CmdCode.Protocol]: VPNProtocol;

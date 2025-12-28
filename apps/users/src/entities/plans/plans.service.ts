@@ -9,6 +9,8 @@ import { UsersRepository } from '../users/users.repository';
 import { PlanRepository } from './plans.repository';
 import { PlansContext } from './plans.types';
 import { CmdCode, CommandScope, PlanCommand } from '../../enums';
+import { userStartMessage } from '../../consts';
+import { getUserKeyboard } from '../users/users.buttons';
 
 export class PlansService {
 	constructor(
@@ -59,6 +61,7 @@ export class PlansService {
 На срок ${plan.months} месяц${plan.months > 1 ? 'ев' : ''}`,
 			);
 		}
+		bot.sendMessage(chatId, userStartMessage, getUserKeyboard());
 		globalHandler.finishCommand();
 	}
 

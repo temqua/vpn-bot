@@ -6,4 +6,8 @@ export class OpenVPNKeysService implements ICertificatesService {
 	constructor() {
 		this.port = env.OVPN_RECEIVER_PORT;
 	}
+
+	getExtension(): string {
+		return 'ovpn';
+	}
 }

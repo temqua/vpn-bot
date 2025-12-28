@@ -1,16 +1,16 @@
-import { User, VPNProtocol } from '@prisma/client';
+import { User } from '@prisma/client';
 import { CmdCode, VPNUserCommand } from '../../enums';
 
 export interface UsersContext {
 	[CmdCode.Command]: VPNUserCommand;
 	id?: string;
 	sid?: string;
-	skip?: 1 | 0;
-	accept?: 1 | 0;
+	skip?: 0 | 1;
+	accept?: 0 | 1;
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;
-	pr?: VPNProtocol;
+	pr?: 'I' | 'W' | 'O';
 	a?: string;
 	username?: string;
 	[CmdCode.SubOperation]?: VPNUserCommand;

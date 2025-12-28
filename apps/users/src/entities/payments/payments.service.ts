@@ -11,10 +11,11 @@ import logger from '../../logger';
 import { formatDate, setActiveStep } from '../../utils';
 import { PlanRepository } from '../plans/plans.repository';
 import { NalogService } from '../users/nalog.service';
-import { acceptKeyboard } from '../users/users.buttons';
+import { acceptKeyboard, getUserKeyboard } from '../users/users.buttons';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
 import { PaymentsRepository } from './payments.repository';
+import { userStartMessage } from '../../consts';
 
 export class PaymentsService {
 	constructor(
@@ -51,6 +52,7 @@ export class PaymentsService {
 		for (const p of payments) {
 			await this.showPaymentInfo(message, p);
 		}
+		bot.sendMessage(message.chat.id, userStartMessage, getUserKeyboard());
 		globalHandler.finishCommand();
 	}
 

@@ -72,16 +72,6 @@ export const getUserMenu = (userId: number) => {
 					},
 				}),
 			},
-			{
-				text: 'Delete Key',
-				callback_data: JSON.stringify({
-					[CmdCode.Scope]: CommandScope.Users,
-					[CmdCode.Context]: {
-						[CmdCode.Command]: VPNUserCommand.DeleteKey,
-						id: userId,
-					},
-				}),
-			},
 		],
 	];
 };
@@ -158,6 +148,18 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+
+		{
+			text: 'Trial',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					cmd: VPNUserCommand.ShowTrial,
+				},
+			}),
+		},
+	],
+	[
 		{
 			text: 'Unpaid',
 			callback_data: JSON.stringify({
@@ -168,11 +170,11 @@ export const userButtons: InlineKeyboardButton[][] = [
 			}),
 		},
 		{
-			text: 'Trial',
+			text: 'Notify Unpaid',
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.ShowTrial,
+					cmd: VPNUserCommand.NotifyUnpaid,
 				},
 			}),
 		},

@@ -1,19 +1,21 @@
+import { VPNProtocol } from '@prisma/client';
 import type { Message } from 'node-telegram-bot-api';
-import { createReadStream } from 'node:fs';
-import { access, constants } from 'node:fs/promises';
+import { Readable } from 'node:stream';
 import { basename } from 'path';
 import bot from '../../bot';
+import env from '../../env';
 import logger from '../../logger';
+import { IKEv2KeysService } from './ikev2-users';
+import { ICertificatesService } from './keys.types';
 import { OpenVPNKeysService } from './openvpn-users';
 import { WireguardKeysService } from './wireguard-users';
-import env from '../../env';
-import { VPNProtocol } from '@prisma/client';
-import { ICertificatesService } from './keys.types';
-import { IKEv2KeysService } from './ikev2-users';
 
 export class CertificatesService {
 	private service: ICertificatesService;
-	constructor(private protocol: VPNProtocol) {
+	constructor(
+		private protocol: VPNProtocol,
+		private url: string,
+	) {
 		switch (protocol) {
 			case VPNProtocol.WireGuard:
 				this.service = new WireguardKeysService();
@@ -24,30 +26,6 @@ export class CertificatesService {
 			default:
 				this.service = new IKEv2KeysService();
 				break;
-		}
-	}
-
-	async getFile(message: Message, username: string | undefined) {
-		this.log(`getFile ${username}`);
-		const { path, extension } = this.service.getFileInfo(username);
-		const chatId = message.chat.id;
-		const errorHeader = `Error while getting ${this.protocol} file for ${username} (${path})`;
-		try {
-			await access(path, constants.F_OK);
-			await bot.sendDocument(
-				chatId,
-				createReadStream(path),
-				{},
-				{
-					filename: `${username}.${extension}`,
-					contentType: 'application/octet-stream',
-				},
-			);
-		} catch (error) {
-			logger.error(errorHeader);
-			logger.error(error);
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
 		}
 	}
 
@@ -67,9 +45,28 @@ export class CertificatesService {
 		}
 		if (response.ok) {
 			try {
-				await this.getFile(message, username);
+				const extension = this.service.getExtension();
+				const fileResponse = await this.request('file', username);
+				await bot.sendDocument(
+					chatId,
+					Readable.fromWeb(fileResponse.body),
+					{},
+					{
+						filename: `${username}.${extension}`,
+						contentType: 'application/octet-stream',
+					},
+				);
 				if (this.protocol === VPNProtocol.WireGuard) {
-					await this.getQRCode(message, username);
+					const qrResponse = await this.request('qr', username);
+					await bot.sendDocument(
+						chatId,
+						Readable.fromWeb(qrResponse.body),
+						{},
+						{
+							filename: username,
+							contentType: 'image/png',
+						},
+					);
 				}
 				logger.success(`${this.protocol} user ${username} creation was handled`);
 			} catch (error) {
@@ -179,39 +176,15 @@ export class CertificatesService {
 		}
 	}
 
-	async getQRCode(message: Message, username: string) {
-		this.log(`getQRCode ${username}`);
-		const chatId = message.chat.id;
-		const errorHeader = `Error occurred while exporting ${this.protocol} QR Code for ${username}`;
-		const path = this.service.getQRCodePath(username);
-		try {
-			await access(path, constants.F_OK);
-			await bot.sendDocument(
-				chatId,
-				createReadStream(path),
-				{},
-				{
-					filename: path,
-					contentType: 'image/png',
-				},
-			);
-		} catch (error) {
-			logger.error(errorHeader);
-			logger.error(error);
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
-		}
-	}
-
 	private async request(command: string, username?: string) {
 		const qs = username
 			? `?${new URLSearchParams({
 					username,
 				}).toString()}`
 			: '';
-		return await fetch(`${env.HOST_URL}:${this.service.port}/${command}${qs}`, {
+		return await fetch(`${this.url}:${this.service.port}/${command}${qs}`, {
 			headers: {
-				'X-Auth-Token': env.SERVICE_TOKEN,
+				'Authorization': env.SERVICE_TOKEN,
 			},
 		});
 	}

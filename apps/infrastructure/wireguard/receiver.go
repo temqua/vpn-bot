@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type Middleware func(http.HandlerFunc) http.HandlerFunc
@@ -86,6 +87,70 @@ func pauseHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, out)
 }
 
+func fileHandler(w http.ResponseWriter, r *http.Request) {
+	username, ok := getUsername(w, r)
+	if !ok {
+		http.Error(w, "Expected username query param", http.StatusBadRequest)
+		return
+	}
+	baseDir := getEnvOrFail("WG_CLIENTS_DIR")
+	filePath := filepath.Join(
+		baseDir,
+		username+".conf",
+	)
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		http.Error(w, "Invalid path "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if _, err := os.Stat(absPath); err != nil {
+		if os.IsNotExist(err) {
+			http.Error(w, "File "+absPath+" not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set(
+		"Content-Disposition",
+		fmt.Sprintf(`attachment; filename="%s.conf"`, username),
+	)
+	http.ServeFile(w, r, absPath)
+}
+
+func qrHandler(w http.ResponseWriter, r *http.Request) {
+	username, ok := getUsername(w, r)
+	if !ok {
+		http.Error(w, "Expected username query param", http.StatusBadRequest)
+		return
+	}
+	baseDir := getEnvOrFail("WG_CLIENTS_DIR")
+	filePath := filepath.Join(
+		baseDir,
+		username+".png",
+	)
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		http.Error(w, "Invalid path "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if _, err := os.Stat(absPath); err != nil {
+		if os.IsNotExist(err) {
+			http.Error(w, "File "+absPath+" not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/png")
+	w.Header().Set(
+		"Content-Disposition",
+		fmt.Sprintf(`attachment; filename="%s.png"`, username),
+	)
+	http.ServeFile(w, r, absPath)
+}
+
 func getEnvOrFail(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
@@ -109,7 +174,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func authMiddleware(next http.Handler) http.Handler {
 	token := getEnvOrFail("SERVICE_TOKEN")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("X-Auth-Token") != token {
+		if r.Header.Get("Authorization") != token {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -122,6 +187,11 @@ func main() {
 	http.HandleFunc("/delete", deleteHandler)
 	http.HandleFunc("/list", listHandler)
 	http.HandleFunc("/pause", pauseHandler)
+	http.HandleFunc("/file", fileHandler)
+	http.HandleFunc("/qr", qrHandler)
+	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "PONG")
+	})
 
 	var handler http.Handler = http.DefaultServeMux
 	handler = loggingMiddleware(handler)
@@ -129,5 +199,6 @@ func main() {
 
 	port := "8091"
 	log.Println("Server started on", port)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	log.Fatal(http.ListenAndServeTLS(":"+port, "/etc/ssl/certs/api/cert.pem", "/etc/ssl/certs/api/key.pem", handler))
+
 }
