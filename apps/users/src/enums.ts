@@ -23,6 +23,7 @@ export enum ServerCommand {
 }
 
 export enum VPNUserCommand {
+	AssignKey = 'ask',
 	Create = 'cr',
 	CreateSubscription = 'crs',
 	CreateKey = 'crk',
@@ -49,6 +50,7 @@ export enum VPNUserCommand {
 	ShowSubLinkGuide = 'sslg',
 	ShowTrial = 'st',
 	ShowPlans = 'shpl',
+	UnassignKey = 'uask',
 }
 
 export enum PaymentCommand {

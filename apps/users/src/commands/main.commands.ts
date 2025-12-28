@@ -1,18 +1,18 @@
 import type { Message } from 'node-telegram-bot-api';
 import TelegramBot from 'node-telegram-bot-api';
 import bot from '../bot';
-import { userStartMessage } from '../consts';
+import { dict } from '../dict';
+import { getUserContactKeyboard, getUserKeyboard } from '../entities/users/users.buttons';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
-import { UserRequest } from '../enums';
+import { CmdCode, UserRequest } from '../enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../global.handler';
 import logger from '../logger';
 import { formatDate, isAdmin } from '../utils';
 import { expenseHelpMessage } from './expenses.commands';
 import { paymentsHelpMessage } from './payments.commands';
-import { userHelpMessage } from './users.commands';
-import { getUserContactKeyboard, getUserKeyboard } from '../entities/users/users.buttons';
-import { serversHelpMessage } from './servers.commands';
 import { plansHelpMessage } from './plans.commands';
+import { serversHelpMessage } from './servers.commands';
+import { userHelpMessage } from './users.commands';
 const usersRepository = new UsersRepository();
 
 const mainCommandsList = {
@@ -45,7 +45,7 @@ bot.onText(/\/start/, async (msg: Message) => {
 		if (user) {
 			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${msg?.from?.first_name}!`);
 			bot.sendMessage(msg.chat.id, 'Добро пожаловать в бот тессеракт впн.');
-			bot.sendMessage(msg.chat.id, userStartMessage, getUserKeyboard());
+			bot.sendMessage(msg.chat.id, dict.start[msg.from.language_code], getUserKeyboard());
 		} else {
 			await bot.sendMessage(
 				msg.chat.id,
@@ -87,9 +87,9 @@ bot.on('callback_query', async (query: TelegramBot.CallbackQuery) => {
 	if (callbackDataString) {
 		const parsed: CommandDetailCompressed = JSON.parse(callbackDataString);
 		const data: CommandDetails = {
-			scope: parsed.s,
-			context: parsed.c,
-			processing: Boolean(parsed.p),
+			scope: parsed[CmdCode.Scope],
+			context: parsed[CmdCode.Context],
+			processing: Boolean(parsed[CmdCode.Processing]),
 		};
 		globalHandler.execute(data, query?.message);
 	}

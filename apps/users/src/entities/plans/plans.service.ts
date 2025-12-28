@@ -9,8 +9,8 @@ import { UsersRepository } from '../users/users.repository';
 import { PlanRepository } from './plans.repository';
 import { PlansContext } from './plans.types';
 import { CmdCode, CommandScope, PlanCommand } from '../../enums';
-import { userStartMessage } from '../../consts';
 import { getUserKeyboard } from '../users/users.buttons';
+import { dict } from '../../dict';
 
 export class PlansService {
 	constructor(
@@ -42,7 +42,8 @@ export class PlansService {
 		globalHandler.finishCommand();
 	}
 
-	async showForUser(chatId: number) {
+	async showForUser(message: Message) {
+		const chatId: number = message.chat.id;
 		this.log('showForUser');
 		const user = await this.usersRepo.getByTelegramId(chatId.toString());
 		const plans = await this.repository.getByPrice(user.price);
@@ -61,7 +62,7 @@ export class PlansService {
 На срок ${plan.months} месяц${plan.months > 1 ? 'ев' : ''}`,
 			);
 		}
-		bot.sendMessage(chatId, userStartMessage, getUserKeyboard());
+		bot.sendMessage(chatId, dict.start[message.from.language_code], getUserKeyboard());
 		globalHandler.finishCommand();
 	}
 

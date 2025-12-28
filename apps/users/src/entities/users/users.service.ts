@@ -4,15 +4,17 @@ import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-teleg
 import { basename } from 'path';
 import bot from '../../bot';
 import { getYesNoKeyboard } from '../../buttons';
-import { introMessage, userStartMessage } from '../../consts';
-import { Bank, BoolFieldState, CmdCode, CommandScope, ServerCommand, UserRequest, VPNUserCommand } from '../../enums';
+import { dict } from '../../dict';
+import { Bank, BoolFieldState, CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import pollOptions from '../../pollOptions';
 import { formatDate, setActiveStep } from '../../utils';
 import { ExpensesRepository } from '../expenses/expenses.repository';
+import { CertificatesService } from '../keys/certificates.service';
 import { PaymentsRepository } from '../payments/payments.repository';
+import { ServersRepository } from '../servers/servers.repository';
 import { PasarguardService } from './pasarguard.service';
 import { exportToSheet } from './sheets.service';
 import {
@@ -28,8 +30,6 @@ import {
 } from './users.buttons';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
-import { ServersRepository } from '../servers/servers.repository';
-import { CertificatesService } from '../keys/certificates.service';
 
 export class UsersService {
 	constructor(
@@ -175,7 +175,7 @@ export class UsersService {
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			await this.sendNewUserMenu(chatId, newUser);
 			if (params.get('pasarguard')) {
-				this.createPasarguardUser(chatId, newUser);
+				this.createPasarguardUser(message, newUser);
 			}
 		} catch (error) {
 			logger.error(
@@ -622,9 +622,7 @@ currently have a trial period `,
 					await bot.sendMessage(
 						user.telegramId,
 						`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн ему https://t.me/whirliswaiting
-150 рублей стоит месяц
-800 полгода
-1500 год
+${user.price} рублей стоит месяц
 2200700156700659 т-банк
 2202205048878992 сбер
 `,
@@ -639,9 +637,10 @@ currently have a trial period `,
 
 	async showSubscriptionURL(message: Message, context: UsersContext) {
 		this.log('showSubscriptionURL');
+		const lang = message.from.language_code;
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
-			bot.sendMessage(message.chat.id, 'Ваша ссылка');
+			bot.sendMessage(message.chat.id, dict.yourLink[lang]);
 			bot.sendMessage(
 				message.chat.id,
 				`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
@@ -650,43 +649,38 @@ currently have a trial period `,
 				},
 			);
 
-			bot.sendMessage(message.chat.id, 'Управление подпиской', deleteSubscriptionButton);
+			bot.sendMessage(message.chat.id, dict.manageSub[lang], deleteSubscriptionButton(lang));
 		} else {
 			const isPaid = await this.repository.isUserPaid(user.id);
 
 			if (isPaid) {
-				bot.sendMessage(
-					message.chat.id,
-					'У вас пока нет подписок. Вы можете создать новую',
-					createSubscriptionButton,
-				);
+				bot.sendMessage(message.chat.id, dict.noSub[lang], createSubscriptionButton(lang));
 			} else {
-				bot.sendMessage(
-					message.chat.id,
-					`Не обнаружено платежей. Напишите в личные сообщения https://t.me/tesseract_vpn`,
-				);
+				bot.sendMessage(message.chat.id, dict.noPayments[lang]);
 			}
 		}
 	}
 
-	async showSubGuide(chatId: number) {
-		bot.sendMessage(chatId, introMessage, {
+	async showSubGuide(message: Message) {
+		const lang = message.from.language_code;
+		bot.sendMessage(message.chat.id, dict.intro[lang], {
 			parse_mode: 'MarkdownV2',
 		});
-		bot.sendMessage(chatId, userStartMessage, getUserKeyboard());
+		bot.sendMessage(message.chat.id, dict.start[lang], getUserKeyboard());
 	}
 
 	async createSubscription(message: Message) {
 		this.log('createSubscription');
-		bot.sendMessage(message.chat.id, 'Создаём подписку...');
+		bot.sendMessage(message.chat.id, dict.creatingSub[message.from.language_code]);
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
-		await this.createPasarguardUser(message.chat.id, user);
-		bot.sendMessage(message.chat.id, userStartMessage, getUserKeyboard());
+		await this.createPasarguardUser(message, user);
+		bot.sendMessage(message.chat.id, dict.start[message.from.language_code], getUserKeyboard());
 	}
 
 	async deleteSubscription(message: Message) {
 		this.log('deleteSubscription');
-		bot.sendMessage(message.chat.id, 'Удаляем подписку...');
+		const lang = message.from.language_code;
+		bot.sendMessage(message.chat.id, dict.deletingSub[lang]);
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		try {
 			const result = await this.deletePasarguardUser(user);
@@ -696,101 +690,104 @@ currently have a trial period `,
 					pasarguardUsername: null,
 					pasarguardId: null,
 				});
-				bot.sendMessage(message.chat.id, 'Подписка была успешно удалена');
+				bot.sendMessage(message.chat.id, dict.deletedSub[lang]);
 			} else {
-				bot.sendMessage(message.chat.id, `Ошибка удаления. Обратитесь к @whirliswaiting`);
+				bot.sendMessage(message.chat.id, dict.deleteSubError[lang]);
 			}
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка удаления ${error.message}`);
 		} finally {
-			bot.sendMessage(message.chat.id, userStartMessage, getUserKeyboard());
+			bot.sendMessage(message.chat.id, dict.start[lang], getUserKeyboard());
 		}
 	}
 
-	async createKey(message: Message, context: UsersContext, start: boolean) {
-		if (!start) {
-			if (this.createKeySteps.serverId) {
-				this.createKeyParams.set('serverId', context.sid);
-				const buttons = Object.values(VPNProtocol).map(p => [
+	async createKey(message: Message, context: UsersContext, start: boolean, assign = false) {
+		const command = assign ? VPNUserCommand.AssignKey : VPNUserCommand.CreateKey;
+		if (start) {
+			this.createKeyParams.set('userId', context.id);
+			const servers = await this.serversRepository.getAll();
+			const buttons = servers.map(server => {
+				return [
 					{
-						text: p,
+						text: `${server.name} (${server.url})`,
 						callback_data: JSON.stringify({
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.CreateKey,
-								pr: p.substring(0, 1),
-							} as UsersContext,
+								[CmdCode.Command]: command,
+								sid: server.id,
+							},
 							[CmdCode.Processing]: 1,
 						}),
 					},
-				]);
-				await bot.sendMessage(message.chat.id, 'Select protocol', {
-					reply_markup: {
-						inline_keyboard: [...buttons],
-					},
-				});
-				this.setCreateKeyStep('protocol');
-				return;
-			}
-			if (this.createKeySteps.protocol) {
-				const protocol =
-					context.pr === 'I'
-						? VPNProtocol.IKEv2
-						: context.pr === 'W'
-							? VPNProtocol.WireGuard
-							: VPNProtocol.OpenVPN;
-				this.createKeyParams.set('protocol', protocol);
-				this.setCreateKeyStep('username');
-				await bot.sendMessage(message.chat.id, 'Enter username');
-				return;
-			}
-			try {
-				const created = await this.createUserServer(
-					this.createKeyParams.get('userId'),
-					this.createKeyParams.get('serverId'),
-					this.createKeyParams.get('protocol'),
-					message.text,
-				);
-				if (created) {
-					await bot.sendMessage(
-						message.chat.id,
-						`Successfully created database record key ${created.username} for user ${created.user.username} on server ${created.server.name}`,
-					);
-				}
-				const service = new CertificatesService(created.protocol, created.server.url);
-				await service.create(message, created.username);
-			} catch (err) {
-				bot.sendMessage(message.chat.id, `Error occurred while creating user key for server ${err}`);
-			} finally {
-				this.createKeyParams.clear();
-				this.resetCreateKeySteps();
-				globalHandler.finishCommand();
-			}
+				];
+			});
+			await bot.sendMessage(message.chat.id, 'Select server', {
+				reply_markup: {
+					inline_keyboard: [...buttons],
+				},
+			});
+			this.setCreateKeyStep('serverId');
 			return;
 		}
-		this.createKeyParams.set('userId', context.id);
-		const servers = await this.serversRepository.getAll();
-		const buttons = servers.map(server => {
-			return [
+		if (this.createKeySteps.serverId) {
+			this.createKeyParams.set('serverId', context.sid);
+			const buttons = Object.values(VPNProtocol).map(p => [
 				{
-					text: `${server.name} (${server.url})`,
+					text: p,
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.CreateKey,
-							sid: server.id,
-						},
+							[CmdCode.Command]: command,
+							pr: p.substring(0, 1),
+						} as UsersContext,
 						[CmdCode.Processing]: 1,
 					}),
 				},
-			];
-		});
-		await bot.sendMessage(message.chat.id, 'Select server', {
-			reply_markup: {
-				inline_keyboard: [...buttons],
-			},
-		});
-		this.setCreateKeyStep('serverId');
+			]);
+			await bot.sendMessage(message.chat.id, 'Select protocol', {
+				reply_markup: {
+					inline_keyboard: [...buttons],
+				},
+			});
+			this.setCreateKeyStep('protocol');
+			return;
+		}
+		if (this.createKeySteps.protocol) {
+			const protocol =
+				context.pr === 'I'
+					? VPNProtocol.IKEv2
+					: context.pr === 'W'
+						? VPNProtocol.WireGuard
+						: VPNProtocol.OpenVPN;
+			this.createKeyParams.set('protocol', protocol);
+			this.setCreateKeyStep('username');
+			await bot.sendMessage(message.chat.id, 'Enter username');
+			return;
+		}
+		try {
+			const created = await this.createUserServer(
+				this.createKeyParams.get('userId'),
+				this.createKeyParams.get('serverId'),
+				this.createKeyParams.get('protocol'),
+				message.text,
+			);
+			if (created) {
+				await bot.sendMessage(
+					message.chat.id,
+					`Successfully created database record key ${created.username} for user ${created.user.username} on server ${created.server.name}`,
+				);
+			}
+			if (!assign) {
+				const service = new CertificatesService(created.protocol, created.server.url);
+				await service.create(message, created.username);
+			}
+		} catch (err) {
+			bot.sendMessage(message.chat.id, `Error occurred while creating user key for server ${err}`);
+		} finally {
+			this.createKeyParams.clear();
+			this.resetCreateKeySteps();
+			globalHandler.finishCommand();
+		}
 	}
 
 	async listKeys(message: Message, context: UsersContext) {
@@ -819,6 +816,20 @@ Created at ${formatDate(record.assignedAt)}`,
 									}),
 								},
 							],
+							[
+								{
+									text: 'Unassign',
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Users,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: VPNUserCommand.UnassignKey,
+											sid: record.serverId,
+											id: record.userId,
+											pr: record.protocol.substring(0, 1),
+										},
+									}),
+								},
+							],
 						],
 					},
 				},
@@ -830,7 +841,7 @@ Created at ${formatDate(record.assignedAt)}`,
 		globalHandler.finishCommand();
 	}
 
-	async deleteKey(message: Message, context: UsersContext, start: boolean) {
+	async deleteKey(message: Message, context: UsersContext, unassign: boolean = false) {
 		const protocol =
 			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
 		const record = await this.repository.getUserServer(Number(context.id), Number(context.sid), protocol);
@@ -839,10 +850,12 @@ Created at ${formatDate(record.assignedAt)}`,
 			await this.repository.deleteUserServer(Number(context.id), Number(context.sid), protocol);
 			bot.sendMessage(
 				message.chat.id,
-				`Successfully delete record from database for ${protocol} key and user ${record.user.username}`,
+				`Successfully deleted record from database for ${protocol} key and user ${record.user.username}`,
 			);
-			const service = new CertificatesService(protocol, record.server.url);
-			await service.delete(message, record.user.username);
+			if (!unassign) {
+				const service = new CertificatesService(protocol, record.server.url);
+				await service.delete(message, record.username);
+			}
 		} catch (error) {
 			bot.sendMessage(
 				message.chat.id,
@@ -987,6 +1000,25 @@ Created at ${formatDate(record.assignedAt)}`,
 				inline_keyboard: getUserMenu(user.id),
 			},
 		});
+		if (user.dependants.length) {
+			const buttons: InlineKeyboardButton[][] = user.dependants.map(d => [
+				{
+					text: d.username,
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							id: d.id,
+							[CmdCode.Command]: VPNUserCommand.GetById,
+						},
+					}),
+				},
+			]);
+			await bot.sendMessage(chatId, 'Dependants', {
+				reply_markup: {
+					inline_keyboard: buttons,
+				},
+			});
+		}
 	}
 
 	private formatBaseUserInfo(user: User) {
@@ -1025,22 +1057,22 @@ Created At: ${formatDate(user.createdAt)}\n`;
 		return userInfo;
 	}
 
-	private async createPasarguardUser(chatId: number, user: User) {
+	private async createPasarguardUser(message: Message, user: User) {
 		let pgUsername = `${user.username}_${user.id}`;
 		if (user.telegramId) {
 			pgUsername = pgUsername.concat('_', user.telegramId);
 		}
 		const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
 		if (newPasarguardUser) {
-			bot.sendMessage(chatId, `Пользователь ${newPasarguardUser.username} успешно создан в pasarguard.`);
+			bot.sendMessage(message.chat.id, `Пользователь ${newPasarguardUser.username} успешно создан в pasarguard.`);
 			bot.sendMessage(
-				chatId,
+				message.chat.id,
 				`\`https://pg.tesseractnpv.com${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
 				{
 					parse_mode: 'MarkdownV2',
 				},
 			);
-			this.showSubGuide(chatId);
+			this.showSubGuide(message);
 			await this.repository.update(user.id, {
 				subLink: newPasarguardUser.subscription_url,
 				pasarguardUsername: newPasarguardUser.username,
@@ -1048,7 +1080,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			});
 			return newPasarguardUser;
 		} else {
-			await bot.sendMessage(chatId, 'Ошибка во время создания subscription-ссылки');
+			await bot.sendMessage(message.chat.id, 'Ошибка во время создания subscription-ссылки');
 			return null;
 		}
 	}

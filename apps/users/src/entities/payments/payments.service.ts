@@ -15,7 +15,7 @@ import { acceptKeyboard, getUserKeyboard } from '../users/users.buttons';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
 import { PaymentsRepository } from './payments.repository';
-import { userStartMessage } from '../../consts';
+import { dict } from '../../dict';
 
 export class PaymentsService {
 	constructor(
@@ -52,7 +52,7 @@ export class PaymentsService {
 		for (const p of payments) {
 			await this.showPaymentInfo(message, p);
 		}
-		bot.sendMessage(message.chat.id, userStartMessage, getUserKeyboard());
+		bot.sendMessage(message.chat.id, dict.start[message.from.language_code], getUserKeyboard());
 		globalHandler.finishCommand();
 	}
 

@@ -2,6 +2,7 @@ import { User } from '@prisma/client';
 import { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
 import { CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../enums';
 import { CommandDetailCompressed } from '../../global.handler';
+import { dict } from '../../dict';
 
 export const getUserMenu = (userId: number) => {
 	return [
@@ -58,6 +59,16 @@ export const getUserMenu = (userId: number) => {
 					[CmdCode.Scope]: CommandScope.Users,
 					[CmdCode.Context]: {
 						[CmdCode.Command]: VPNUserCommand.CreateKey,
+						id: userId,
+					},
+				}),
+			},
+			{
+				text: 'Assign Key',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.AssignKey,
 						id: userId,
 					},
 				}),
@@ -309,40 +320,44 @@ export const replySetNullPropKeyboard = (prop: keyof User, userId: string): Send
 	};
 };
 
-export const deleteSubscriptionButton: SendBasicOptions = {
-	reply_markup: {
-		inline_keyboard: [
-			[
-				{
-					text: 'Удалить подписку',
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.DeleteSubscription,
-						},
-					}),
-				},
+export const deleteSubscriptionButton = (lang: string): SendBasicOptions => {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						text: dict.deleteSub[lang],
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.DeleteSubscription,
+							},
+						}),
+					},
+				],
 			],
-		],
-	},
+		},
+	};
 };
 
-export const createSubscriptionButton: SendBasicOptions = {
-	reply_markup: {
-		inline_keyboard: [
-			[
-				{
-					text: 'Создать подписку',
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.CreateSubscription,
-						},
-					}),
-				},
+export const createSubscriptionButton = (lang: string): SendBasicOptions => {
+	return {
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{
+						text: dict.createSub[lang],
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.CreateSubscription,
+							},
+						}),
+					},
+				],
 			],
-		],
-	},
+		},
+	};
 };
 
 export const getUserKeyboard = (): SendBasicOptions => {

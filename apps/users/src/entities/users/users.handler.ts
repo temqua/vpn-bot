@@ -53,7 +53,7 @@ class UsersCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context.cmd === VPNUserCommand.ShowSubLinkGuide) {
-			await this.service.showSubGuide(message.chat.id);
+			await this.service.showSubGuide(message);
 			globalHandler.finishCommand();
 			return;
 		}
@@ -107,13 +107,16 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.showUnpaid(message);
 		}
 		if (context.cmd === VPNUserCommand.ShowPlans) {
-			await this.plansService.showForUser(message.chat.id);
+			await this.plansService.showForUser(message);
 		}
 		if (context.cmd === VPNUserCommand.NotifyUnpaid) {
 			await this.service.notifyUnpaid();
 		}
 		if (context.cmd === VPNUserCommand.ShowTrial) {
 			await this.service.showTrial(message);
+		}
+		if (context.cmd === VPNUserCommand.AssignKey) {
+			await this.service.createKey(message, context, start, true);
 		}
 		if (context.cmd === VPNUserCommand.CreateKey) {
 			await this.service.createKey(message, context, start);
@@ -122,7 +125,10 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.listKeys(message, context);
 		}
 		if (context.cmd === VPNUserCommand.DeleteKey) {
-			await this.service.deleteKey(message, context, start);
+			await this.service.deleteKey(message, context);
+		}
+		if (context.cmd === VPNUserCommand.UnassignKey) {
+			await this.service.deleteKey(message, context, true);
 		}
 	}
 
