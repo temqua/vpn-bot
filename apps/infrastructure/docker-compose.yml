@@ -46,7 +46,6 @@ services:
             - PAUSE_PATH=/server/scripts/pause.sh
             - WG_CLIENTS_DIR=/srv/wireguard/clients
             - WG_CONF=/etc/wireguard/wg0.conf
-            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
         env_file:
             - ./wireguard/.env
         cap_add:
@@ -58,6 +57,7 @@ services:
             - /srv/wireguard:/srv/wireguard
             - /etc/wireguard:/etc/wireguard
             - /usr/bin/wg:/usr/bin/wg:ro
+            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
     openvpn_service:
         build:
             context: ./openvpn
@@ -70,7 +70,6 @@ services:
             - LIST_PATH=/server/scripts/list.sh
             - EXPORT_PATH=/server/scripts/export.sh
             - OVPN_CLIENTS_DIR=/srv/openvpn/clients
-            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
         env_file:
             - ./openvpn/.env
         cap_add:
@@ -82,3 +81,4 @@ services:
             - /srv/openvpn:/srv/openvpn
             - /etc/openvpn:/etc/openvpn
             - /etc/openvpn/server/easy-rsa/easy-rsa:/etc/openvpn/server/easy-rsa/easy-rsa:ro
+            - /etc/ssl/certs/api:/etc/ssl/certs/api:ro
