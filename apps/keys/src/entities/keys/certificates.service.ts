@@ -213,6 +213,9 @@ export class CertificatesService {
 			headers: {
 				'Authorization': env.SERVICE_TOKEN,
 			},
+			tls: {
+				rejectUnauthorized: false,
+			},
 		});
 	}
 
