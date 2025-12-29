@@ -1,0 +1,15 @@
+export const updatePropsMap = new Map([
+	['username', 'u'],
+	['telegramId', 't'],
+	['telegramLink', 'tl'],
+	['firstName', 'f'],
+	['lastName', 'l'],
+	['price', 'p'],
+	['devices', 'd'],
+	['protocols', 'pr'],
+	['bank', 'b'],
+	['active', 'a'],
+	['free', 'fr'],
+	['payerId', 'pid'],
+	['subLink', 's'],
+]);

@@ -5,7 +5,7 @@ import { basename } from 'path';
 import bot from '../../bot';
 import { getYesNoKeyboard } from '../../buttons';
 import { dict } from '../../dict';
-import { Bank, BoolFieldState, CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../enums';
+import { Bank, BoolFieldState, CmdCode, CommandScope, UpdatePropsMap, UserRequest, VPNUserCommand } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
@@ -30,6 +30,7 @@ import {
 } from './users.buttons';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
+import { updatePropsMap } from './users.consts';
 
 export class UsersService {
 	constructor(
@@ -316,6 +317,15 @@ export class UsersService {
 	) {
 		this.log('update');
 		const chatId = message?.chat?.id || env.ADMIN_USER_ID;
+		let found: string;
+		for (const [k, v] of updatePropsMap.entries()) {
+			if (v === context.propId) {
+				found = k;
+				break;
+			}
+		}
+		context.prop = found as keyof User;
+
 		const textProp = this.textProps.includes(context.prop);
 		const boolProp = this.boolProps.includes(context.prop);
 		const numberProp = this.numberProps.includes(context.prop);
@@ -888,7 +898,11 @@ Created at ${formatDate(record.assignedAt)}`,
 		const numberProp = this.numberProps.includes(context.prop);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (textProp || numberProp) {
-			await bot.sendMessage(chatId, `Enter ${context.prop}`, replySetNullPropKeyboard(context.prop, context.id));
+			await bot.sendMessage(
+				chatId,
+				`Enter ${context.prop}`,
+				replySetNullPropKeyboard(context.propId, context.id),
+			);
 		} else if (context.prop === 'telegramId') {
 			await bot.sendMessage(chatId, 'Share user:', {
 				reply_markup: getUserContactKeyboard(UserRequest.Update),
@@ -932,7 +946,7 @@ Created at ${formatDate(record.assignedAt)}`,
 					[CmdCode.Context]: {
 						[CmdCode.Command]: VPNUserCommand.Update,
 						id,
-						prop: 'payerId',
+						propId: UpdatePropsMap.payerId,
 					},
 					[CmdCode.Processing]: 1,
 				}),
@@ -958,7 +972,7 @@ Created at ${formatDate(record.assignedAt)}`,
 			[prop]: value,
 		});
 		logger.success(`Field ${prop} has been successfully updated for user ${id}`);
-		await bot.sendMessage(chatId, this.formatUserInfo(updated));
+		this.sendUserMenu(chatId, updated);
 		this.params.clear();
 		globalHandler.finishCommand();
 		return;

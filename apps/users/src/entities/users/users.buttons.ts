@@ -1,8 +1,8 @@
-import { User } from '@prisma/client';
 import { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
-import { CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../../enums';
-import { CommandDetailCompressed } from '../../global.handler';
 import { dict } from '../../dict';
+import { CmdCode, CommandScope, UpdatePropsMap, UserRequest, VPNUserCommand } from '../../enums';
+import { CommandDetailCompressed } from '../../global.handler';
+import { updatePropsMap } from './users.consts';
 
 export const getUserMenu = (userId: number) => {
 	return [
@@ -257,36 +257,21 @@ export const acceptKeyboard: SendBasicOptions = {
 	},
 };
 
-export const updateProps = [
-	'username',
-	'telegramId',
-	'telegramLink',
-	'firstName',
-	'lastName',
-	'price',
-	'devices',
-	'protocols',
-	'bank',
-	'active',
-	'free',
-	'payerId',
-	'subLink',
-];
-
 const createUserOperationsInlineKeyboard = (id: number) => {
-	return updateProps.map(prop => [
+	const result = Array.from(updatePropsMap.keys()).map(prop => [
 		{
 			text: `${prop}`,
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
 					[CmdCode.Command]: VPNUserCommand.Update,
-					prop,
+					propId: updatePropsMap.get(prop),
 					id,
 				},
 			}),
 		} as InlineKeyboardButton,
 	]);
+	return result;
 };
 
 export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
@@ -297,7 +282,7 @@ export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
 	};
 };
 
-export const replySetNullPropKeyboard = (prop: keyof User, userId: string): SendBasicOptions => {
+export const replySetNullPropKeyboard = (prop: UpdatePropsMap, userId: string): SendBasicOptions => {
 	return {
 		reply_markup: {
 			inline_keyboard: [
@@ -423,7 +408,7 @@ export const payersKeyboard: SendBasicOptions = {
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
 							[CmdCode.Command]: VPNUserCommand.Update,
-							prop: 'payerId',
+							propId: UpdatePropsMap.payerId,
 							accept: 1,
 						},
 						[CmdCode.Processing]: 1,
@@ -435,7 +420,7 @@ export const payersKeyboard: SendBasicOptions = {
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
 							[CmdCode.Command]: VPNUserCommand.Update,
-							prop: 'payerId',
+							propId: UpdatePropsMap.payerId,
 							id: null,
 						},
 						[CmdCode.Processing]: 1,
