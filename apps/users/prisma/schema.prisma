@@ -92,6 +92,7 @@ model VpnServer {
 }
 
 model ServersUsers {
+  id         Int         @id @default(autoincrement())
   user       User        @relation(fields: [userId], references: [id])
   userId     Int
   server     VpnServer   @relation(fields: [serverId], references: [id])
@@ -100,8 +101,15 @@ model ServersUsers {
   username   String?
   assignedAt DateTime    @default(now())
 
-  @@id([userId, serverId, protocol])
   @@map("servers_users")
+}
+
+enum VPNProtocol {
+  WireGuard
+  IKEv2
+  OpenVPN
+
+  @@map("vpn_protocol")
 }
 
 enum Device {
@@ -113,14 +121,6 @@ enum Device {
   AndroidTV
   GoogleTV
   AppleTV
-}
-
-enum VPNProtocol {
-  WireGuard
-  IKEv2
-  OpenVPN
-
-  @@map("vpn_protocol")
 }
 
 enum ExpenseCategory {
