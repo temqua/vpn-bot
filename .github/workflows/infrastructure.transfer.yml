@@ -11,6 +11,7 @@ on:
                 options:
                     - turkey
                     - us
+                    - us2
                     - neth
                     - fin
 
