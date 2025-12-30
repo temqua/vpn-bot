@@ -32,6 +32,8 @@ const mainHelpMessage = Object.values(mainCommandsList)
 
 bot.onText(/\/start/, async (msg: Message) => {
 	logger.success('Ready');
+	const lang = msg.from.is_bot ? 'ru' : msg.from.language_code;
+
 	if (isAdmin(msg)) {
 		await bot.sendMessage(msg.chat.id, '✅ Ready');
 		await bot.sendMessage(msg.chat.id, mainHelpMessage);
@@ -43,13 +45,15 @@ bot.onText(/\/start/, async (msg: Message) => {
 	} else {
 		const user = await usersRepository.getByTelegramId(msg?.from?.id.toString() ?? '');
 		if (user) {
-			await bot.sendMessage(msg.chat.id, `Здравствуйте, ${msg?.from?.first_name}!`);
-			bot.sendMessage(msg.chat.id, 'Добро пожаловать в бот тессеракт впн.');
-			bot.sendMessage(msg.chat.id, dict.start[msg.from.language_code], getUserKeyboard());
+			await bot.sendMessage(msg.chat.id, `${dict.hello[lang]}, ${msg?.from?.first_name}!`);
+			await bot.sendMessage(msg.chat.id, dict.welcome[lang]);
+			await bot.sendMessage(msg.chat.id, dict.start[lang], {
+				reply_markup: getUserKeyboard(lang),
+			});
 		} else {
 			await bot.sendMessage(
 				msg.chat.id,
-				`Здравствуйте, ${msg?.from?.first_name}! Напишите в личные сообщения https://t.me/tesseract_vpn для регистрации в системе.`,
+				`${dict.hello[lang]}, ${msg?.from?.first_name}! ${dict.registration[lang]}`,
 			);
 		}
 	}
@@ -79,6 +83,7 @@ bot.on('poll', p => {
 
 bot.on('callback_query', async (query: TelegramBot.CallbackQuery) => {
 	const callbackDataString = query.data;
+
 	try {
 		bot.answerCallbackQuery(query.id);
 	} catch (error) {
@@ -91,7 +96,7 @@ bot.on('callback_query', async (query: TelegramBot.CallbackQuery) => {
 			context: parsed[CmdCode.Context],
 			processing: Boolean(parsed[CmdCode.Processing]),
 		};
-		globalHandler.execute(data, query?.message);
+		globalHandler.execute(data, query);
 	}
 });
 

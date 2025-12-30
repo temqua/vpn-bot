@@ -12,6 +12,7 @@ import { userCommandsHandler } from './entities/users/users.handler';
 import type { UsersContext } from './entities/users/users.types';
 import { CommandScope } from './enums';
 import logger from './logger';
+import TelegramBot from 'node-telegram-bot-api';
 
 export type CommandDetails = {
 	processing?: boolean;
@@ -72,10 +73,10 @@ class GlobalHandler {
 			default:
 				handler = expensesCommandsHandler;
 		}
-		handler.handle(this.activeCommand.context, message);
+		handler.handle(this.activeCommand.context, message, message.from);
 	}
 
-	async execute(command: CommandDetails, message: Message | undefined) {
+	async execute(command: CommandDetails, query: TelegramBot.CallbackQuery) {
 		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command?.context?.cmd ?? 'unknown'} command`);
 		this.activeCommand = command;
 		let handler: ICommandHandler = userCommandsHandler;
@@ -95,7 +96,7 @@ class GlobalHandler {
 			default:
 				handler = userCommandsHandler;
 		}
-		handler.handle(this.activeCommand?.context, message, !command?.processing);
+		handler.handleQuery(this.activeCommand?.context, query, !command?.processing);
 	}
 }
 

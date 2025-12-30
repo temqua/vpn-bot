@@ -7,6 +7,7 @@ import { CommandScope, VPNUserCommand } from '../enums';
 import env from '../env';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
+import TelegramBot from 'node-telegram-bot-api';
 
 export const userCommandsList = {
 	user: {
@@ -76,7 +77,9 @@ bot.onText(userCommandsList.users.regexp, async (msg: Message) => {
 				cmd: VPNUserCommand.List,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -91,7 +94,9 @@ bot.onText(userCommandsList.unpaid.regexp, async (msg: Message) => {
 				cmd: VPNUserCommand.ShowUnpaid,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -106,7 +111,9 @@ bot.onText(userCommandsList.create.regexp, async (msg: Message) => {
 				cmd: VPNUserCommand.Create,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -121,7 +128,9 @@ bot.onText(userCommandsList.delete.regexp, async (msg: Message) => {
 				cmd: VPNUserCommand.Delete,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -143,7 +152,9 @@ bot.onText(userCommandsList.pay.regexp, async (msg: Message) => {
 				cmd: VPNUserCommand.Pay,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -158,7 +169,9 @@ bot.onText(userCommandsList.trial.regexp, async (msg: Message) => {
 				cmd: VPNUserCommand.ShowTrial,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -171,10 +184,12 @@ setInterval(() => {
 			},
 		},
 		{
-			chat: {
-				id: env.ADMIN_USER_ID,
+			message: {
+				chat: {
+					id: env.ADMIN_USER_ID,
+				},
 			},
-		} as Message,
+		} as TelegramBot.CallbackQuery,
 	);
 }, ms('1d'));
 
@@ -186,6 +201,8 @@ setInterval(() => {
 				cmd: VPNUserCommand.NotifyUnpaid,
 			},
 		},
-		{} as Message,
+		{
+			message: {},
+		} as TelegramBot.CallbackQuery,
 	);
 }, ms('1d'));

@@ -1,5 +1,5 @@
 import type { Device, VPNProtocol } from '@prisma/client';
-import type { Message, Poll } from 'node-telegram-bot-api';
+import type { Message, Poll, User } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
 import { Bank, VPNUserCommand } from '../../enums';
 import { globalHandler } from '../../global.handler';
@@ -8,6 +8,7 @@ import { UsersService } from './users.service';
 import type { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 import logger from '../../logger';
 import { PlansService } from '../plans/plans.service';
+import TelegramBot from 'node-telegram-bot-api';
 
 class UsersCommandsHandler implements ICommandHandler {
 	constructor(
@@ -19,7 +20,7 @@ class UsersCommandsHandler implements ICommandHandler {
 		params: new Map(),
 		init: false,
 	};
-	async handle(context: UsersContext, message: Message, start = false) {
+	async handle(context: UsersContext, message: Message, from: User, start = false) {
 		context.chatId = message.chat.id;
 		this.state.init = start;
 		logger.log(`[users.handler.ts]: command: ${context.cmd}, start: ${start}`);
@@ -48,22 +49,22 @@ class UsersCommandsHandler implements ICommandHandler {
 			return;
 		}
 		if (context.cmd === VPNUserCommand.ShowSubLink) {
-			await this.service.showSubscriptionURL(message, context);
+			await this.service.showSubscriptionURL(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
 		if (context.cmd === VPNUserCommand.ShowSubLinkGuide) {
-			await this.service.showSubGuide(message);
+			await this.service.showSubGuide(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
 		if (context.cmd === VPNUserCommand.CreateSubscription) {
-			await this.service.createSubscription(message);
+			await this.service.createSubscription(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
 		if (context.cmd === VPNUserCommand.DeleteSubscription) {
-			await this.service.deleteSubscription(message);
+			await this.service.deleteSubscription(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
@@ -101,13 +102,13 @@ class UsersCommandsHandler implements ICommandHandler {
 			this.state.init = false;
 		}
 		if (context.cmd === VPNUserCommand.ShowPayments) {
-			await this.paymentsService.showPayments(message, context);
+			await this.paymentsService.showPayments(message, context, from);
 		}
 		if (context.cmd === VPNUserCommand.ShowUnpaid) {
 			await this.service.showUnpaid(message);
 		}
 		if (context.cmd === VPNUserCommand.ShowPlans) {
-			await this.plansService.showForUser(message);
+			await this.plansService.showForUser(message, from);
 		}
 		if (context.cmd === VPNUserCommand.NotifyUnpaid) {
 			await this.service.notifyUnpaid();
@@ -130,6 +131,13 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.UnassignKey) {
 			await this.service.deleteKey(message, context, true);
 		}
+		if (context.cmd === VPNUserCommand.ShowMenu) {
+			await this.service.showMenu(message, from);
+		}
+	}
+
+	async handleQuery(context: UsersContext, query: TelegramBot.CallbackQuery, start = false) {
+		this.handle(context, query.message, query.from, start);
 	}
 
 	async handlePoll(context: UsersContext, poll: Poll) {

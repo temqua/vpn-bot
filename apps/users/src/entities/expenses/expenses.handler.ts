@@ -1,14 +1,14 @@
-import type { Message, Poll } from 'node-telegram-bot-api';
+import { ExpenseCategory } from '@prisma/client';
+import type { CallbackQuery, Message, Poll, User } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
 import { ExpenseCommand } from '../../enums';
 import { ExpensesService } from './expenses.service';
 import { ExpenseCreateContext, ExpensesContext } from './expenses.types';
-import { ExpenseCategory } from '@prisma/client';
 
 class ExpensesHandler implements ICommandHandler {
 	constructor(private service: ExpensesService = new ExpensesService()) {}
 
-	async handle(context: ExpensesContext, message: Message | null, start = false) {
+	handle(context: ExpensesContext, message: Message | null, from: User, start = false) {
 		if (context.cmd === ExpenseCommand.Create) {
 			this.service.create(context as ExpenseCreateContext, message, start);
 		} else if (context.cmd === ExpenseCommand.List) {
@@ -20,10 +20,14 @@ class ExpensesHandler implements ICommandHandler {
 		}
 	}
 
-	async handlePoll(context: ExpensesContext, poll: Poll) {
+	handleQuery(context: ExpensesContext, query: CallbackQuery, start = false) {
+		this.handle(context, query.message, query.from, start);
+	}
+
+	handlePoll(context: ExpensesContext, poll: Poll) {
 		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text as ExpenseCategory);
 		context.category = selected[0];
-		this.handle(context, null, false);
+		this.handle(context, null, null, false);
 	}
 }
 

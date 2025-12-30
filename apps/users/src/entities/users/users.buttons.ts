@@ -1,4 +1,9 @@
-import { InlineKeyboardButton, ReplyKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
+import {
+	InlineKeyboardButton,
+	InlineKeyboardMarkup,
+	ReplyKeyboardMarkup,
+	SendBasicOptions,
+} from 'node-telegram-bot-api';
 import { dict } from '../../dict';
 import { CmdCode, CommandScope, UpdatePropsMap, UserRequest, VPNUserCommand } from '../../enums';
 import { CommandDetailCompressed } from '../../global.handler';
@@ -305,96 +310,126 @@ export const replySetNullPropKeyboard = (prop: UpdatePropsMap, userId: string): 
 	};
 };
 
-export const deleteSubscriptionButton = (lang: string): SendBasicOptions => {
+export const deleteSubscriptionButton = (lang: string): InlineKeyboardMarkup => {
 	return {
-		reply_markup: {
-			inline_keyboard: [
-				[
-					{
-						text: dict.deleteSub[lang],
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.DeleteSubscription,
-							},
-						}),
-					},
-				],
+		inline_keyboard: [
+			[
+				{
+					text: dict.deleteSub[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.DeleteSubscription,
+						},
+					}),
+				},
+				{
+					text: dict.mainMenu[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowMenu,
+						},
+					}),
+				},
 			],
-		},
+		],
 	};
 };
 
-export const createSubscriptionButton = (lang: string): SendBasicOptions => {
+export const createSubscriptionButton = (lang: string): InlineKeyboardMarkup => {
 	return {
-		reply_markup: {
-			inline_keyboard: [
-				[
-					{
-						text: dict.createSub[lang],
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.CreateSubscription,
-							},
-						}),
-					},
-				],
+		inline_keyboard: [
+			[
+				{
+					text: dict.createSub[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.CreateSubscription,
+						},
+					}),
+				},
+				{
+					text: dict.mainMenu[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowMenu,
+						},
+					}),
+				},
 			],
-		},
+		],
 	};
 };
 
-export const getUserKeyboard = (): SendBasicOptions => {
+export const createBackToMenuButton = (lang: string): InlineKeyboardMarkup => {
 	return {
-		reply_markup: {
-			inline_keyboard: [
-				[
-					{
-						text: '💸 История платежей',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.ShowPayments,
-							},
-						}),
-					},
-				],
-				[
-					{
-						text: '🔑 Ключи и Subscription-ссылки',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.ShowSubLink,
-							},
-						}),
-					},
-				],
-				[
-					{
-						text: '📖 Гайд',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.ShowSubLinkGuide,
-							},
-						}),
-					},
-				],
-				[
-					{
-						text: '💵 Цены',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.ShowPlans,
-							},
-						}),
-					},
-				],
+		inline_keyboard: [
+			[
+				{
+					text: dict.mainMenu[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowMenu,
+						},
+					}),
+				},
 			],
-		},
+		],
+	};
+};
+
+export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
+	return {
+		inline_keyboard: [
+			[
+				{
+					text: dict.paymentsHistory[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowPayments,
+						},
+					}),
+				},
+			],
+			[
+				{
+					text: dict.keys[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowSubLink,
+						},
+					}),
+				},
+			],
+			[
+				{
+					text: dict.guide[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowSubLinkGuide,
+						},
+					}),
+				},
+			],
+			[
+				{
+					text: dict.prices[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowPlans,
+						},
+					}),
+				},
+			],
+		],
 	};
 };
 

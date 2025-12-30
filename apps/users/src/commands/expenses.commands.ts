@@ -5,6 +5,7 @@ import bot from '../bot';
 import { CmdCode, CommandScope, ExpenseCommand } from '../enums';
 import { globalHandler } from '../global.handler';
 import { expensesButtons } from '../entities/expenses/expenses.buttons';
+import TelegramBot from 'node-telegram-bot-api';
 
 export const expenseCommandsList = {
 	menu: {
@@ -69,7 +70,9 @@ bot.onText(expenseCommandsList.all.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ExpenseCommand.List,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -84,7 +87,9 @@ bot.onText(expenseCommandsList.sum.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ExpenseCommand.Sum,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -100,7 +105,9 @@ bot.onText(expenseCommandsList.nalogSum.regexp, async (msg: Message) => {
 				category: ExpenseCategory.Nalog,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -116,7 +123,9 @@ bot.onText(expenseCommandsList.serversSum.regexp, async (msg: Message) => {
 				category: ExpenseCategory.Servers,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -131,7 +140,9 @@ bot.onText(expenseCommandsList.create.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ExpenseCommand.Create,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -147,7 +158,9 @@ bot.onText(expenseCommandsList.createNalog.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ExpenseCommand.Create,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -163,6 +176,8 @@ bot.onText(expenseCommandsList.createServer.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ExpenseCommand.Create,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });

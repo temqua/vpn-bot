@@ -1,6 +1,6 @@
 import type { Payment, Plan } from '@prisma/client';
 import { addMonths, parse, subMonths } from 'date-fns';
-import type { Message } from 'node-telegram-bot-api';
+import type { Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { getFrequestPaymentAmountsKeyboard, getYesNoKeyboard } from '../../buttons';
@@ -39,7 +39,8 @@ export class PaymentsService {
 		to: false,
 	};
 
-	async showPayments(message: Message, context: UsersContext) {
+	async showPayments(message: Message, context: UsersContext, from?: TGUser) {
+		const lang = from?.is_bot ? 'ru' : from?.language_code;
 		let userId: string = context.id;
 		if (!context.id) {
 			const user = await this.usersRepository.getByTelegramId(message.chat.id.toString());
@@ -47,12 +48,11 @@ export class PaymentsService {
 		}
 		const payments = await this.repository.getAllByUserId(Number(userId));
 		if (!payments.length) {
-			await bot.sendMessage(message.chat.id, 'Не найдено платежей для данного пользователя');
+			await bot.sendMessage(message.chat.id, dict.paymentsNotFound[lang]);
 		}
 		for (const p of payments) {
 			await this.showPaymentInfo(message, p);
 		}
-		bot.sendMessage(message.chat.id, dict.start[message.from.language_code], getUserKeyboard());
 		globalHandler.finishCommand();
 	}
 

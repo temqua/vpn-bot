@@ -1,17 +1,16 @@
-import { Message } from 'node-telegram-bot-api';
+import { Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
+import { getMonthsCountMessage, getPeopleCountMessage } from '../../dict';
+import { CmdCode, CommandScope, PlanCommand } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { setActiveStep } from '../../utils';
+import { getUserKeyboard } from '../users/users.buttons';
 import { UsersRepository } from '../users/users.repository';
 import { PlanRepository } from './plans.repository';
 import { PlansContext } from './plans.types';
-import { CmdCode, CommandScope, PlanCommand } from '../../enums';
-import { getUserKeyboard } from '../users/users.buttons';
-import { dict } from '../../dict';
-
 export class PlansService {
 	constructor(
 		private readonly repository: PlanRepository = new PlanRepository(),
@@ -42,27 +41,34 @@ export class PlansService {
 		globalHandler.finishCommand();
 	}
 
-	async showForUser(message: Message) {
+	async showForUser(message: Message, from: TGUser) {
 		const chatId: number = message.chat.id;
+		const lang = from.is_bot ? 'ru' : from.language_code;
 		this.log('showForUser');
 		const user = await this.usersRepo.getByTelegramId(chatId.toString());
 		const plans = await this.repository.getByPrice(user.price);
-		await bot.sendMessage(
-			chatId,
-			`За 1 человека
-Стоимость ${user.price} RUB
-На срок 1 месяц`,
-		);
-		for (const plan of plans) {
-			await bot.sendMessage(
-				chatId,
-				`
-За ${plan.peopleCount} человек${plan.peopleCount === 1 ? 'а' : ''}
-Стоимость ${plan.amount} ${plan.currency}
-На срок ${plan.months} месяц${plan.months > 1 ? 'ев' : ''}`,
-			);
-		}
-		bot.sendMessage(chatId, dict.start[message.from.language_code], getUserKeyboard());
+		const plansGroupped = Object.groupBy(plans, p => p.peopleCount);
+
+		const prepared = Object.keys(plansGroupped)
+			.map(k => {
+				const count = Number(k);
+				const plans = plansGroupped[k];
+				const header = `${getPeopleCountMessage(count, lang)}:\n`;
+				const together = plans
+					.map(p => {
+						return `⚫️ ${getMonthsCountMessage(p.months, lang)} — ${p.amount} RUB`;
+					})
+					.join('\n');
+				return count === 1 ? together : header.concat(together);
+			})
+			.join('\n');
+		const finalMessage = `${getPeopleCountMessage(1, lang)}:
+⚫️${getMonthsCountMessage(1, lang)} — ${user.price} RUB`.concat(`\n${prepared}`);
+		bot.editMessageText(finalMessage, {
+			message_id: message.message_id,
+			chat_id: message.chat.id,
+			reply_markup: getUserKeyboard(lang),
+		});
 		globalHandler.finishCommand();
 	}
 

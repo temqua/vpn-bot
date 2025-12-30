@@ -6,6 +6,7 @@ import { CmdCode, CommandScope, PaymentCommand, VPNUserCommand } from '../enums'
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
 import { paymentButtons } from '../entities/payments/payments.buttons';
+import TelegramBot from 'node-telegram-bot-api';
 
 export const paymentCommandsList = {
 	menu: {
@@ -66,7 +67,9 @@ bot.onText(paymentCommandsList.all.regexp, async (msg: Message) => {
 					cmd: PaymentCommand.List,
 				},
 			},
-			msg,
+			{
+				message: msg,
+			} as TelegramBot.CallbackQuery,
 		);
 		return;
 	}
@@ -92,7 +95,9 @@ bot.onText(paymentCommandsList.sum.regexp, async (msg: Message) => {
 				cmd: PaymentCommand.Sum,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -107,7 +112,9 @@ bot.onText(paymentCommandsList.findByDate.regexp, async (msg: Message) => {
 				cmd: PaymentCommand.FindByDate,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -122,7 +129,9 @@ bot.onText(paymentCommandsList.findByDateRange.regexp, async (msg: Message) => {
 				cmd: PaymentCommand.FindByDateRange,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -137,7 +146,9 @@ bot.onText(paymentCommandsList.delete.regexp, async (msg: Message) => {
 				cmd: PaymentCommand.Delete,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -152,6 +163,8 @@ bot.onText(paymentCommandsList.getById.regexp, async (msg: Message) => {
 				cmd: PaymentCommand.GetById,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });

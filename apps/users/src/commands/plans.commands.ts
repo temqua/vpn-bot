@@ -4,6 +4,7 @@ import { plansButtons } from '../entities/plans/plans.buttons';
 import { CmdCode, CommandScope, PlanCommand } from '../enums';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
+import TelegramBot from 'node-telegram-bot-api';
 
 export const plansCommandsList = {
 	menu: {
@@ -52,7 +53,9 @@ bot.onText(plansCommandsList.all.regexp, async (msg: Message) => {
 				cmd: PlanCommand.List,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -67,7 +70,9 @@ bot.onText(plansCommandsList.create.regexp, async (msg: Message) => {
 				cmd: PlanCommand.Create,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -82,6 +87,8 @@ bot.onText(plansCommandsList.delete.regexp, async (msg: Message) => {
 				[CmdCode.Command]: PlanCommand.Delete,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });

@@ -4,6 +4,7 @@ import { serversButtons } from '../entities/servers/servers.buttons';
 import { CmdCode, CommandScope, ServerCommand } from '../enums';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
+import TelegramBot from 'node-telegram-bot-api';
 
 export const serversCommandsList = {
 	menu: {
@@ -52,7 +53,9 @@ bot.onText(serversCommandsList.all.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ServerCommand.List,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -67,7 +70,9 @@ bot.onText(serversCommandsList.create.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ServerCommand.Create,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });
 
@@ -82,6 +87,8 @@ bot.onText(serversCommandsList.delete.regexp, async (msg: Message) => {
 				[CmdCode.Command]: ServerCommand.Delete,
 			},
 		},
-		msg,
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
 	);
 });

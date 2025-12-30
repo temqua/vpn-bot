@@ -18,6 +18,7 @@ export class ExpensesService {
 		amount: false,
 		description: false,
 	};
+
 	async create(context: ExpenseCreateContext, message: Message | null, start = false) {
 		this.log('create');
 		context.chatId = message?.chat?.id ?? context.chatId;

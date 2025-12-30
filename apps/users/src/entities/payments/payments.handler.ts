@@ -1,4 +1,4 @@
-import type { Message } from 'node-telegram-bot-api';
+import type { CallbackQuery, Message, User } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
 import { PaymentCommand } from '../../enums';
 import { PaymentsService } from './payments.service';
@@ -7,7 +7,7 @@ import type { PaymentsContext } from './payments.types';
 class PaymentsCommandsHandler implements ICommandHandler {
 	constructor(private service: PaymentsService = new PaymentsService()) {}
 
-	async handle(context: PaymentsContext, message: Message, start = false) {
+	async handle(context: PaymentsContext, message: Message, from: User, start = false) {
 		if (context.cmd === PaymentCommand.List) {
 			await this.service.showAll(message);
 		}
@@ -26,6 +26,10 @@ class PaymentsCommandsHandler implements ICommandHandler {
 		if (context.cmd === PaymentCommand.FindByDateRange) {
 			await this.service.findByDateRange(message, start);
 		}
+	}
+
+	async handleQuery(context: PaymentsContext, query: CallbackQuery, start = false) {
+		this.handle(context, query.message, query.from, start);
 	}
 }
 

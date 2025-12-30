@@ -1,6 +1,6 @@
 import { Device, User, VPNProtocol } from '@prisma/client';
 import { subMonths } from 'date-fns';
-import type { InlineKeyboardButton, Message, SendBasicOptions } from 'node-telegram-bot-api';
+import type { InlineKeyboardButton, Message, SendBasicOptions, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { getYesNoKeyboard } from '../../buttons';
@@ -28,9 +28,9 @@ import {
 	replySetNullPropKeyboard,
 	skipKeyboard,
 } from './users.buttons';
+import { updatePropsMap } from './users.consts';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
-import { updatePropsMap } from './users.consts';
 
 export class UsersService {
 	constructor(
@@ -645,52 +645,67 @@ ${user.price} рублей стоит месяц
 		globalHandler.finishCommand();
 	}
 
-	async showSubscriptionURL(message: Message, context: UsersContext) {
+	async showSubscriptionURL(message: Message, from: TGUser) {
 		this.log('showSubscriptionURL');
-		const lang = message.from.language_code;
+		const lang = from?.is_bot ? 'ru' : from?.language_code;
+
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
-			bot.sendMessage(message.chat.id, dict.yourLink[lang]);
-			bot.sendMessage(
-				message.chat.id,
-				`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
-				{
-					parse_mode: 'MarkdownV2',
-				},
-			);
-
-			bot.sendMessage(message.chat.id, dict.manageSub[lang], deleteSubscriptionButton(lang));
+			const builtMessage = `${dict.yourLink[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}
+${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
+	`;
+			bot.editMessageText(builtMessage, {
+				parse_mode: 'MarkdownV2',
+				chat_id: message.chat.id,
+				message_id: message.message_id,
+				reply_markup: deleteSubscriptionButton(lang),
+			});
 		} else {
 			const isPaid = await this.repository.isUserPaid(user.id);
 
 			if (isPaid) {
-				bot.sendMessage(message.chat.id, dict.noSub[lang], createSubscriptionButton(lang));
+				bot.editMessageText(dict.noSub[lang], {
+					message_id: message.message_id,
+					chat_id: message.chat.id,
+					reply_markup: createSubscriptionButton(lang),
+				});
 			} else {
-				bot.sendMessage(message.chat.id, dict.noPayments[lang]);
+				bot.editMessageText(dict.noPayments[lang], {
+					message_id: message.message_id,
+					chat_id: message.chat.id,
+				});
 			}
 		}
 	}
 
-	async showSubGuide(message: Message) {
-		const lang = message.from.language_code;
-		bot.sendMessage(message.chat.id, dict.intro[lang], {
+	async showSubGuide(message: Message, from?: TGUser) {
+		this.log('showSubGuide');
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
+		bot.editMessageText(dict.intro[lang], {
+			message_id: message.message_id,
+			chat_id: message.chat.id,
 			parse_mode: 'MarkdownV2',
+			reply_markup: getUserKeyboard(lang),
 		});
-		bot.sendMessage(message.chat.id, dict.start[lang], getUserKeyboard());
 	}
 
-	async createSubscription(message: Message) {
+	async createSubscription(message: Message, from: TGUser) {
 		this.log('createSubscription');
-		bot.sendMessage(message.chat.id, dict.creatingSub[message.from.language_code]);
+		const lang = from?.is_bot ? 'ru' : from?.language_code;
+		bot.editMessageText(dict.creatingSub[lang], {
+			message_id: message.message_id,
+			chat_id: message.chat.id,
+			reply_markup: getUserKeyboard(lang),
+		});
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
-		await this.createPasarguardUser(message, user);
-		bot.sendMessage(message.chat.id, dict.start[message.from.language_code], getUserKeyboard());
+		await this.createPasarguardUser(message, user, from);
 	}
 
-	async deleteSubscription(message: Message) {
+	async deleteSubscription(message: Message, from: TGUser) {
 		this.log('deleteSubscription');
-		const lang = message.from.language_code;
+		const lang = from.is_bot ? 'ru' : from.language_code;
 		bot.sendMessage(message.chat.id, dict.deletingSub[lang]);
+
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		try {
 			const result = await this.deletePasarguardUser(user);
@@ -707,7 +722,9 @@ ${user.price} рублей стоит месяц
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка удаления ${error.message}`);
 		} finally {
-			bot.sendMessage(message.chat.id, dict.start[lang], getUserKeyboard());
+			bot.sendMessage(message.chat.id, dict.start[lang], {
+				reply_markup: getUserKeyboard(lang),
+			});
 		}
 	}
 
@@ -874,6 +891,15 @@ Created at ${formatDate(record.assignedAt)}`,
 		} finally {
 			globalHandler.finishCommand();
 		}
+	}
+
+	async showMenu(message: Message, from: TGUser) {
+		const lang = from.is_bot ? 'ru' : from.language_code;
+		bot.editMessageText(dict.start[lang], {
+			message_id: message.message_id,
+			chat_id: message.chat.id,
+			reply_markup: getUserKeyboard(lang),
+		});
 	}
 
 	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {
@@ -1071,22 +1097,25 @@ Created At: ${formatDate(user.createdAt)}\n`;
 		return userInfo;
 	}
 
-	private async createPasarguardUser(message: Message, user: User) {
+	private async createPasarguardUser(message: Message, user: User, from?: TGUser) {
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		let pgUsername = `${user.username}_${user.id}`;
 		if (user.telegramId) {
 			pgUsername = pgUsername.concat('_', user.telegramId);
 		}
 		const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
 		if (newPasarguardUser) {
-			bot.sendMessage(message.chat.id, `Пользователь ${newPasarguardUser.username} успешно создан в pasarguard.`);
-			bot.sendMessage(
-				message.chat.id,
+			await bot.sendMessage(message.chat.id, `Пользователь ${newPasarguardUser.username} успешно создан.`);
+			await bot.editMessageText(
 				`\`https://pg.tesseractnpv.com${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
 				{
+					message_id: message.message_id,
+					chat_id: message.chat.id,
 					parse_mode: 'MarkdownV2',
+					reply_markup: getUserKeyboard(lang),
 				},
 			);
-			this.showSubGuide(message);
+			this.showSubGuide(message, from);
 			await this.repository.update(user.id, {
 				subLink: newPasarguardUser.subscription_url,
 				pasarguardUsername: newPasarguardUser.username,
@@ -1094,7 +1123,11 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			});
 			return newPasarguardUser;
 		} else {
-			await bot.sendMessage(message.chat.id, 'Ошибка во время создания subscription-ссылки');
+			await bot.editMessageText(dict.createSubError[lang], {
+				message_id: message.message_id,
+				chat_id: message.chat.id,
+				reply_markup: getUserKeyboard(lang),
+			});
 			return null;
 		}
 	}

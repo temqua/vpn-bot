@@ -50,6 +50,7 @@ export enum VPNUserCommand {
 	ShowSubLinkGuide = 'sslg',
 	ShowTrial = 'st',
 	ShowPlans = 'shpl',
+	ShowMenu = 'sm',
 	UnassignKey = 'uask',
 }
 
