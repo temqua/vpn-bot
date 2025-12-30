@@ -121,6 +121,15 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+		{
+			text: 'ID',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					cmd: VPNUserCommand.FindById,
+				},
+			}),
+		},
 	],
 ];
 
@@ -141,15 +150,6 @@ export const userButtons: InlineKeyboardButton[][] = [
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
 					cmd: VPNUserCommand.List,
-				},
-			}),
-		},
-		{
-			text: 'Delete',
-			callback_data: JSON.stringify({
-				[CmdCode.Scope]: CommandScope.Users,
-				[CmdCode.Context]: {
-					cmd: VPNUserCommand.Delete,
 				},
 			}),
 		},

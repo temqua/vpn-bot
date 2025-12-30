@@ -214,6 +214,8 @@ export class UsersRepository {
 					lt: subMonths(new Date(), 1),
 				},
 				id,
+				active: true,
+				free: false,
 			},
 		});
 	}
@@ -222,6 +224,7 @@ export class UsersRepository {
 		return await prisma.user.findFirst({
 			where: {
 				id,
+				active: true,
 				OR: [
 					{
 						createdAt: {
@@ -239,6 +242,9 @@ export class UsersRepository {
 						createdAt: {
 							gt: subMonths(new Date(), 1),
 						},
+					},
+					{
+						free: true,
 					},
 				],
 			},
@@ -272,14 +278,10 @@ export class UsersRepository {
 		});
 	}
 
-	async deleteUserServer(userId: number, serverId: number, protocol: VPNProtocol) {
+	async deleteUserServer(id: number) {
 		return await prisma.serversUsers.delete({
 			where: {
-				userId_serverId_protocol: {
-					userId,
-					serverId,
-					protocol,
-				},
+				id,
 			},
 		});
 	}

@@ -400,13 +400,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			);
 		}
 		const calculated = addMonths(lastPayment?.expiresOn ?? new Date(), months);
-		await bot.sendMessage(
-			chatId,
-			`Вычисленная дата окончания работы: ${formatDate(calculated)}. 
-Можно отправить свою дату в ISO формате без времени: 2025-01-01 
-Или с временем 2025-02-02T22:59:24Z`,
-			acceptKeyboard,
-		);
+		await bot.sendMessage(chatId, `Вычисленная дата окончания работы: ${formatDate(calculated)}`, acceptKeyboard);
 		this.params.set('expires', calculated);
 		this.setPaymentStep('expires');
 	}

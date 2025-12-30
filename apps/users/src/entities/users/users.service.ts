@@ -240,8 +240,11 @@ export class UsersService {
 
 	async findByUsername(message: Message, start: boolean) {
 		this.log('findByUsername');
-
-		if (!start) {
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Enter username');
+			return;
+		}
+		try {
 			const users = await this.repository.findByUsername(message.text ?? '');
 			if (users?.length) {
 				for (const user of users) {
@@ -250,10 +253,37 @@ export class UsersService {
 			} else {
 				await bot.sendMessage(message.chat.id, `No users found in system with username ${message.text}`);
 			}
+		} catch (error) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Error occurred while searching user by username ${message.text} ${error}`,
+			);
+		} finally {
 			globalHandler.finishCommand();
+		}
+	}
+
+	async findById(message: Message, start: boolean) {
+		this.log('getById');
+		if (start) {
+			await bot.sendMessage(message.chat.id, 'Enter id');
 			return;
 		}
-		await bot.sendMessage(message.chat.id, 'Enter username');
+		try {
+			const user = await this.repository.getById(Number(message.text));
+			if (user) {
+				await this.sendUserMenu(message.chat.id, user);
+			} else {
+				await bot.sendMessage(message.chat.id, `No users found in system with id ${message.text}`);
+			}
+		} catch (error) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Error occurred while searching user by id ${message.text} ${error}`,
+			);
+		} finally {
+			globalHandler.finishCommand();
+		}
 	}
 
 	async getByTelegramId(message: Message, start: boolean) {
@@ -426,26 +456,26 @@ export class UsersService {
 
 			return;
 		}
-		const users = await this.repository.list();
-		const buttons = users.map(({ username, id }) => [
-			{
-				text: username,
-				callback_data: JSON.stringify({
-					[CmdCode.Scope]: CommandScope.Users,
-					[CmdCode.Context]: {
-						cmd: VPNUserCommand.Delete,
-						id,
-					},
-					[CmdCode.Processing]: 1,
-				}),
-			},
-		]);
-		const inlineKeyboard = {
-			reply_markup: {
-				inline_keyboard: [...buttons],
-			},
-		};
-		await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
+		// const users = await this.repository.list();
+		// const buttons = users.map(({ username, id }) => [
+		// 	{
+		// 		text: username,
+		// 		callback_data: JSON.stringify({
+		// 			[CmdCode.Scope]: CommandScope.Users,
+		// 			[CmdCode.Context]: {
+		// 				cmd: VPNUserCommand.Delete,
+		// 				id,
+		// 			},
+		// 			[CmdCode.Processing]: 1,
+		// 		}),
+		// 	},
+		// ]);
+		// const inlineKeyboard = {
+		// 	reply_markup: {
+		// 		inline_keyboard: [...buttons],
+		// 	},
+		// };
+		// await bot.sendMessage(msg.chat.id, 'Select user to delete:', inlineKeyboard);
 	}
 
 	async exportPayments(message: Message) {
@@ -631,7 +661,7 @@ currently have a trial period `,
 				try {
 					await bot.sendMessage(
 						user.telegramId,
-						`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн ему https://t.me/whirliswaiting
+						`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн @whirliswaiting
 ${user.price} рублей стоит месяц
 2200700156700659 т-банк
 2202205048878992 сбер
@@ -874,7 +904,7 @@ Created at ${formatDate(record.assignedAt)}`,
 		const record = await this.repository.getUserServer(Number(context.id), Number(context.sid), protocol);
 
 		try {
-			await this.repository.deleteUserServer(Number(context.id), Number(context.sid), protocol);
+			await this.repository.deleteUserServer(record.id);
 			bot.sendMessage(
 				message.chat.id,
 				`Successfully deleted record from database for ${protocol} key and user ${record.user.username}`,

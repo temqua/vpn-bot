@@ -35,6 +35,7 @@ export enum VPNUserCommand {
 	FindByUsername = 'findus',
 	GetByTelegramId = 'gettg',
 	FindByFirstName = 'findfn',
+	FindById = 'findid',
 	Keys = 'ks',
 	Update = 'u',
 	UpdateNull = 'un',

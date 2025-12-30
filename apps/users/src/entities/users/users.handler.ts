@@ -86,13 +86,15 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context.cmd === VPNUserCommand.FindByFirstName) {
 			await this.service.findByFirstName(message, this.state.init);
 		}
+		if (context.cmd === VPNUserCommand.FindById) {
+			await this.service.findById(message, this.state.init);
+		}
 		if (context.cmd === VPNUserCommand.Expand) {
 			await this.service.expand(message, context);
 		}
 		if (context.cmd === VPNUserCommand.Update) {
 			await this.service.update(message, context as UserUpdateCommandContext, this.state);
 		}
-
 		if (context.cmd === VPNUserCommand.UpdateNull) {
 			(context as UserUpdateCommandContext).setNull = true;
 			await this.service.update(message, context as UserUpdateCommandContext, this.state);
