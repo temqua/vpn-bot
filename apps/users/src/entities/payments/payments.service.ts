@@ -4,19 +4,19 @@ import type { Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { getFrequestPaymentAmountsKeyboard, getYesNoKeyboard } from '../../buttons';
-import { UserRequest } from '../../enums';
+import { dict } from '../../dict';
+import { CmdCode, CommandScope, PaymentCommand, UserRequest } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
-import { formatDate, setActiveStep } from '../../utils';
+import { formatDate, setActiveStep, uuid32to36 } from '../../utils';
 import { PlanRepository } from '../plans/plans.repository';
 import { NalogService } from '../users/nalog.service';
-import { acceptKeyboard, getUserKeyboard } from '../users/users.buttons';
+import { acceptKeyboard } from '../users/users.buttons';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
 import { PaymentsRepository } from './payments.repository';
-import { dict } from '../../dict';
-
+import { PaymentsContext } from './payments.types';
 export class PaymentsService {
 	constructor(
 		private repository: PaymentsRepository = new PaymentsRepository(),
@@ -63,31 +63,22 @@ export class PaymentsService {
 		globalHandler.finishCommand();
 	}
 
+	async deleteExecuted(message: Message, context: PaymentsContext) {
+		this.log(`deleteExecuted`);
+		await this.deletePayment(message, uuid32to36(context.id));
+	}
+
 	async delete(message: Message, start: boolean) {
-		this.log(`[line 59]: delete`);
+		this.log(`delete`);
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
 			return;
 		}
-		try {
-			const result = await this.repository.delete(message.text);
-			await bot.sendMessage(
-				message.chat.id,
-				`Платёж с введённым ID \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\` датой ${formatDate(result.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)} успешно удалён из системы`,
-				{
-					parse_mode: 'MarkdownV2',
-				},
-			);
-		} catch (err) {
-			await bot.sendMessage(message.chat.id, `Ошибка удаления платежа: ${err}`);
-			logger.error(`Ошибка удаления платежа: ${err}`);
-		} finally {
-			globalHandler.finishCommand();
-		}
+		await this.deletePayment(message, message.text);
 	}
 
 	async getById(message: Message, start: boolean) {
-		this.log('[line: 82]: getById');
+		this.log('getById');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
 			return;
@@ -103,7 +94,7 @@ export class PaymentsService {
 	}
 
 	async findByDate(message: Message, start: boolean) {
-		this.log('[line 98]: findByDate');
+		this.log('findByDate');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter date in ISO Format (2025-08-03)');
 			return;
@@ -132,7 +123,7 @@ export class PaymentsService {
 	}
 
 	async findByDateRange(message: Message, start: boolean) {
-		this.log('[line 127]: findByDateRange');
+		this.log('findByDateRange');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter date from in ISO Format (2025-08-03)');
 			this.findByDateRangeSteps.from = true;
@@ -178,7 +169,7 @@ export class PaymentsService {
 	}
 
 	async pay(message: Message | null, context: UsersContext, start: boolean) {
-		this.log(`[line 173]: pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
+		this.log(`pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (start) {
 			setActiveStep('user', this.paymentSteps);
@@ -317,7 +308,7 @@ export class PaymentsService {
 	}
 
 	async checkUnpaid(msg: Message) {
-		this.log('[line 312]: checkUnpaid');
+		this.log('checkUnpaid');
 		const unpaid = await this.usersRepository.isTelegramUserUnpaid(msg.chat.id.toString());
 		if (unpaid) {
 			const message = unpaid.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
@@ -326,7 +317,7 @@ export class PaymentsService {
 	}
 
 	private async addPaymentNalog(chatId: number, username: string, amount: number, id: string) {
-		this.log('[line 320]: addPaymentNalog');
+		this.log('addPaymentNalog');
 		try {
 			const token = await this.nalogService.auth();
 			const paymentId = await this.nalogService.addNalog(token, amount, id);
@@ -478,9 +469,26 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 	}
 
 	private async showPaymentInfo(message: Message, p: Payment) {
+		const cd = JSON.stringify({
+			[CmdCode.Scope]: CommandScope.Payments,
+			[CmdCode.Context]: {
+				[CmdCode.Command]: PaymentCommand.DeleteExec,
+				id: p.id.replaceAll('-', ''),
+			},
+		});
+		console.log('cd :>> ', cd);
+		const button = [
+			{
+				text: 'Delete',
+				callback_data: cd,
+			},
+		];
 		if (!p.parentPaymentId) {
 			await bot.sendMessage(message.chat.id, this.formatPayment(p), {
 				parse_mode: 'MarkdownV2',
+				reply_markup: {
+					inline_keyboard: [button],
+				},
 			});
 			return;
 		}
@@ -490,6 +498,9 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 Expires On: ${p.expiresOn ? formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`) : 'unset'}`,
 			{
 				parse_mode: 'MarkdownV2',
+				reply_markup: {
+					inline_keyboard: [button],
+				},
 			},
 		);
 		const parentPayment = await this.repository.getById(p.parentPaymentId);
@@ -503,8 +514,29 @@ Expires On: ${parentPayment.expiresOn ? formatDate(parentPayment.expiresOn).repl
 Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 				{
 					parse_mode: 'MarkdownV2',
+					reply_markup: {
+						inline_keyboard: [button],
+					},
 				},
 			);
+		}
+	}
+
+	private async deletePayment(message: Message, id: string) {
+		try {
+			const result = await this.repository.delete(id);
+			await bot.sendMessage(
+				message.chat.id,
+				`Выбранный платёж \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\` датой ${formatDate(result.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)} успешно удалён из системы`,
+				{
+					parse_mode: 'MarkdownV2',
+				},
+			);
+		} catch (err) {
+			await bot.sendMessage(message.chat.id, `Ошибка удаления платежа: ${err}`);
+			logger.error(`Ошибка удаления платежа: ${err}`);
+		} finally {
+			globalHandler.finishCommand();
 		}
 	}
 

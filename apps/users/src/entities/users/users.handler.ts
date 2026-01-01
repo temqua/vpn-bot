@@ -1,7 +1,7 @@
 import type { Device, VPNProtocol } from '@prisma/client';
 import type { Message, Poll, User } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
-import { Bank, VPNUserCommand } from '../../enums';
+import { Bank, CmdCode, VPNUserCommand } from '../../enums';
 import { globalHandler } from '../../global.handler';
 import { PaymentsService } from '../payments/payments.service';
 import { UsersService } from './users.service';
@@ -23,117 +23,117 @@ class UsersCommandsHandler implements ICommandHandler {
 	async handle(context: UsersContext, message: Message, from: User, start = false) {
 		context.chatId = message.chat.id;
 		this.state.init = start;
-		logger.log(`[users.handler.ts]: command: ${context.cmd}, start: ${start}`);
-		if (context.cmd === VPNUserCommand.List) {
+		logger.log(`[users.handler.ts]: command: ${context[CmdCode.Command]}, start: ${start}`);
+		if (context[CmdCode.Command] === VPNUserCommand.List) {
 			await this.service.list(message);
 			this.state.init = false;
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.Export) {
+		if (context[CmdCode.Command] === VPNUserCommand.Export) {
 			await this.service.export(message);
 			this.state.init = false;
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.ExportPayments) {
+		if (context[CmdCode.Command] === VPNUserCommand.ExportPayments) {
 			await this.service.exportPayments(message);
 			this.state.init = false;
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.ExportExpenses) {
+		if (context[CmdCode.Command] === VPNUserCommand.ExportExpenses) {
 			await this.service.exportExpenses(message);
 			this.state.init = false;
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.ShowSubLink) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowSubLink) {
 			await this.service.showSubscriptionURL(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.ShowSubLinkGuide) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowSubLinkGuide) {
 			await this.service.showSubGuide(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.CreateSubscription) {
+		if (context[CmdCode.Command] === VPNUserCommand.CreateSubscription) {
 			await this.service.createSubscription(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.DeleteSubscription) {
+		if (context[CmdCode.Command] === VPNUserCommand.DeleteSubscription) {
 			await this.service.deleteSubscription(message, from);
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context.cmd === VPNUserCommand.Pay) {
+		if (context[CmdCode.Command] === VPNUserCommand.Pay) {
 			await this.paymentsService.pay(message, context, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.Create) {
+		if (context[CmdCode.Command] === VPNUserCommand.Create) {
 			await this.service.create(message, context as UserCreateCommandContext, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.GetById) {
+		if (context[CmdCode.Command] === VPNUserCommand.GetById) {
 			await this.service.getById(message, context);
 		}
-		if (context.cmd === VPNUserCommand.FindByUsername) {
+		if (context[CmdCode.Command] === VPNUserCommand.FindByUsername) {
 			await this.service.findByUsername(message, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.GetByTelegramId) {
+		if (context[CmdCode.Command] === VPNUserCommand.GetByTelegramId) {
 			await this.service.getByTelegramId(message, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.FindByFirstName) {
+		if (context[CmdCode.Command] === VPNUserCommand.FindByFirstName) {
 			await this.service.findByFirstName(message, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.FindById) {
+		if (context[CmdCode.Command] === VPNUserCommand.FindById) {
 			await this.service.findById(message, this.state.init);
 		}
-		if (context.cmd === VPNUserCommand.Expand) {
+		if (context[CmdCode.Command] === VPNUserCommand.Expand) {
 			await this.service.expand(message, context);
 		}
-		if (context.cmd === VPNUserCommand.Update) {
+		if (context[CmdCode.Command] === VPNUserCommand.Update) {
 			await this.service.update(message, context as UserUpdateCommandContext, this.state);
 		}
-		if (context.cmd === VPNUserCommand.UpdateNull) {
+		if (context[CmdCode.Command] === VPNUserCommand.UpdateNull) {
 			(context as UserUpdateCommandContext).setNull = true;
 			await this.service.update(message, context as UserUpdateCommandContext, this.state);
 		}
-		if (context.cmd === VPNUserCommand.Delete) {
+		if (context[CmdCode.Command] === VPNUserCommand.Delete) {
 			await this.service.delete(message, context, this.state.init);
 			this.state.init = false;
 		}
-		if (context.cmd === VPNUserCommand.ShowPayments) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowPayments) {
 			await this.paymentsService.showPayments(message, context, from);
 		}
-		if (context.cmd === VPNUserCommand.ShowUnpaid) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowUnpaid) {
 			await this.service.showUnpaid(message);
 		}
-		if (context.cmd === VPNUserCommand.ShowPlans) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowPlans) {
 			await this.plansService.showForUser(message, from);
 		}
-		if (context.cmd === VPNUserCommand.NotifyUnpaid) {
+		if (context[CmdCode.Command] === VPNUserCommand.NotifyUnpaid) {
 			await this.service.notifyUnpaid();
 		}
-		if (context.cmd === VPNUserCommand.ShowTrial) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowTrial) {
 			await this.service.showTrial(message);
 		}
-		if (context.cmd === VPNUserCommand.AssignKey) {
+		if (context[CmdCode.Command] === VPNUserCommand.AssignKey) {
 			await this.service.createKey(message, context, start, true);
 		}
-		if (context.cmd === VPNUserCommand.CreateKey) {
+		if (context[CmdCode.Command] === VPNUserCommand.CreateKey) {
 			await this.service.createKey(message, context, start);
 		}
-		if (context.cmd === VPNUserCommand.Keys) {
+		if (context[CmdCode.Command] === VPNUserCommand.Keys) {
 			await this.service.listKeys(message, context);
 		}
-		if (context.cmd === VPNUserCommand.DeleteKey) {
+		if (context[CmdCode.Command] === VPNUserCommand.DeleteKey) {
 			await this.service.deleteKey(message, context);
 		}
-		if (context.cmd === VPNUserCommand.UnassignKey) {
+		if (context[CmdCode.Command] === VPNUserCommand.UnassignKey) {
 			await this.service.deleteKey(message, context, true);
 		}
-		if (context.cmd === VPNUserCommand.ShowMenu) {
+		if (context[CmdCode.Command] === VPNUserCommand.ShowMenu) {
 			await this.service.showMenu(message, from);
 		}
 	}
@@ -144,11 +144,11 @@ class UsersCommandsHandler implements ICommandHandler {
 
 	async handlePoll(context: UsersContext, poll: Poll) {
 		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text as Device | VPNProtocol | Bank);
-		if (context.cmd === VPNUserCommand.Create) {
+		if (context[CmdCode.Command] === VPNUserCommand.Create) {
 			await this.service.create(null, context as UserCreateCommandContext, false, selected);
-		} else if (context.cmd === VPNUserCommand.Update) {
+		} else if (context[CmdCode.Command] === VPNUserCommand.Update) {
 			await this.service.update(null, context as UserUpdateCommandContext, this.state, selected);
-		} else if (context.cmd === VPNUserCommand.Pay) {
+		} else if (context[CmdCode.Command] === VPNUserCommand.Pay) {
 			await this.paymentsService.pay(null, context, false);
 		}
 	}

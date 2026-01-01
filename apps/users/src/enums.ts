@@ -2,9 +2,9 @@ export enum CmdCode {
 	Processing = 'p',
 	Context = 'c',
 	Scope = 's',
-	Command = 'cmd',
+	Command = 'cm',
 	Protocol = 'pr',
-	SubOperation = 'subo',
+	SubOperation = 'su',
 }
 
 export enum ExpenseCommand {
@@ -17,9 +17,9 @@ export enum ExpenseCommand {
 export enum ServerCommand {
 	Create = 'cr',
 	List = 'list',
-	ListUsers = 'listu',
+	ListUsers = 'lu',
 	Edit = 'e',
-	Delete = 'del',
+	Delete = 'd',
 }
 
 export enum VPNUserCommand {
@@ -56,12 +56,13 @@ export enum VPNUserCommand {
 }
 
 export enum PaymentCommand {
-	Delete = 'delete',
-	List = 'list',
-	GetById = 'getid',
-	FindByDate = 'find',
-	FindByDateRange = 'findr',
-	Sum = 'sum',
+	Delete = 'de',
+	DeleteExec = 'd',
+	List = 'l',
+	GetById = 'g',
+	FindByDate = 'f',
+	FindByDateRange = 'fr',
+	Sum = 's',
 }
 
 export enum PlanCommand {
@@ -71,11 +72,11 @@ export enum PlanCommand {
 }
 
 export enum CommandScope {
-	Users = 'users',
-	Expenses = 'expenses',
-	Payments = 'payments',
-	Plans = 'plans',
-	Servers = 'servers',
+	Users = 'u',
+	Expenses = 'e',
+	Payments = 'p',
+	Plans = 'pl',
+	Servers = 's',
 }
 
 export enum UserRequest {

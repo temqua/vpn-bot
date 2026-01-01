@@ -151,7 +151,7 @@ export class PlansService {
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Plans,
 					[CmdCode.Context]: {
-						cmd: PlanCommand.Delete,
+						[CmdCode.Command]: PlanCommand.Delete,
 						id,
 					},
 					[CmdCode.Processing]: 1,

@@ -61,7 +61,7 @@ export function getYesNoKeyboard(command = VPNUserCommand.Pay, scope = CommandSc
 						callback_data: JSON.stringify({
 							[CmdCode.Scope]: scope,
 							[CmdCode.Context]: {
-								cmd: command,
+								[CmdCode.Command]: command,
 								accept: 0,
 							},
 							[CmdCode.Processing]: 1,
@@ -93,7 +93,7 @@ export const yesNoKeyboard: SendBasicOptions = {
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
-							cmd: VPNUserCommand.Pay,
+							[CmdCode.Command]: VPNUserCommand.Pay,
 							accept: 0,
 						},
 						[CmdCode.Processing]: 1,

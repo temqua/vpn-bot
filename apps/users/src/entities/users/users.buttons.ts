@@ -99,7 +99,7 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.FindByUsername,
+					[CmdCode.Command]: VPNUserCommand.FindByUsername,
 				},
 			}),
 		},
@@ -108,7 +108,7 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.GetByTelegramId,
+					[CmdCode.Command]: VPNUserCommand.GetByTelegramId,
 				},
 			}),
 		},
@@ -117,7 +117,7 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.FindByFirstName,
+					[CmdCode.Command]: VPNUserCommand.FindByFirstName,
 				},
 			}),
 		},
@@ -126,7 +126,7 @@ export const findUserButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.FindById,
+					[CmdCode.Command]: VPNUserCommand.FindById,
 				},
 			}),
 		},
@@ -140,7 +140,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.Create,
+					[CmdCode.Command]: VPNUserCommand.Create,
 				},
 			}),
 		},
@@ -149,7 +149,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.List,
+					[CmdCode.Command]: VPNUserCommand.List,
 				},
 			}),
 		},
@@ -160,7 +160,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.Pay,
+					[CmdCode.Command]: VPNUserCommand.Pay,
 				},
 			}),
 		},
@@ -170,7 +170,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.ShowTrial,
+					[CmdCode.Command]: VPNUserCommand.ShowTrial,
 				},
 			}),
 		},
@@ -181,7 +181,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.ShowUnpaid,
+					[CmdCode.Command]: VPNUserCommand.ShowUnpaid,
 				},
 			}),
 		},
@@ -190,7 +190,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.NotifyUnpaid,
+					[CmdCode.Command]: VPNUserCommand.NotifyUnpaid,
 				},
 			}),
 		},
@@ -201,7 +201,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.Export,
+					[CmdCode.Command]: VPNUserCommand.Export,
 				},
 			}),
 		},
@@ -210,7 +210,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.ExportPayments,
+					[CmdCode.Command]: VPNUserCommand.ExportPayments,
 				},
 			}),
 		},
@@ -219,7 +219,7 @@ export const userButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
-					cmd: VPNUserCommand.ExportExpenses,
+					[CmdCode.Command]: VPNUserCommand.ExportExpenses,
 				},
 			}),
 		},

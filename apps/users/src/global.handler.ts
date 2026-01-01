@@ -35,7 +35,7 @@ class GlobalHandler {
 	}
 
 	finishCommand() {
-		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Finished ${this.activeCommand?.context?.cmd} command`);
+		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Finished ${this.activeCommand?.context?.cm} command`);
 		this.activeCommand = null;
 	}
 
@@ -43,7 +43,7 @@ class GlobalHandler {
 		if (!this.activeCommand) {
 			return;
 		}
-		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
+		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cm} command`);
 		if (this.activeCommand.scope === CommandScope.Expenses) {
 			expensesCommandsHandler.handlePoll(this.activeCommand.context as ExpensesContext, poll);
 		} else {
@@ -55,7 +55,7 @@ class GlobalHandler {
 		if (!this.activeCommand) {
 			return;
 		}
-		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cmd} command`);
+		logger.log(`(${this.activeCommand?.scope ?? 'unknown'}): Handling ${this.activeCommand?.context?.cm} command`);
 		let handler: ICommandHandler = userCommandsHandler;
 		switch (this.activeCommand.scope) {
 			case CommandScope.Users:
@@ -77,7 +77,7 @@ class GlobalHandler {
 	}
 
 	async execute(command: CommandDetails, query: TelegramBot.CallbackQuery) {
-		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command?.context?.cmd ?? 'unknown'} command`);
+		logger.log(`(${command?.scope ?? 'unknown'}): Executed ${command?.context?.cm ?? 'unknown'} command`);
 		this.activeCommand = command;
 		let handler: ICommandHandler = userCommandsHandler;
 		switch (this.activeCommand?.scope) {

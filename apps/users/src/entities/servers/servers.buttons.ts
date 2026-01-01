@@ -8,7 +8,7 @@ export const serversButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Servers,
 				[CmdCode.Context]: {
-					cmd: ServerCommand.List,
+					[CmdCode.Command]: ServerCommand.List,
 				},
 			}),
 		},
@@ -17,7 +17,7 @@ export const serversButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Servers,
 				[CmdCode.Context]: {
-					cmd: ServerCommand.Create,
+					[CmdCode.Command]: ServerCommand.Create,
 				},
 			}),
 		},
@@ -26,7 +26,7 @@ export const serversButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Servers,
 				[CmdCode.Context]: {
-					cmd: ServerCommand.Delete,
+					[CmdCode.Command]: ServerCommand.Delete,
 				},
 			}),
 		},

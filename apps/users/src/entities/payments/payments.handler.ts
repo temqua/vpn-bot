@@ -1,6 +1,6 @@
 import type { CallbackQuery, Message, User } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
-import { PaymentCommand } from '../../enums';
+import { CmdCode, PaymentCommand } from '../../enums';
 import { PaymentsService } from './payments.service';
 import type { PaymentsContext } from './payments.types';
 
@@ -8,22 +8,25 @@ class PaymentsCommandsHandler implements ICommandHandler {
 	constructor(private service: PaymentsService = new PaymentsService()) {}
 
 	async handle(context: PaymentsContext, message: Message, from: User, start = false) {
-		if (context.cmd === PaymentCommand.List) {
+		if (context[CmdCode.Command] === PaymentCommand.List) {
 			await this.service.showAll(message);
 		}
-		if (context.cmd === PaymentCommand.Delete) {
+		if (context[CmdCode.Command] === PaymentCommand.Delete) {
 			await this.service.delete(message, start);
 		}
-		if (context.cmd === PaymentCommand.GetById) {
+		if (context[CmdCode.Command] === PaymentCommand.DeleteExec) {
+			await this.service.deleteExecuted(message, context);
+		}
+		if (context[CmdCode.Command] === PaymentCommand.GetById) {
 			await this.service.getById(message, start);
 		}
-		if (context.cmd === PaymentCommand.FindByDate) {
+		if (context[CmdCode.Command] === PaymentCommand.FindByDate) {
 			await this.service.findByDate(message, start);
 		}
-		if (context.cmd === PaymentCommand.Sum) {
+		if (context[CmdCode.Command] === PaymentCommand.Sum) {
 			await this.service.sum(message.chat.id);
 		}
-		if (context.cmd === PaymentCommand.FindByDateRange) {
+		if (context[CmdCode.Command] === PaymentCommand.FindByDateRange) {
 			await this.service.findByDateRange(message, start);
 		}
 	}

@@ -8,7 +8,7 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
-					cmd: PaymentCommand.GetById,
+					[CmdCode.Command]: PaymentCommand.GetById,
 				},
 			}),
 		},
@@ -17,7 +17,7 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
-					cmd: PaymentCommand.FindByDate,
+					[CmdCode.Command]: PaymentCommand.FindByDate,
 				},
 			}),
 		},
@@ -26,7 +26,7 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
-					cmd: PaymentCommand.FindByDateRange,
+					[CmdCode.Command]: PaymentCommand.FindByDateRange,
 				},
 			}),
 		},
@@ -37,7 +37,7 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
-					cmd: PaymentCommand.List,
+					[CmdCode.Command]: PaymentCommand.List,
 				},
 			}),
 		},
@@ -46,7 +46,7 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
-					cmd: PaymentCommand.Sum,
+					[CmdCode.Command]: PaymentCommand.Sum,
 				},
 			}),
 		},
@@ -55,7 +55,7 @@ export const paymentButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Payments,
 				[CmdCode.Context]: {
-					cmd: PaymentCommand.Delete,
+					[CmdCode.Command]: PaymentCommand.Delete,
 				},
 			}),
 		},

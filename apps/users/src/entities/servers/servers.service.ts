@@ -116,7 +116,7 @@ URL: ${server.url}
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Servers,
 					[CmdCode.Context]: {
-						cmd: ServerCommand.Delete,
+						[CmdCode.Command]: ServerCommand.Delete,
 						id,
 					},
 					[CmdCode.Processing]: 1,

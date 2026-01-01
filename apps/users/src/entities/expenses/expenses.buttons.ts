@@ -9,7 +9,7 @@ export const expensesButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Expenses,
 				[CmdCode.Context]: {
-					cmd: ExpenseCommand.List,
+					[CmdCode.Command]: ExpenseCommand.List,
 				},
 			}),
 		},
@@ -18,7 +18,7 @@ export const expensesButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Expenses,
 				[CmdCode.Context]: {
-					cmd: ExpenseCommand.Sum,
+					[CmdCode.Command]: ExpenseCommand.Sum,
 				},
 			}),
 		},
@@ -51,7 +51,7 @@ export const expensesButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Expenses,
 				[CmdCode.Context]: {
-					cmd: ExpenseCommand.Create,
+					[CmdCode.Command]: ExpenseCommand.Create,
 				},
 			}),
 		},
@@ -60,7 +60,7 @@ export const expensesButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Expenses,
 				[CmdCode.Context]: {
-					cmd: ExpenseCommand.Delete,
+					[CmdCode.Command]: ExpenseCommand.Delete,
 				},
 			}),
 		},

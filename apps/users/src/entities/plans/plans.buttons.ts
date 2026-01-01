@@ -8,7 +8,7 @@ export const plansButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Plans,
 				[CmdCode.Context]: {
-					cmd: PlanCommand.List,
+					[CmdCode.Command]: PlanCommand.List,
 				},
 			}),
 		},
@@ -17,7 +17,7 @@ export const plansButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Plans,
 				[CmdCode.Context]: {
-					cmd: PlanCommand.Create,
+					[CmdCode.Command]: PlanCommand.Create,
 				},
 			}),
 		},
@@ -26,7 +26,7 @@ export const plansButtons: InlineKeyboardButton[][] = [
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Plans,
 				[CmdCode.Context]: {
-					cmd: PlanCommand.Delete,
+					[CmdCode.Command]: PlanCommand.Delete,
 				},
 			}),
 		},

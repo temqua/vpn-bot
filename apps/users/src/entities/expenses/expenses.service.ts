@@ -118,7 +118,7 @@ Additional info: ${expense.description.replace(/[-.*#_]/g, match => `\\${match}`
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Expenses,
 					[CmdCode.Context]: {
-						cmd: ExpenseCommand.Delete,
+						[CmdCode.Command]: ExpenseCommand.Delete,
 						id,
 					},
 					[CmdCode.Processing]: 1,

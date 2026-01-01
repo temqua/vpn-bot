@@ -64,7 +64,7 @@ bot.onText(paymentCommandsList.all.regexp, async (msg: Message) => {
 			{
 				scope: CommandScope.Payments,
 				context: {
-					cmd: PaymentCommand.List,
+					[CmdCode.Command]: PaymentCommand.List,
 				},
 			},
 			{
@@ -92,7 +92,7 @@ bot.onText(paymentCommandsList.sum.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Payments,
 			context: {
-				cmd: PaymentCommand.Sum,
+				[CmdCode.Command]: PaymentCommand.Sum,
 			},
 		},
 		{
@@ -109,7 +109,7 @@ bot.onText(paymentCommandsList.findByDate.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Payments,
 			context: {
-				cmd: PaymentCommand.FindByDate,
+				[CmdCode.Command]: PaymentCommand.FindByDate,
 			},
 		},
 		{
@@ -126,7 +126,7 @@ bot.onText(paymentCommandsList.findByDateRange.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Payments,
 			context: {
-				cmd: PaymentCommand.FindByDateRange,
+				[CmdCode.Command]: PaymentCommand.FindByDateRange,
 			},
 		},
 		{
@@ -143,7 +143,7 @@ bot.onText(paymentCommandsList.delete.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Payments,
 			context: {
-				cmd: PaymentCommand.Delete,
+				[CmdCode.Command]: PaymentCommand.Delete,
 			},
 		},
 		{
@@ -160,7 +160,7 @@ bot.onText(paymentCommandsList.getById.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Payments,
 			context: {
-				cmd: PaymentCommand.GetById,
+				[CmdCode.Command]: PaymentCommand.GetById,
 			},
 		},
 		{

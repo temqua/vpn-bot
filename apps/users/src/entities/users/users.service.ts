@@ -200,7 +200,7 @@ export class UsersService {
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Users,
 					[CmdCode.Context]: {
-						cmd: VPNUserCommand.GetById,
+						[CmdCode.Command]: VPNUserCommand.GetById,
 						id,
 					},
 					[CmdCode.Processing]: 1,
@@ -463,7 +463,7 @@ export class UsersService {
 		// 		callback_data: JSON.stringify({
 		// 			[CmdCode.Scope]: CommandScope.Users,
 		// 			[CmdCode.Context]: {
-		// 				cmd: VPNUserCommand.Delete,
+		// 				[CmdCode.Command]: VPNUserCommand.Delete,
 		// 				id,
 		// 			},
 		// 			[CmdCode.Processing]: 1,

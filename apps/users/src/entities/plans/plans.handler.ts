@@ -1,6 +1,6 @@
 import type { CallbackQuery, Message, User } from 'node-telegram-bot-api';
 import type { ICommandHandler } from '../../contracts';
-import { PlanCommand } from '../../enums';
+import { CmdCode, PlanCommand } from '../../enums';
 import { PlansService } from './plans.service';
 import { PlansContext } from './plans.types';
 
@@ -8,13 +8,13 @@ export class PlansCommandsHandler implements ICommandHandler {
 	constructor(private service: PlansService = new PlansService()) {}
 
 	async handle(context: PlansContext, message: Message, from: User, start = false) {
-		if (context.cmd === PlanCommand.List) {
+		if (context[CmdCode.Command] === PlanCommand.List) {
 			await this.service.showAll(message.chat.id);
 		}
-		if (context.cmd === PlanCommand.Create) {
+		if (context[CmdCode.Command] === PlanCommand.Create) {
 			await this.service.create(message, start);
 		}
-		if (context.cmd === PlanCommand.Delete) {
+		if (context[CmdCode.Command] === PlanCommand.Delete) {
 			await this.service.delete(message, context, start);
 		}
 	}

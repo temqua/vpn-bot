@@ -50,7 +50,7 @@ bot.onText(plansCommandsList.all.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Plans,
 			context: {
-				cmd: PlanCommand.List,
+				[CmdCode.Command]: PlanCommand.List,
 			},
 		},
 		{
@@ -67,7 +67,7 @@ bot.onText(plansCommandsList.create.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Plans,
 			context: {
-				cmd: PlanCommand.Create,
+				[CmdCode.Command]: PlanCommand.Create,
 			},
 		},
 		{

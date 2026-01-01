@@ -3,7 +3,7 @@ import type { Message } from 'node-telegram-bot-api';
 import bot from '../bot';
 import { findUserButtons, userButtons } from '../entities/users/users.buttons';
 import { usersService } from '../entities/users/users.service';
-import { CommandScope, VPNUserCommand } from '../enums';
+import { CmdCode, CommandScope, VPNUserCommand } from '../enums';
 import env from '../env';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
@@ -74,7 +74,7 @@ bot.onText(userCommandsList.users.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.List,
+				[CmdCode.Command]: VPNUserCommand.List,
 			},
 		},
 		{
@@ -91,7 +91,7 @@ bot.onText(userCommandsList.unpaid.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.ShowUnpaid,
+				[CmdCode.Command]: VPNUserCommand.ShowUnpaid,
 			},
 		},
 		{
@@ -108,7 +108,7 @@ bot.onText(userCommandsList.create.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.Create,
+				[CmdCode.Command]: VPNUserCommand.Create,
 			},
 		},
 		{
@@ -125,7 +125,7 @@ bot.onText(userCommandsList.delete.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.Delete,
+				[CmdCode.Command]: VPNUserCommand.Delete,
 			},
 		},
 		{
@@ -149,7 +149,7 @@ bot.onText(userCommandsList.pay.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.Pay,
+				[CmdCode.Command]: VPNUserCommand.Pay,
 			},
 		},
 		{
@@ -166,7 +166,7 @@ bot.onText(userCommandsList.trial.regexp, async (msg: Message) => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.ShowTrial,
+				[CmdCode.Command]: VPNUserCommand.ShowTrial,
 			},
 		},
 		{
@@ -180,7 +180,7 @@ setInterval(() => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.ShowUnpaid,
+				[CmdCode.Command]: VPNUserCommand.ShowUnpaid,
 			},
 		},
 		{
@@ -198,7 +198,7 @@ setInterval(() => {
 		{
 			scope: CommandScope.Users,
 			context: {
-				cmd: VPNUserCommand.NotifyUnpaid,
+				[CmdCode.Command]: VPNUserCommand.NotifyUnpaid,
 			},
 		},
 		{
