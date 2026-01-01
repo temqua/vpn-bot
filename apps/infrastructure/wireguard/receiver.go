@@ -129,6 +129,7 @@ func qrHandler(w http.ResponseWriter, r *http.Request) {
 	baseDir := getEnvOrFail("WG_CLIENTS_DIR")
 	filePath := filepath.Join(
 		baseDir,
+		username+"/",
 		username+".png",
 	)
 	absPath, err := filepath.Abs(filePath)
