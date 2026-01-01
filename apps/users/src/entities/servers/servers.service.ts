@@ -50,14 +50,20 @@ URL: ${server.url}
 	}
 
 	async listServerUsers(message: Message, context: ServersContext) {
-		const usersServers = await this.repository.getUsers(Number(context.id));
-		const chunkSize = 50;
-		const chunksCount = Math.ceil(usersServers.length / chunkSize);
-		for (let i = 0; i < chunksCount; i++) {
-			const chunk = usersServers.slice(i * chunkSize, i * chunkSize + chunkSize);
-			await bot.sendMessage(message.chat.id, chunk.map(u => u.user.username).join(', '));
+		try {
+			const usersServers = await this.repository.getUsers(Number(context.id));
+			const chunkSize = 50;
+			const chunksCount = Math.ceil(usersServers.length / chunkSize);
+			for (let i = 0; i < chunksCount; i++) {
+				const chunk = usersServers.slice(i * chunkSize, i * chunkSize + chunkSize);
+				await bot.sendMessage(message.chat.id, chunk.map(u => u.user.username).join(', '));
+			}
+			await bot.sendMessage(message.chat.id, `Server users count ${usersServers.length}`);
+		} catch (error) {
+			await bot.sendMessage(message.chat.id, `Error while getting servers list ${error}`);
+		} finally {
+			globalHandler.finishCommand();
 		}
-		await bot.sendMessage(message.chat.id, `Server users count ${usersServers.length}`);
 	}
 
 	async create(message: Message | null, start = false) {
@@ -102,11 +108,16 @@ URL: ${server.url}
 	async delete(msg: Message, context: ServersContext, start = false) {
 		this.log('delete');
 		if (!start) {
-			await this.repository.delete(Number(context.id));
-			const message = `Server with id ${context.id} has been successfully removed`;
-			logger.success(`[${basename(__filename)}]: ${message}`);
-			await bot.sendMessage(msg.chat.id, message);
-			globalHandler.finishCommand();
+			try {
+				await this.repository.delete(Number(context.id));
+				const message = `Server with id ${context.id} has been successfully removed`;
+				logger.success(`[${basename(__filename)}]: ${message}`);
+				await bot.sendMessage(msg.chat.id, message);
+			} catch (error) {
+				await bot.sendMessage(msg.chat.id, `Error while removing ${error} server`);
+			} finally {
+				globalHandler.finishCommand();
+			}
 			return;
 		}
 		const servers = await this.repository.getAll();

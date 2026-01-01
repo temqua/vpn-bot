@@ -63,7 +63,7 @@ export class CertificatesService {
 						Readable.fromWeb(qrResponse.body),
 						{},
 						{
-							filename: username,
+							filename: `${username}.png`,
 							contentType: 'image/png',
 						},
 					);

@@ -238,14 +238,15 @@ export class UsersService {
 		await bot.sendMessage(message.chat.id, 'Enter first name');
 	}
 
-	async findByUsername(message: Message, start: boolean) {
+	async findByUsername(message: Message, context: UsersContext, start: boolean) {
 		this.log('findByUsername');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter username');
 			return;
 		}
+		const username = context.id ?? message.text;
 		try {
-			const users = await this.repository.findByUsername(message.text ?? '');
+			const users = await this.repository.findByUsername(username ?? '');
 			if (users?.length) {
 				for (const user of users) {
 					await this.sendUserMenu(message.chat.id, user);
@@ -256,31 +257,29 @@ export class UsersService {
 		} catch (error) {
 			await bot.sendMessage(
 				message.chat.id,
-				`Error occurred while searching user by username ${message.text} ${error}`,
+				`Error occurred while searching user by username ${username} ${error}`,
 			);
 		} finally {
 			globalHandler.finishCommand();
 		}
 	}
 
-	async findById(message: Message, start: boolean) {
+	async findById(message: Message, context: UsersContext, start: boolean) {
 		this.log('getById');
 		if (start) {
 			await bot.sendMessage(message.chat.id, 'Enter id');
 			return;
 		}
+		const id = context.id ?? message.text;
 		try {
-			const user = await this.repository.getById(Number(message.text));
+			const user = await this.repository.getById(Number(id));
 			if (user) {
 				await this.sendUserMenu(message.chat.id, user);
 			} else {
-				await bot.sendMessage(message.chat.id, `No users found in system with id ${message.text}`);
+				await bot.sendMessage(message.chat.id, `No users found in system with id ${id}`);
 			}
 		} catch (error) {
-			await bot.sendMessage(
-				message.chat.id,
-				`Error occurred while searching user by id ${message.text} ${error}`,
-			);
+			await bot.sendMessage(message.chat.id, `Error occurred while searching user by id ${id} ${error}`);
 		} finally {
 			globalHandler.finishCommand();
 		}

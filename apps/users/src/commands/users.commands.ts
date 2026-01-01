@@ -42,11 +42,36 @@ export const userCommandsList = {
 		regexp: /\/user\s+pay/,
 		docs: '/user pay — user payment command',
 	},
+	findUser: {
+		regexp: /@(.*)/,
+		docs: '@<id> — get user by id/username',
+	},
 };
 
 export const userHelpMessage = Object.values(userCommandsList)
 	.map(c => c.docs)
 	.join('\n');
+
+bot.onText(userCommandsList.findUser.regexp, async (msg: Message, match: RegExpMatchArray | null) => {
+	if (!isAdmin(msg)) {
+		return;
+	}
+	const data = match[1];
+	const command = isNaN(Number(data)) ? VPNUserCommand.FindByUsername : VPNUserCommand.FindById;
+	globalHandler.execute(
+		{
+			scope: CommandScope.Users,
+			context: {
+				[CmdCode.Command]: command,
+				id: match[1],
+			},
+			processing: true,
+		},
+		{
+			message: msg,
+		} as TelegramBot.CallbackQuery,
+	);
+});
 
 bot.onText(userCommandsList.user.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {

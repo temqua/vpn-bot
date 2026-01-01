@@ -78,7 +78,7 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.getById(message, context);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.FindByUsername) {
-			await this.service.findByUsername(message, this.state.init);
+			await this.service.findByUsername(message, context, this.state.init);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.GetByTelegramId) {
 			await this.service.getByTelegramId(message, this.state.init);
@@ -87,7 +87,7 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.findByFirstName(message, this.state.init);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.FindById) {
-			await this.service.findById(message, this.state.init);
+			await this.service.findById(message, context, this.state.init);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.Expand) {
 			await this.service.expand(message, context);
