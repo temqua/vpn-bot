@@ -19,7 +19,8 @@ export class PlansService {
 
 	createSteps: { [key: string]: boolean } = {
 		name: false,
-		peopleCount: false,
+		minCount: false,
+		maxCount: false,
 		monthsCount: false,
 		price: false,
 		amount: false,
@@ -33,9 +34,28 @@ export class PlansService {
 			await bot.sendMessage(
 				chatId,
 				`${plan.name}
-		Количество человек: ${plan.peopleCount}
-		Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
-		Продолжительность: ${plan.months} месяцев`,
+За ${plan.minCount} ­— ${plan.maxCount} человек
+Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
+Продолжительность: ${plan.months} месяцев`,
+				{
+					reply_markup: {
+						inline_keyboard: [
+							[
+								{
+									text: 'Delete',
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Plans,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: PlanCommand.Delete,
+											id: plan.id,
+										},
+										[CmdCode.Processing]: 1,
+									}),
+								},
+							],
+						],
+					},
+				},
 			);
 		}
 		globalHandler.finishCommand();
@@ -47,12 +67,13 @@ export class PlansService {
 		this.log('showForUser');
 		const user = await this.usersRepo.getByTelegramId(chatId.toString());
 		const plans = await this.repository.getByPrice(user.price);
-		const plansGroupped = Object.groupBy(plans, p => p.peopleCount);
+		const plansGroupped = Object.groupBy(plans, p => p.minCount);
 
 		const prepared = Object.keys(plansGroupped)
 			.map(k => {
 				const count = Number(k);
 				const plans = plansGroupped[k];
+
 				const header = `${getPeopleCountMessage(count, lang)}:\n`;
 				const together = plans
 					.map(p => {
@@ -94,12 +115,18 @@ export class PlansService {
 		}
 		if (this.createSteps.price) {
 			this.params.set('price', message?.text);
-			await bot.sendMessage(chatId, 'Enter people count');
-			this.setCreateStep('peopleCount');
+			await bot.sendMessage(chatId, 'Enter min people count');
+			this.setCreateStep('minCount');
 			return;
 		}
-		if (this.createSteps.peopleCount) {
-			this.params.set('peopleCount', message?.text);
+		if (this.createSteps.minCount) {
+			this.params.set('minCount', message?.text);
+			await bot.sendMessage(chatId, 'Enter max people count');
+			this.setCreateStep('maxCount');
+			return;
+		}
+		if (this.createSteps.maxCount) {
+			this.params.set('maxCount', message?.text);
 			await bot.sendMessage(chatId, 'Enter months count');
 			this.setCreateStep('monthsCount');
 			return;
@@ -109,15 +136,23 @@ export class PlansService {
 		const params = this.params;
 		try {
 			const price = Number(params.get('price'));
-			const peopleCount = Number(params.get('peopleCount'));
+			const maxCount = Number(params.get('maxCount'));
+			const minCount = Number(params.get('minCount'));
 			const amount = Number(params.get('amount'));
 			const monthsCount = Number(params.get('monthsCount'));
 			this.validate();
-			const created = await this.repository.create(params.get('name'), amount, price, peopleCount, monthsCount);
+			const created = await this.repository.create(
+				params.get('name'),
+				amount,
+				price,
+				minCount,
+				maxCount,
+				monthsCount,
+			);
 			if (created) {
 				await bot.sendMessage(
 					chatId,
-					`Plan ${created.name} with amount ${created.amount} for price ${created.price} for ${created.peopleCount} people and ${created.months} months has been successfully created`,
+					`Plan ${created.name} with amount ${created.amount} for price ${created.price} with min ${created.minCount} and max ${created.maxCount} people and ${created.months} months has been successfully created`,
 				);
 			} else {
 				logger.error(`[${basename(__filename)}]: Plan was not created for unknown reason`);
@@ -181,7 +216,8 @@ export class PlansService {
 
 	private validate() {
 		const price = Number(this.params.get('price'));
-		const peopleCount = Number(this.params.get('peopleCount'));
+		const minCount = Number(this.params.get('minCount'));
+		const maxCount = Number(this.params.get('maxCount'));
 		const amount = Number(this.params.get('amount'));
 		const monthsCount = Number(this.params.get('monthsCount'));
 		if (isNaN(price)) {
@@ -190,8 +226,11 @@ export class PlansService {
 		if (isNaN(amount)) {
 			throw new Error('Enter valid amount number');
 		}
-		if (isNaN(peopleCount)) {
-			throw new Error('Enter valid people count — must be a number in range between 1 and 6');
+		if (isNaN(minCount)) {
+			throw new Error('Enter valid min people count — must be a number in range between 1 and 6');
+		}
+		if (isNaN(maxCount)) {
+			throw new Error('Enter valid max people count — must be a number in range between 1 and 6');
 		}
 		if (isNaN(monthsCount)) {
 			throw new Error('Enter valid months count number');
@@ -199,11 +238,14 @@ export class PlansService {
 		if (price < 50 || price > 150) {
 			throw new Error('Price must be between 50 and 150');
 		}
-		if (peopleCount > 6 || peopleCount < 1) {
+		if (minCount > 6 || minCount < 1) {
 			throw new Error('People count must be in range between 1 and 6');
 		}
-		if (peopleCount > 6 || peopleCount < 1) {
+		if (minCount > 6 || minCount < 1) {
 			throw new Error('People count must be in range between 1 and 6');
+		}
+		if (maxCount < minCount) {
+			throw new Error('Max people count must be greater than min people count');
 		}
 		if (amount < 0) {
 			throw new Error('Amount must be positive value');

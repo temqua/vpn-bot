@@ -860,6 +860,18 @@ Created at ${formatDate(record.assignedAt)}`,
 						inline_keyboard: [
 							[
 								{
+									text: 'Get File',
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Users,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: VPNUserCommand.GetKeyFile,
+											sid: record.serverId,
+											id: record.userId,
+											pr: record.protocol.substring(0, 1),
+										},
+									}),
+								},
+								{
 									text: 'Delete',
 									callback_data: JSON.stringify({
 										[CmdCode.Scope]: CommandScope.Users,
@@ -915,7 +927,24 @@ Created at ${formatDate(record.assignedAt)}`,
 		} catch (error) {
 			bot.sendMessage(
 				message.chat.id,
-				`Error occurred while deleting ${protocol} key for user ${record.user.username} ${error}`,
+				`Error occurred while deleting ${protocol} key for user ${record?.user?.username} ${error}`,
+			);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
+
+	async getKeyFile(message: Message, context: UsersContext) {
+		const protocol =
+			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
+		const record = await this.repository.getUserServer(Number(context.id), Number(context.sid), protocol);
+		try {
+			const service = new CertificatesService(protocol, record.server.url);
+			await service.getFile(message, record.username);
+		} catch (error) {
+			bot.sendMessage(
+				message.chat.id,
+				`Error occurred while getting ${protocol} key file for user ${record.user.username} ${error}`,
 			);
 		} finally {
 			globalHandler.finishCommand();
@@ -1088,6 +1117,26 @@ Created at ${formatDate(record.assignedAt)}`,
 				},
 			});
 		}
+		if (user.payerId != null) {
+			await bot.sendMessage(chatId, 'Payer', {
+				reply_markup: {
+					inline_keyboard: [
+						[
+							{
+								text: user.payer.username,
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Users,
+									[CmdCode.Context]: {
+										id: user.payer.id,
+										[CmdCode.Command]: VPNUserCommand.GetById,
+									},
+								}),
+							},
+						],
+					],
+				},
+			});
+		}
 	}
 
 	private formatBaseUserInfo(user: User) {
@@ -1116,7 +1165,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 	private formatUserInfo(user: VPNUser) {
 		let userInfo = this.formatBaseUserInfo(user);
 		if (user.payer?.username) {
-			userInfo = userInfo.concat(`Payer: ${user.payer.username}\n`);
+			userInfo = userInfo.concat(`Payer: ${user.payer.username} (${user.payerId}) \n`);
 		}
 		if (user.dependants.length) {
 			userInfo = userInfo.concat(

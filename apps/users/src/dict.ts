@@ -126,11 +126,15 @@ The setup process is similar in all apps:
 	},
 };
 
-export const getPeopleCountMessage = (count: number, lang: string) => {
-	if (count === 1) {
+export const getPeopleCountMessage = (minCount: number, lang: string) => {
+	if (minCount === 1) {
 		return lang === 'en' ? '1 person' : '1 человек';
 	}
-	return lang === 'en' ? `${count} people` : count > 1 && count < 5 ? `${count} человека` : `${count} человек`;
+	return lang === 'en'
+		? `${minCount} people`
+		: minCount > 1 && minCount < 5
+			? `${minCount} человека`
+			: `${minCount} человек`;
 };
 
 export const getMonthsCountMessage = (count: number, lang: string) => {

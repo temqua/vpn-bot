@@ -47,6 +47,7 @@ URL: ${server.url}
 		}
 
 		await bot.sendMessage(message.chat.id, `Total count ${servers.length}`);
+		globalHandler.finishCommand();
 	}
 
 	async listServerUsers(message: Message, context: ServersContext) {

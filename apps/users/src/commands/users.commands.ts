@@ -56,6 +56,9 @@ bot.onText(userCommandsList.findUser.regexp, async (msg: Message, match: RegExpM
 	if (!isAdmin(msg)) {
 		return;
 	}
+	if (globalHandler.hasActiveCommand()) {
+		return;
+	}
 	const data = match[1];
 	const command = isNaN(Number(data)) ? VPNUserCommand.FindByUsername : VPNUserCommand.FindById;
 	globalHandler.execute(

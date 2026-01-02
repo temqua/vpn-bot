@@ -2,12 +2,17 @@ import type { Plan } from '@prisma/client';
 import { prisma } from '../../prisma';
 
 export class PlanRepository {
-	async findPlan(amount: number, price: number, peopleCount: number) {
+	async findPlan(amount: number, price: number, count: number) {
 		return await prisma.plan.findFirst({
 			where: {
 				amount,
 				price,
-				peopleCount,
+				minCount: {
+					lte: count,
+				},
+				maxCount: {
+					gte: count,
+				},
 			},
 		});
 	}
@@ -19,7 +24,7 @@ export class PlanRepository {
 					price: 'desc',
 				},
 				{
-					peopleCount: 'asc',
+					maxCount: 'asc',
 				},
 				{
 					months: 'asc',
@@ -35,7 +40,7 @@ export class PlanRepository {
 			},
 			orderBy: [
 				{
-					peopleCount: 'asc',
+					maxCount: 'asc',
 				},
 				{
 					months: 'asc',
@@ -44,14 +49,15 @@ export class PlanRepository {
 		});
 	}
 
-	async create(name: string, amount: number, price: number, peopleCount: number, monthsCount: number) {
+	async create(name: string, amount: number, price: number, minCount: number, maxCount: number, monthsCount: number) {
 		return await prisma.plan.create({
 			data: {
 				amount,
 				price,
 				months: monthsCount,
 				name,
-				peopleCount,
+				minCount,
+				maxCount,
 			},
 		});
 	}

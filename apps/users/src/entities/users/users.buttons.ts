@@ -297,7 +297,7 @@ export const replySetNullPropKeyboard = (prop: UpdatePropsMap, userId: string): 
 							[CmdCode.Scope]: CommandScope.Users,
 							[CmdCode.Context]: {
 								[CmdCode.Command]: VPNUserCommand.UpdateNull,
-								prop,
+								propId: prop,
 								id: userId,
 							},
 							[CmdCode.Processing]: 1,

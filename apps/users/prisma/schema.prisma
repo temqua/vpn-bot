@@ -69,15 +69,16 @@ model Expense {
 }
 
 model Plan {
-  id          Int       @id @default(autoincrement())
-  name        String
-  amount      Int
-  months      Int
-  price       Int       @default(150)
-  currency    String    @default("RUB")
-  peopleCount Int       @default(1) @map(name: "people_count")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  Payment     Payment[]
+  id        Int       @id @default(autoincrement())
+  name      String
+  amount    Int
+  months    Int
+  price     Int       @default(150)
+  currency  String    @default("RUB")
+  minCount  Int       @default(1) @map(name: "min_count")
+  maxCount  Int       @default(1) @map(name: "max_count")
+  createdAt DateTime  @default(now()) @map("created_at")
+  Payment   Payment[]
 
   @@map("plans")
 }

@@ -361,7 +361,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 				chatId,
 				`Найден план ${plan.name} для ${plan.amount} ${plan.currency}. 
 Цена: ${plan.price} 
-Количество человек: ${plan.peopleCount}
+Количество человек от ${plan.minCount} до ${plan.maxCount}
 Количество месяцев: ${plan.months}
 				`,
 			);

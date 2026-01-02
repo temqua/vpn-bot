@@ -13,6 +13,7 @@ import { paymentsHelpMessage } from './payments.commands';
 import { plansHelpMessage } from './plans.commands';
 import { serversHelpMessage } from './servers.commands';
 import { userHelpMessage } from './users.commands';
+import env from '../env';
 const usersRepository = new UsersRepository();
 
 const mainCommandsList = {
@@ -61,6 +62,11 @@ bot.onText(/\/start/, async (msg: Message) => {
 
 bot.on('message', async (msg: Message) => {
 	logger.log(`${msg?.from?.id} (${msg?.from?.first_name}) — ${msg.text}`);
+
+	if (msg.from.id !== env.ADMIN_USER_ID) {
+		return;
+	}
+
 	if (msg.text && ['cancel', 'Cancel'].includes(msg.text)) {
 		await bot.sendMessage(msg.chat.id, 'Отправлена команда отмены всех других команд');
 		globalHandler.finishCommand();

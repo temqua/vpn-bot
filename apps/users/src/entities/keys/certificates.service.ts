@@ -43,48 +43,75 @@ export class CertificatesService {
 			await bot.sendMessage(chatId, `${error}`);
 			return;
 		}
-		if (response.ok) {
-			try {
-				const extension = this.service.getExtension();
-				const fileResponse = await this.request('file', username);
-				await bot.sendDocument(
-					chatId,
-					Readable.fromWeb(fileResponse.body),
-					{},
-					{
-						filename: `${username}.${extension}`,
-						contentType: 'application/octet-stream',
-					},
-				);
-				if (this.protocol === VPNProtocol.WireGuard) {
-					const qrResponse = await this.request('qr', username);
-					await bot.sendDocument(
-						chatId,
-						Readable.fromWeb(qrResponse.body),
-						{},
-						{
-							filename: `${username}.png`,
-							contentType: 'image/png',
-						},
-					);
-				}
-				logger.success(`${this.protocol} user ${username} creation was handled`);
-			} catch (error) {
-				logger.error(errorHeader);
-				logger.error(error);
-				await bot.sendMessage(chatId, errorHeader);
-				await bot.sendMessage(chatId, `${error}`);
-			}
+		if (!response.ok) {
+			const errMessage = `${this.protocol} user ${username} creation failed ${response.status} ${response.statusText}`;
+			logger.error(errMessage);
+			return;
+		}
+		const result = await this.loadFile(message, username, errorHeader);
+		if (result) {
+			logger.success(`${this.protocol} user ${username} creation was handled`);
 		} else {
 			const errMessage = `${this.protocol} user ${username} creation failed ${response.status} ${response.statusText}`;
 			logger.error(errMessage);
 		}
 	}
+
+	async getFile(message: Message, username: string) {
+		const errorHeader = `Error while ${this.protocol} getting file for ${username}`;
+		await this.loadFile(message, username, errorHeader);
+	}
+
+	private async loadFile(message: Message, username: string, header: string) {
+		const extension = this.service.getExtension();
+		const chatId = message.chat.id;
+		try {
+			const fileResponse = await this.request('file', username);
+			if (!fileResponse.ok) {
+				const errorMessage = await fileResponse.text();
+				await bot.sendMessage(chatId, errorMessage);
+				logger.error(`${header} ${errorMessage}`);
+				return false;
+			}
+			await bot.sendDocument(
+				chatId,
+				Readable.fromWeb(fileResponse.body),
+				{},
+				{
+					filename: `${username}.${extension}`,
+					contentType: 'application/octet-stream',
+				},
+			);
+			if (this.protocol === VPNProtocol.WireGuard) {
+				const qrResponse = await this.request('qr', username);
+				if (!qrResponse.ok) {
+					const errorMessage = await qrResponse.text();
+					await bot.sendMessage(chatId, errorMessage);
+					return false;
+				}
+				await bot.sendDocument(
+					chatId,
+					Readable.fromWeb(qrResponse.body),
+					{},
+					{
+						filename: `${username}.png`,
+						contentType: 'image/png',
+					},
+				);
+			}
+			return true;
+		} catch (error) {
+			logger.error(`${header} ${error}`);
+			await bot.sendMessage(chatId, `${header} ${error}`);
+			return false;
+		}
+	}
+
 	async delete(message: Message, username: string | undefined) {
 		this.log(`delete ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while deleting ${this.protocol} client ${username}`;
-		let response;
+		let response: Response;
 		try {
 			response = await this.request('delete', username);
 			const result = await response.text();
