@@ -16,14 +16,14 @@ export const dict = {
 		ru: 'Ошибка удаления. Напишите в личные сообщения https://t.me/tesseract_vpn',
 	},
 	intro: {
-		ru: `Для работы с подпиской нужен один из xray\\-клиентов: 
+		ru: `Для работы с подпиской нужен один из xray\\-клиентов:
+⚫️ **happ** — предпочтительнее всего
+[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
+[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Official Site](https://www.happ.su/main/)				 
 ⚫️ **v2RayTun** 
 [Play Market](https://play.google.com/store/apps/details?id=com.v2raytun.android&hl=en) 
 [App Store](https://apps.apple.com/us/app/v2raytun/id6476628951)
-⚫️ **happ** 
-[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
-[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
-[Official Site](https://www.happ.su/main/)		
 ⚫️  или любой другой клиент, поддерживающий subscription\\-ссылки
 Алгоритм подключения примерно одинаков во всех приложениях:
 1\\. Нажмите на subscription\\-ссылку, она автоматически скопируется в буфер обмена\\. 
@@ -34,13 +34,12 @@ export const dict = {
 4\\. Нажмите на кнопку для включения VPN\\.
 `,
 		en: `To use the subscription, you need an Xray client:
-
+⚫️ **happ** — preferred
+[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) [App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Official Site](https://www.happ.su/main/)		
 ⚫️ **v2RayTun** 
 [Play Market](https://play.google.com/store/apps/details?id=com.v2raytun.android&hl=en) [App Store](https://apps.apple.com/us/app/v2raytun/id6476628951)
 [Official Site](https://v2raytun.com/)		
-⚫️ **happ** 
-[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) [App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
-[Official Site](https://www.happ.su/main/)		
 ⚫️ or any other client that supports subscription links
 The setup process is similar in all apps:
 1\\. Tap the subscription link — it will be copied to the clipboard automatically\\. 
