@@ -1,8 +1,8 @@
 import TelegramBot, { Message, User } from 'node-telegram-bot-api';
 import { ICommandHandler } from '../../contracts';
+import { CmdCode, ServerCommand } from '../../enums';
 import { ServersService } from './servers.service';
 import { ServersContext } from './servers.types';
-import { CmdCode, ServerCommand } from '../../enums';
 
 class ServersCommandsHandler implements ICommandHandler {
 	constructor(private service: ServersService = new ServersService()) {}
@@ -19,6 +19,15 @@ class ServersCommandsHandler implements ICommandHandler {
 		}
 		if (context[CmdCode.Command] === ServerCommand.ListUsers) {
 			await this.service.listServerUsers(message, context);
+		}
+		if (context[CmdCode.Command] === ServerCommand.ListKeys) {
+			await this.service.listKeys(message, context, start);
+		}
+		if (context[CmdCode.Command] === ServerCommand.UpdateName) {
+			await this.service.updateName(message, context, start);
+		}
+		if (context[CmdCode.Command] === ServerCommand.UpdateUrl) {
+			await this.service.updateURL(message, context, start);
 		}
 	}
 

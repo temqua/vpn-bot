@@ -17,12 +17,12 @@ jobs:
             - name: Setup SSH
               uses: webfactory/ssh-agent@v0.9.1
               with:
-                  ssh-private-key: ${{ secrets.DB_SERVER_SSH_KEY }}
+                  ssh-private-key: ${{ secrets.BOT_SERVER_SSH_KEY }}
 
             - name: Add VPN server to known hosts
               run: |
                   mkdir -p ~/.ssh
-                  ssh-keyscan -H ${{ secrets.DB_SERVER_HOST }} >> ~/.ssh/known_hosts
+                  ssh-keyscan -H ${{ secrets.BOT_SERVER_HOST }} >> ~/.ssh/known_hosts
 
             - name: Add sheets-api.json
               working-directory: apps/users
@@ -39,17 +39,17 @@ jobs:
                   | gzip \
                   | ssh -o ServerAliveInterval=15 \
                           -o ServerAliveCountMax=8 \
-                          ${{ secrets.DB_SERVER_USERNAME }}@${{ secrets.DB_SERVER_HOST }} \
+                          ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} \
                           'gunzip | docker load'
 
             - name: Upload docker-compose.yml via SSH
               working-directory: apps/users
               run: |
-                  cat docker-compose.yml | ssh ${{ secrets.DB_SERVER_USERNAME }}@${{ secrets.DB_SERVER_HOST }} "cat > ${{ secrets.DB_SERVER_APP_DIRECTORY }}/docker-compose.yml"
+                  cat docker-compose.yml | ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} "cat > ${{ secrets.BOT_SERVER_APP_DIRECTORY }}/docker-compose.yml"
 
             - name: Restart container on server
               run: |
-                  ssh ${{ secrets.DB_SERVER_USERNAME }}@${{ secrets.DB_SERVER_HOST }} '
-                    cd ${{ secrets.DB_SERVER_APP_DIRECTORY }}
+                  ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} '
+                    cd ${{ secrets.BOT_SERVER_APP_DIRECTORY }}
                     docker compose up -d
                   '

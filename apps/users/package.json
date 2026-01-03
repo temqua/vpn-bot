@@ -1,6 +1,6 @@
 {
 	"name": "users-bot",
-	"version": "3.9.0",
+	"version": "3.9.1",
 	"scripts": {
 		"generate": "prisma generate",
 		"prestart": "npx prisma generate",

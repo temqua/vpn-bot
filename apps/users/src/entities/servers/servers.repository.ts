@@ -33,4 +33,21 @@ export class ServersRepository {
 			},
 		});
 	}
+
+	async getById(id: number): Promise<VpnServer> {
+		return await prisma.vpnServer.findFirst({
+			where: {
+				id,
+			},
+		});
+	}
+
+	async update(id: number, data: Record<string, string>) {
+		return await prisma.vpnServer.update({
+			where: {
+				id,
+			},
+			data,
+		});
+	}
 }
