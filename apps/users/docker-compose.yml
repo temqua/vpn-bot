@@ -8,3 +8,5 @@ services:
         env_file: .env
         network_mode: host
         restart: always
+        volumes:
+            - /etc/ssl/certs/tg:/etc/ssl/certs/tg:ro
