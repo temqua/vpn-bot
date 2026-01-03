@@ -16,6 +16,7 @@ const env = cleanEnv(process.env, {
 	IKE_RECEIVER_PORT: num({ default: 8090 }),
 	WG_RECEIVER_PORT: num({ default: 8091 }),
 	OVPN_RECEIVER_PORT: num({ default: 8092 }),
+	BOT_ENV: str({ default: 'local' }),
 });
 
 export default env;

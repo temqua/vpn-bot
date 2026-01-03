@@ -6,3 +6,4 @@ COPY prisma/ ./prisma
 RUN bun install --frozen-lockfile && bunx prisma generate && bun install --production
 
 CMD ["bun", "src/index.ts"]
+EXPOSE 8089
