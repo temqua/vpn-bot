@@ -13,8 +13,6 @@ const config = isProduction
 
 const bot = new TelegramBot(env.BOT_TOKEN, config);
 if (isProduction) {
-	bot.setWebHook(`${env.PUBLIC_URL}/bot${env.BOT_TOKEN}`, {
-		certificate: config.webHook.cert,
-	});
+	bot.setWebHook(`${env.PUBLIC_URL}/bot${env.BOT_TOKEN}`);
 }
 export default bot;
