@@ -1,10 +1,20 @@
 import TelegramBot from 'node-telegram-bot-api';
 import env from './env';
 const isProduction = env.BOT_ENV === 'production';
-const config = isProduction ? { webHook: { port: 8089, host: '127.0.0.1' } } : { polling: true };
+const config = isProduction
+	? {
+			webHook: {
+				port: 443,
+				key: '/etc/ssl/certs/tg/key.pem',
+				cert: '/etc/ssl/certs/tg/cert.pem',
+			},
+		}
+	: { polling: true };
 
 const bot = new TelegramBot(env.BOT_TOKEN, config);
 if (isProduction) {
-	bot.setWebHook('https://telegram.tesseractnpv.com/webhook');
+	bot.setWebHook(`${env.PUBLIC_URL}/bot${env.BOT_TOKEN}`, {
+		certificate: config.webHook.cert,
+	});
 }
 export default bot;
