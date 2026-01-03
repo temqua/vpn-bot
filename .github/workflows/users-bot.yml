@@ -30,7 +30,7 @@ jobs:
 
             - name: Build Docker image
               working-directory: apps/users
-              run: docker compose build --no-cache
+              run: docker compose build
 
             - name: Upload Docker image
               working-directory: apps/users
