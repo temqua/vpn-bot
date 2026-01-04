@@ -32,7 +32,7 @@ URL: ${server.url}
 					inline_keyboard: [
 						[
 							{
-								text: 'Show Users',
+								text: 'Users',
 								callback_data: JSON.stringify({
 									[CmdCode.Scope]: CommandScope.Servers,
 									[CmdCode.Context]: {
@@ -41,12 +41,44 @@ URL: ${server.url}
 									},
 								}),
 							},
+						],
+						[
 							{
-								text: 'Show Keys',
+								text: 'Keys',
 								callback_data: JSON.stringify({
 									[CmdCode.Scope]: CommandScope.Servers,
 									[CmdCode.Context]: {
 										[CmdCode.Command]: ServerCommand.ListKeys,
+										id: server.id,
+									},
+								}),
+							},
+							{
+								text: 'Create',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Servers,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: ServerCommand.CreateKey,
+										id: server.id,
+									},
+								}),
+							},
+							{
+								text: 'Export',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Servers,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: ServerCommand.Export,
+										id: server.id,
+									},
+								}),
+							},
+							{
+								text: 'Delete',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Servers,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: ServerCommand.DeleteKey,
 										id: server.id,
 									},
 								}),
@@ -177,6 +209,81 @@ URL: ${server.url}
 			},
 		};
 		await bot.sendMessage(msg.chat.id, 'Select server to delete:', inlineKeyboard);
+	}
+
+	async createKey(message: Message, context: ServersContext, start = false) {
+		this.keyAction(message, context, ServerCommand.CreateKey, 'create', start);
+	}
+
+	async export(message: Message, context: ServersContext, start = false) {
+		this.keyAction(message, context, ServerCommand.Export, 'export', start);
+	}
+
+	async deleteKey(message: Message, context: ServersContext, start = false) {
+		this.keyAction(message, context, ServerCommand.DeleteKey, 'delete', start);
+	}
+
+	async keyAction(
+		message: Message,
+		context: ServersContext,
+		command: ServerCommand,
+		action: keyof CertificatesService,
+		start = false,
+	) {
+		if (start) {
+			this.params.set('serverId', context.id);
+			const buttons = Object.values(VPNProtocol).map(p => [
+				{
+					text: p,
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Servers,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: command,
+							pr: p.substring(0, 1),
+						} as ServersContext,
+						[CmdCode.Processing]: 1,
+					}),
+				},
+			]);
+			await bot.sendMessage(message.chat.id, 'Select protocol', {
+				reply_markup: {
+					inline_keyboard: [...buttons],
+				},
+			});
+			this.params.set('protocolStep', true);
+			return;
+		} else if (this.params.get('protocolStep') === true) {
+			this.params.delete('protocolStep');
+			const protocol =
+				context.pr === 'I'
+					? VPNProtocol.IKEv2
+					: context.pr === 'W'
+						? VPNProtocol.WireGuard
+						: VPNProtocol.OpenVPN;
+			this.params.set('protocol', protocol);
+			await bot.sendMessage(message.chat.id, 'Enter key username');
+			return;
+		}
+
+		let server: VpnServer;
+
+		try {
+			server = await this.repository.getById(Number(this.params.get('serverId')));
+		} catch (error) {
+			await bot.sendMessage(message.chat.id, `Error occurred while loading server by id ${error}`);
+		}
+		try {
+			const keysService = new CertificatesService(this.params.get('protocol'), server.url);
+			await keysService[action](message, message.text);
+		} catch (error) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Error occurred while exporting key for server ${server.name} ${error}`,
+			);
+		} finally {
+			this.params.clear();
+			globalHandler.finishCommand();
+		}
 	}
 
 	async listKeys(message: Message, context: ServersContext, start: boolean) {

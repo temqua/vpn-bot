@@ -12,6 +12,8 @@ export const serversButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
+	],
+	[
 		{
 			text: 'Create',
 			callback_data: JSON.stringify({

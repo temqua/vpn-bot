@@ -17,6 +17,15 @@ class ServersCommandsHandler implements ICommandHandler {
 		if (context[CmdCode.Command] === ServerCommand.Create) {
 			await this.service.create(message, start);
 		}
+		if (context[CmdCode.Command] === ServerCommand.CreateKey) {
+			await this.service.createKey(message, context, start);
+		}
+		if (context[CmdCode.Command] === ServerCommand.Export) {
+			await this.service.export(message, context, start);
+		}
+		if (context[CmdCode.Command] === ServerCommand.DeleteKey) {
+			await this.service.deleteKey(message, context, start);
+		}
 		if (context[CmdCode.Command] === ServerCommand.ListUsers) {
 			await this.service.listServerUsers(message, context);
 		}
