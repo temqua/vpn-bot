@@ -1,5 +1,5 @@
 import { User } from '@prisma/client';
-import { CmdCode, UpdatePropsMap, VPNUserCommand } from '../../enums';
+import { CmdCode, UpdateUserPropsMap, VPNUserCommand } from '../../enums';
 
 export interface UsersContext {
 	[CmdCode.Command]: VPNUserCommand;
@@ -7,7 +7,7 @@ export interface UsersContext {
 	sid?: string;
 	skip?: 0 | 1;
 	accept?: 0 | 1;
-	propId?: UpdatePropsMap;
+	propId?: UpdateUserPropsMap;
 	prop?: keyof User;
 	chatId?: number;
 	payerId?: string;

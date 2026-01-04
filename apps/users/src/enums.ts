@@ -71,9 +71,13 @@ export enum PaymentCommand {
 }
 
 export enum PlanCommand {
-	Create = 'create',
-	List = 'list',
+	Create = 'c',
+	List = 'l',
 	Delete = 'del',
+	Expand = 'e',
+	UpdateInit = 'ui',
+	Update = 'u',
+	UpdateNull = 'un',
 }
 
 export enum CommandScope {
@@ -113,7 +117,7 @@ export enum BoolFieldState {
 	False = 'false',
 }
 
-export enum UpdatePropsMap {
+export enum UpdateUserPropsMap {
 	username = 'u',
 	telegramId = 't',
 	telegramLink = 'tl',
@@ -127,4 +131,13 @@ export enum UpdatePropsMap {
 	free = 'fr',
 	payerId = 'pid',
 	subLink = 's',
+}
+
+export enum UpdatePlanPropsMap {
+	name = 'n',
+	amount = 'a',
+	price = 'p',
+	months = 'm',
+	minCount = 'min',
+	maxCount = 'max',
 }

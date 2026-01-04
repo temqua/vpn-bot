@@ -11,6 +11,16 @@ export class PlansCommandsHandler implements ICommandHandler {
 		if (context[CmdCode.Command] === PlanCommand.List) {
 			await this.service.showAll(message.chat.id);
 		}
+		if (context[CmdCode.Command] === PlanCommand.UpdateInit) {
+			await this.service.initUpdate(message, context);
+		}
+		if (context[CmdCode.Command] === PlanCommand.Update) {
+			await this.service.update(message, context, start);
+		}
+		if (context[CmdCode.Command] === PlanCommand.UpdateNull) {
+			context.setNull = true;
+			await this.service.update(message, context, start);
+		}
 		if (context[CmdCode.Command] === PlanCommand.Create) {
 			await this.service.create(message, start);
 		}

@@ -1,5 +1,5 @@
-import { InlineKeyboardButton } from 'node-telegram-bot-api';
-import { CmdCode, CommandScope, PlanCommand } from '../../enums';
+import { InlineKeyboardButton, SendBasicOptions } from 'node-telegram-bot-api';
+import { CmdCode, CommandScope, PlanCommand, UpdatePlanPropsMap } from '../../enums';
 
 export const plansButtons: InlineKeyboardButton[][] = [
 	[

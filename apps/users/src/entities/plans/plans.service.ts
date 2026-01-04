@@ -1,8 +1,9 @@
-import { Message, User as TGUser } from 'node-telegram-bot-api';
+import { Plan } from '@prisma/client';
+import { InlineKeyboardButton, Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { getMonthsCountMessage, getPeopleCountMessage } from '../../dict';
-import { CmdCode, CommandScope, PlanCommand } from '../../enums';
+import { CmdCode, CommandScope, PlanCommand, UpdatePlanPropsMap } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
@@ -26,37 +27,44 @@ export class PlansService {
 		amount: false,
 	};
 	params = new Map();
+	private props = {
+		text: ['name'],
+		number: ['amount', 'months', 'price', 'minCount', 'maxCount'],
+	};
 
 	async showAll(chatId: number) {
 		this.log('showAll');
 		const plans = await this.repository.getAll();
 		for (const plan of plans) {
-			await bot.sendMessage(
-				chatId,
-				`${plan.name}
-За ${plan.minCount} ­— ${plan.maxCount} человек
-Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
-Продолжительность: ${plan.months} месяцев`,
-				{
-					reply_markup: {
-						inline_keyboard: [
-							[
-								{
-									text: 'Delete',
-									callback_data: JSON.stringify({
-										[CmdCode.Scope]: CommandScope.Plans,
-										[CmdCode.Context]: {
-											[CmdCode.Command]: PlanCommand.Delete,
-											id: plan.id,
-										},
-										[CmdCode.Processing]: 1,
-									}),
-								},
-							],
+			await bot.sendMessage(chatId, this.formatPlan(plan), {
+				reply_markup: {
+					inline_keyboard: [
+						[
+							{
+								text: 'Update',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Plans,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: PlanCommand.UpdateInit,
+										id: plan.id,
+									},
+								}),
+							},
+							{
+								text: 'Delete',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Plans,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: PlanCommand.Delete,
+										id: plan.id,
+									},
+									[CmdCode.Processing]: 1,
+								}),
+							},
 						],
-					},
+					],
 				},
-			);
+			});
 		}
 		globalHandler.finishCommand();
 	}
@@ -169,13 +177,68 @@ export class PlansService {
 		}
 	}
 
+	async initUpdate(message: Message, context: PlansContext) {
+		const chatId = message.chat.id;
+		this.params.clear();
+		this.params.set('id', context.id);
+		const keyboard = Object.keys(UpdatePlanPropsMap).map(prop => [
+			{
+				text: `${prop}`,
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Plans,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: PlanCommand.Update,
+						propId: UpdatePlanPropsMap[prop],
+					},
+				}),
+			} satisfies InlineKeyboardButton,
+		]);
+		await bot.sendMessage(chatId, 'Choose prop', {
+			reply_markup: {
+				inline_keyboard: keyboard,
+			},
+		});
+		globalHandler.finishCommand();
+	}
+
+	async update(message: Message, context: PlansContext, start = false) {
+		const chatId = message.chat.id;
+		let found: string;
+		for (const [k, v] of Object.entries(UpdatePlanPropsMap)) {
+			if (v === context.propId) {
+				found = k;
+				break;
+			}
+		}
+		context.prop = found;
+		if (start) {
+			bot.sendMessage(chatId, `Enter ${context.prop}`);
+			return;
+		}
+		const isNumberProp = this.props.number.includes(context.prop);
+		const newValue = isNumberProp ? Number(message.text) : message.text;
+		try {
+			const updated = await this.repository.update(this.params.get('id'), {
+				[context.prop]: newValue,
+			});
+			bot.sendMessage(chatId, `Successfully updated ${context.prop} for plan ${updated.name}`);
+			bot.sendMessage(chatId, this.formatPlan(updated));
+		} catch (error) {
+			await bot.sendMessage(chatId, `Error occurred while updating plan ${error}`);
+		} finally {
+			this.params.clear();
+			globalHandler.finishCommand();
+		}
+	}
+
 	async delete(msg: Message, context: PlansContext, start = false) {
 		this.log('delete');
+		const chatId = msg.chat.id;
 		if (!start) {
 			await this.repository.delete(Number(context.id));
 			const message = `Plan with id ${context.id} has been successfully removed`;
 			logger.success(`[${basename(__filename)}]: ${message}`);
-			await bot.sendMessage(msg.chat.id, message);
+			await bot.sendMessage(chatId, message);
 			globalHandler.finishCommand();
 			return;
 		}
@@ -198,7 +261,14 @@ export class PlansService {
 				inline_keyboard: [...buttons],
 			},
 		};
-		await bot.sendMessage(msg.chat.id, 'Select plan to delete:', inlineKeyboard);
+		await bot.sendMessage(chatId, 'Select plan to delete:', inlineKeyboard);
+	}
+
+	private formatPlan(plan: Plan) {
+		return `${plan.name}
+За ${plan.minCount} ­— ${plan.maxCount} человек
+Сумма: ${plan.amount} ${plan.currency} при цене ${plan.price} ${plan.currency}
+Продолжительность: ${plan.months} месяцев`;
 	}
 
 	private setCreateStep(current: string) {

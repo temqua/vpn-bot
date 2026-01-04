@@ -5,7 +5,15 @@ import { basename } from 'path';
 import bot from '../../bot';
 import { getYesNoKeyboard } from '../../buttons';
 import { dict } from '../../dict';
-import { Bank, BoolFieldState, CmdCode, CommandScope, UpdatePropsMap, UserRequest, VPNUserCommand } from '../../enums';
+import {
+	Bank,
+	BoolFieldState,
+	CmdCode,
+	CommandScope,
+	UpdateUserPropsMap,
+	UserRequest,
+	VPNUserCommand,
+} from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
@@ -28,7 +36,6 @@ import {
 	replySetNullPropKeyboard,
 	skipKeyboard,
 } from './users.buttons';
-import { updatePropsMap } from './users.consts';
 import { UsersRepository, type VPNUser } from './users.repository';
 import { UserCreateCommandContext, UsersContext, UserUpdateCommandContext } from './users.types';
 
@@ -347,7 +354,7 @@ export class UsersService {
 		this.log('update');
 		const chatId = message?.chat?.id || env.ADMIN_USER_ID;
 		let found: string;
-		for (const [k, v] of updatePropsMap.entries()) {
+		for (const [k, v] of Object.entries(UpdateUserPropsMap)) {
 			if (v === context.propId) {
 				found = k;
 				break;
@@ -1030,7 +1037,7 @@ Created at ${formatDate(record.assignedAt)}`,
 					[CmdCode.Context]: {
 						[CmdCode.Command]: VPNUserCommand.Update,
 						id,
-						propId: UpdatePropsMap.payerId,
+						propId: UpdateUserPropsMap.payerId,
 					},
 					[CmdCode.Processing]: 1,
 				}),

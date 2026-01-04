@@ -5,9 +5,8 @@ import {
 	SendBasicOptions,
 } from 'node-telegram-bot-api';
 import { dict } from '../../dict';
-import { CmdCode, CommandScope, UpdatePropsMap, UserRequest, VPNUserCommand } from '../../enums';
+import { CmdCode, CommandScope, UpdateUserPropsMap, UserRequest, VPNUserCommand } from '../../enums';
 import { CommandDetailCompressed } from '../../global.handler';
-import { updatePropsMap } from './users.consts';
 
 export const getUserMenu = (userId: number) => {
 	return [
@@ -263,14 +262,14 @@ export const acceptKeyboard: SendBasicOptions = {
 };
 
 const createUserOperationsInlineKeyboard = (id: number) => {
-	const result = Array.from(updatePropsMap.keys()).map(prop => [
+	const result = Object.keys(UpdateUserPropsMap).map(prop => [
 		{
 			text: `${prop}`,
 			callback_data: JSON.stringify({
 				[CmdCode.Scope]: CommandScope.Users,
 				[CmdCode.Context]: {
 					[CmdCode.Command]: VPNUserCommand.Update,
-					propId: updatePropsMap.get(prop),
+					propId: UpdateUserPropsMap[prop],
 					id,
 				},
 			}),
@@ -287,7 +286,7 @@ export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
 	};
 };
 
-export const replySetNullPropKeyboard = (prop: UpdatePropsMap, userId: string): SendBasicOptions => {
+export const replySetNullPropKeyboard = (prop: UpdateUserPropsMap, userId: string): SendBasicOptions => {
 	return {
 		reply_markup: {
 			inline_keyboard: [
@@ -443,7 +442,7 @@ export const payersKeyboard: SendBasicOptions = {
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
 							[CmdCode.Command]: VPNUserCommand.Update,
-							propId: UpdatePropsMap.payerId,
+							propId: UpdateUserPropsMap.payerId,
 							accept: 1,
 						},
 						[CmdCode.Processing]: 1,
@@ -455,7 +454,7 @@ export const payersKeyboard: SendBasicOptions = {
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
 							[CmdCode.Command]: VPNUserCommand.Update,
-							propId: UpdatePropsMap.payerId,
+							propId: UpdateUserPropsMap.payerId,
 							id: null,
 						},
 						[CmdCode.Processing]: 1,

@@ -62,6 +62,15 @@ export class PlanRepository {
 		});
 	}
 
+	async update(id: number, data) {
+		return await prisma.plan.update({
+			where: {
+				id,
+			},
+			data,
+		});
+	}
+
 	async delete(id: number) {
 		return await prisma.plan.delete({
 			where: {
