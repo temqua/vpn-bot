@@ -286,27 +286,23 @@ export const createUserOperationsKeyboard = (id: number): SendBasicOptions => {
 	};
 };
 
-export const replySetNullPropKeyboard = (prop: UpdateUserPropsMap, userId: string): SendBasicOptions => {
-	return {
-		reply_markup: {
-			inline_keyboard: [
-				[
-					{
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: CommandScope.Users,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: VPNUserCommand.UpdateNull,
-								propId: prop,
-								id: userId,
-							},
-							[CmdCode.Processing]: 1,
-						}),
-						text: 'Set null',
+export const replySetNullPropKeyboard = (prop: UpdateUserPropsMap, userId: string): InlineKeyboardButton[][] => {
+	return [
+		[
+			{
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.UpdateNull,
+						propId: prop,
+						id: userId,
 					},
-				],
-			],
-		},
-	};
+					[CmdCode.Processing]: 1,
+				}),
+				text: 'Set null',
+			},
+		],
+	];
 };
 
 export const deleteSubscriptionButton = (lang: string): InlineKeyboardMarkup => {
@@ -432,40 +428,36 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 	};
 };
 
-export const payersKeyboard: SendBasicOptions = {
-	reply_markup: {
-		inline_keyboard: [
-			[
-				{
-					text: 'Show all',
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.Update,
-							propId: UpdateUserPropsMap.payerId,
-							accept: 1,
-						},
-						[CmdCode.Processing]: 1,
-					}),
+export const payersKeyboard: InlineKeyboardButton[][] = [
+	[
+		{
+			text: 'Show all',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					[CmdCode.Command]: VPNUserCommand.Update,
+					propId: UpdateUserPropsMap.payerId,
+					accept: 1,
 				},
-				{
-					text: 'Set null',
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.Update,
-							propId: UpdateUserPropsMap.payerId,
-							id: null,
-						},
-						[CmdCode.Processing]: 1,
-					}),
+				[CmdCode.Processing]: 1,
+			}),
+		},
+		{
+			text: 'Set null',
+			callback_data: JSON.stringify({
+				[CmdCode.Scope]: CommandScope.Users,
+				[CmdCode.Context]: {
+					[CmdCode.Command]: VPNUserCommand.Update,
+					propId: UpdateUserPropsMap.payerId,
+					id: null,
 				},
-			],
-		],
-	},
-};
+				[CmdCode.Processing]: 1,
+			}),
+		},
+	],
+];
 
-export function getUserContactKeyboard(requestId: UserRequest, text = 'Share user contact'): ReplyKeyboardMarkup {
+export function getUserContactKeyboard(requestId: UserRequest, text = 'Share user contact') {
 	return {
 		keyboard: [
 			[

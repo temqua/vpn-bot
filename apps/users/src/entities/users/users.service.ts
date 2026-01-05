@@ -34,6 +34,7 @@ import {
 	getUserMenu,
 	payersKeyboard,
 	replySetNullPropKeyboard,
+	skipButton,
 	skipKeyboard,
 } from './users.buttons';
 import { UsersRepository, type VPNUser } from './users.repository';
@@ -105,19 +106,31 @@ export class UsersService {
 			if (message?.user_shared) {
 				this.params.set('telegram_id', message.user_shared.user_id.toString());
 			}
-			await bot.sendMessage(chatId, 'Enter new username');
+
+			const messag = await bot.sendMessage(chatId, 'Enter new username');
+			this.params.set('message_id', messag.message_id);
+
 			this.setCreateStep('username');
 			return;
 		}
 		if (this.createSteps.username) {
 			this.params.set('username', message?.text);
-			await bot.sendMessage(chatId, 'Enter first name');
+			await bot.editMessageText('Enter first name', {
+				chat_id: chatId,
+				message_id: this.params.get('message_id'),
+			});
 			this.setCreateStep('firstName');
 			return;
 		}
 		if (this.createSteps.firstName) {
 			this.params.set('first_name', message?.text);
-			await bot.sendMessage(chatId, 'Enter last name', skipKeyboard);
+			await bot.editMessageText('Enter last name', {
+				chat_id: chatId,
+				message_id: this.params.get('message_id'),
+				reply_markup: {
+					inline_keyboard: [[skipButton]],
+				},
+			});
 			this.setCreateStep('lastName');
 			return;
 		}
@@ -126,7 +139,13 @@ export class UsersService {
 				this.params.set('last_name', message?.text);
 			}
 			delete context.skip;
-			await bot.sendMessage(chatId, 'Enter telegram link', skipKeyboard);
+			await bot.editMessageText('Enter telegram link', {
+				chat_id: chatId,
+				message_id: this.params.get('message_id'),
+				reply_markup: {
+					inline_keyboard: [[skipButton]],
+				},
+			});
 			this.setCreateStep('telegramLink');
 			return;
 		}
@@ -135,7 +154,13 @@ export class UsersService {
 				this.params.set('telegram_link', message?.text);
 			}
 			delete context.skip;
-			await bot.sendMessage(chatId, 'Create user in pasarguard?', getYesNoKeyboard(VPNUserCommand.Create));
+			await bot.editMessageText('Create user in pasarguard?', {
+				chat_id: chatId,
+				message_id: this.params.get('message_id'),
+				reply_markup: {
+					inline_keyboard: getYesNoKeyboard(VPNUserCommand.Create),
+				},
+			});
 			this.setCreateStep('subLink');
 			return;
 		}
@@ -336,12 +361,12 @@ export class UsersService {
 	}
 
 	async expand(message: Message, context: UsersContext) {
-		await bot.sendMessage(
+		const msg = await bot.sendMessage(
 			message.chat.id,
 			'Select field to update',
 			createUserOperationsKeyboard(Number(context.id)),
 		);
-
+		this.params.set('message_id', msg.message_id);
 		globalHandler.finishCommand();
 	}
 
@@ -453,9 +478,15 @@ export class UsersService {
 				await this.repository.delete(Number(context.id));
 				const message = `User with id ${context.id} has been successfully removed`;
 				logger.success(`[${basename(__filename)}]: ${message}`);
-				await bot.sendMessage(msg.chat.id, message);
+				await bot.editMessageText(message, {
+					message_id: msg.message_id,
+					chat_id: msg.chat.id,
+				});
 			} catch (error) {
-				await bot.sendMessage(msg.chat.id, `Error occurred while deleting user: ${error}`);
+				await bot.editMessageText(`Error occurred while deleting user: ${error}`, {
+					message_id: msg.message_id,
+					chat_id: msg.chat.id,
+				});
 			} finally {
 				globalHandler.finishCommand();
 			}
@@ -1007,11 +1038,13 @@ Created at ${formatDate(record.assignedAt)}`,
 		const numberProp = this.numberProps.includes(context.prop);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (textProp || numberProp) {
-			await bot.sendMessage(
-				chatId,
-				`Enter ${context.prop}`,
-				replySetNullPropKeyboard(context.propId, context.id),
-			);
+			await bot.editMessageText(`Enter ${context.prop}`, {
+				chat_id: chatId,
+				message_id: this.params.get('message_id'),
+				reply_markup: {
+					inline_keyboard: replySetNullPropKeyboard(context.propId, context.id),
+				},
+			});
 		} else if (context.prop === 'telegramId') {
 			await bot.sendMessage(chatId, 'Share user:', {
 				reply_markup: getUserContactKeyboard(UserRequest.Update),
@@ -1022,10 +1055,15 @@ Created at ${formatDate(record.assignedAt)}`,
 			});
 		} else if (context.prop === 'payerId') {
 			this.params.set('updateId', context.id);
-			await bot.sendMessage(
-				chatId,
+			await bot.editMessageText(
 				'Send start of username for user searching or click on the button to show all users',
-				payersKeyboard,
+				{
+					chat_id: chatId,
+					message_id: this.params.get('message_id'),
+					reply_markup: {
+						inline_keyboard: payersKeyboard,
+					},
+				},
 			);
 			this.setUpdateStep('payerSearch');
 		} else {
@@ -1077,14 +1115,18 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	private async applyUpdate(chatId: number, id: number, prop: string, value: string[] | number | string | boolean) {
-		const updated: VPNUser = await this.repository.update(id, {
-			[prop]: value,
-		});
-		logger.success(`Field ${prop} has been successfully updated for user ${id}`);
-		this.sendUserMenu(chatId, updated);
-		this.params.clear();
-		globalHandler.finishCommand();
-		return;
+		try {
+			const updated: VPNUser = await this.repository.update(id, {
+				[prop]: value,
+			});
+			logger.success(`Field ${prop} has been successfully updated for user ${id}`);
+			this.sendUserMenu(chatId, updated);
+		} catch (error) {
+			await bot.sendMessage(chatId, `Error occurred while user update ${error}`);
+		} finally {
+			this.params.clear();
+			globalHandler.finishCommand();
+		}
 	}
 
 	private getActiveStep(steps: { [key: string]: boolean }): string | null {

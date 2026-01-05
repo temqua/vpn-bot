@@ -40,37 +40,33 @@ export const getFrequestPaymentAmountsKeyboard = (amounts: number[]): SendBasicO
 	};
 };
 
-export function getYesNoKeyboard(command = VPNUserCommand.Pay, scope = CommandScope.Users): SendBasicOptions {
-	return {
-		reply_markup: {
-			inline_keyboard: [
-				[
-					{
-						text: 'Yes',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: scope,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: command,
-								accept: 1,
-							},
-							[CmdCode.Processing]: 1,
-						} as CommandDetailCompressed),
+export function getYesNoKeyboard(command = VPNUserCommand.Pay, scope = CommandScope.Users): InlineKeyboardButton[][] {
+	return [
+		[
+			{
+				text: 'Yes',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: scope,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: command,
+						accept: 1,
 					},
-					{
-						text: 'No',
-						callback_data: JSON.stringify({
-							[CmdCode.Scope]: scope,
-							[CmdCode.Context]: {
-								[CmdCode.Command]: command,
-								accept: 0,
-							},
-							[CmdCode.Processing]: 1,
-						} as CommandDetailCompressed),
+					[CmdCode.Processing]: 1,
+				} as CommandDetailCompressed),
+			},
+			{
+				text: 'No',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: scope,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: command,
+						accept: 0,
 					},
-				],
-			],
-		},
-	};
+					[CmdCode.Processing]: 1,
+				} as CommandDetailCompressed),
+			},
+		],
+	];
 }
 
 export const yesNoKeyboard: SendBasicOptions = {

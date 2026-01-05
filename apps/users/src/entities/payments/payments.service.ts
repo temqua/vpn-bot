@@ -279,7 +279,11 @@ export class PaymentsService {
 				}
 			}
 			delete context.accept;
-			await bot.sendMessage(chatId, `Добавить налог?`, getYesNoKeyboard());
+			await bot.sendMessage(chatId, `Добавить налог?`, {
+				reply_markup: {
+					inline_keyboard: getYesNoKeyboard(),
+				},
+			});
 			this.params.set('nalog', false);
 			this.setPaymentStep('nalog');
 			return;
@@ -287,7 +291,11 @@ export class PaymentsService {
 		if (this.paymentSteps.nalog) {
 			this.params.set('nalog', Boolean(context?.accept));
 			if (user.dependants.length) {
-				await bot.sendMessage(chatId, `Добавить платежи для дочерних юзеров?`, getYesNoKeyboard());
+				await bot.sendMessage(chatId, `Добавить платежи для дочерних юзеров?`, {
+					reply_markup: {
+						inline_keyboard: getYesNoKeyboard(),
+					},
+				});
 				this.params.set('dependants', false);
 				this.setPaymentStep('dependants');
 				return;
@@ -476,7 +484,6 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 				id: p.id.replaceAll('-', ''),
 			},
 		});
-		console.log('cd :>> ', cd);
 		const button = [
 			{
 				text: 'Delete',
