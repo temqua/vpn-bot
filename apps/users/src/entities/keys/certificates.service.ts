@@ -29,7 +29,7 @@ export class CertificatesService {
 		}
 	}
 
-	async create(message: Message, username: string | undefined) {
+	async create(message: Message, username: string | undefined, messageId: number) {
 		this.log(`create ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while creating ${this.protocol} client ${username}`;
@@ -37,10 +37,15 @@ export class CertificatesService {
 		try {
 			response = await this.request('create', username);
 			const result = await response.text();
-			await bot.sendMessage(chatId, result);
+			bot.editMessageText(result, {
+				message_id: messageId,
+				chat_id: chatId,
+			});
 		} catch (error) {
-			await bot.sendMessage(chatId, errorHeader);
-			await bot.sendMessage(chatId, `${error}`);
+			bot.editMessageText(`${errorHeader} ${error}`, {
+				message_id: messageId,
+				chat_id: chatId,
+			});
 			return;
 		}
 		if (!response.ok) {
@@ -107,7 +112,7 @@ export class CertificatesService {
 		}
 	}
 
-	async delete(message: Message, username: string | undefined) {
+	async delete(message: Message, username: string | undefined, messageId: number) {
 		this.log(`delete ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while deleting ${this.protocol} client ${username}`;
@@ -115,10 +120,15 @@ export class CertificatesService {
 		try {
 			response = await this.request('delete', username);
 			const result = await response.text();
-			bot.sendMessage(chatId, result);
+			bot.editMessageText(result, {
+				message_id: messageId,
+				chat_id: chatId,
+			});
 		} catch (error) {
-			bot.sendMessage(chatId, errorHeader);
-			bot.sendMessage(chatId, `${error}`);
+			bot.editMessageText(`${errorHeader} ${error}`, {
+				message_id: messageId,
+				chat_id: chatId,
+			});
 			return;
 		}
 
@@ -131,7 +141,7 @@ export class CertificatesService {
 		}
 	}
 
-	async getAll(message: Message) {
+	async getAll(message: Message, message_id: number) {
 		this.log('getAll');
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while getting ${this.protocol} clients`;
@@ -140,10 +150,15 @@ export class CertificatesService {
 		try {
 			response = await this.request('list');
 			const result = await response.text();
-			bot.sendMessage(chatId, result);
+			bot.editMessageText(result, {
+				message_id: message_id,
+				chat_id: chatId,
+			});
 		} catch (error) {
-			bot.sendMessage(chatId, errorHeader);
-			bot.sendMessage(chatId, `${error}`);
+			bot.editMessageText(`${errorHeader} ${error}`, {
+				message_id: message_id,
+				chat_id: chatId,
+			});
 			return;
 		}
 
@@ -156,7 +171,7 @@ export class CertificatesService {
 		}
 	}
 
-	async export(message: Message, username: string) {
+	async export(message: Message, username: string, message_id: number) {
 		this.log(`export ${username}`);
 		const chatId = message.chat.id;
 		const errorHeader = `Error occurred while exporting ${this.protocol} client ${username}`;
@@ -164,10 +179,15 @@ export class CertificatesService {
 		try {
 			response = await this.request('export', username);
 			const result = await response.text();
-			bot.sendMessage(chatId, result);
+			bot.editMessageText(result, {
+				chat_id: chatId,
+				message_id: message_id,
+			});
 		} catch (error) {
-			bot.sendMessage(chatId, errorHeader);
-			bot.sendMessage(chatId, `${error}`);
+			bot.editMessageText(`${errorHeader} ${error}`, {
+				message_id: message_id,
+				chat_id: chatId,
+			});
 			return;
 		}
 		if (response.ok) {

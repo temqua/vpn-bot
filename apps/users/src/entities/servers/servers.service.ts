@@ -1,4 +1,5 @@
-import { Message, SendBasicOptions } from 'node-telegram-bot-api';
+import { VPNProtocol, VpnServer } from '@prisma/client';
+import { Message } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { CmdCode, CommandScope, ServerCommand } from '../../enums';
@@ -6,10 +7,10 @@ import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { setActiveStep } from '../../utils';
+import { CertificatesService } from '../keys/certificates.service';
+import { getServerKeyboard } from './servers.buttons';
 import { ServersRepository } from './servers.repository';
 import { ServersContext } from './servers.types';
-import { VPNProtocol, VpnServer } from '@prisma/client';
-import { CertificatesService } from '../keys/certificates.service';
 
 export class ServersService {
 	constructor(private readonly repository: ServersRepository = new ServersRepository()) {}
@@ -27,94 +28,12 @@ export class ServersService {
 			const info = `${server.name}
 URL: ${server.url}            
             `;
-			const keyboard: SendBasicOptions = {
+			await bot.sendMessage(message.chat.id, info, {
 				reply_markup: {
-					inline_keyboard: [
-						[
-							{
-								text: 'Users',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.ListUsers,
-										id: server.id,
-									},
-								}),
-							},
-						],
-						[
-							{
-								text: 'Keys',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.ListKeys,
-										id: server.id,
-									},
-								}),
-							},
-							{
-								text: 'Create',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.CreateKey,
-										id: server.id,
-									},
-								}),
-							},
-							{
-								text: 'Export',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.Export,
-										id: server.id,
-									},
-								}),
-							},
-							{
-								text: 'Delete',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.DeleteKey,
-										id: server.id,
-									},
-								}),
-							},
-						],
-						[
-							{
-								text: 'Update URL',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.UpdateUrl,
-										prop: 'url',
-										id: server.id,
-									},
-								}),
-							},
-							{
-								text: 'Update Name',
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Servers,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: ServerCommand.UpdateName,
-										prop: 'name',
-										id: server.id,
-									},
-								}),
-							},
-						],
-					],
+					inline_keyboard: getServerKeyboard(server.id),
 				},
-			};
-			await bot.sendMessage(message.chat.id, info, keyboard);
+			});
 		}
-
-		await bot.sendMessage(message.chat.id, `Total count ${servers.length}`);
 		globalHandler.finishCommand();
 	}
 
@@ -139,13 +58,17 @@ URL: ${server.url}
 		this.log('create');
 		const chatId = message ? message.chat.id : env.ADMIN_USER_ID;
 		if (start) {
-			await bot.sendMessage(chatId, 'Enter new server name');
+			const messag = await bot.sendMessage(chatId, 'Enter new server name');
+			this.params.set('message_id', messag.message_id);
 			this.setCreateStep('name');
 			return;
 		}
 		if (this.createSteps.name) {
 			this.params.set('name', message?.text);
-			await bot.sendMessage(chatId, 'Enter URL');
+			await bot.editMessageText('Enter URL', {
+				message_id: this.params.get('message_id'),
+				chat_id: chatId,
+			});
 			this.setCreateStep('url');
 			return;
 		}
@@ -155,18 +78,30 @@ URL: ${server.url}
 		try {
 			const created = await this.repository.create(params.get('name'), params.get('url'));
 			if (created) {
-				await bot.sendMessage(
-					chatId,
+				await bot.editMessageText(
 					`Server ${created.name} with URL ${created.url} has been successfully created`,
+					{
+						chat_id: chatId,
+						message_id: this.params.get('message_id'),
+						reply_markup: {
+							inline_keyboard: getServerKeyboard(created.id),
+						},
+					},
 				);
 			} else {
 				logger.error(`[${basename(__filename)}]: Server was not created for unknown reason`);
-				await bot.sendMessage(chatId, 'Server was not created for unknown reason');
+				await bot.editMessageText('Server was not created for unknown reason', {
+					chat_id: chatId,
+					message_id: this.params.get('message_id'),
+				});
 			}
 		} catch (error) {
 			const errorMessage = `Unexpected error occurred while creating server. ${error}`;
 			logger.error(`[${basename(__filename)}]: ${errorMessage}`);
-			await bot.sendMessage(chatId, errorMessage);
+			await bot.editMessageText(errorMessage, {
+				chat_id: chatId,
+				message_id: this.params.get('message_id'),
+			});
 		} finally {
 			this.params.clear();
 			this.resetCreateSteps();
@@ -177,14 +112,22 @@ URL: ${server.url}
 	async delete(msg: Message, context: ServersContext, start = false) {
 		this.log('delete');
 		if (!start) {
+			const messageId = this.params.get('message_id') ?? msg.message_id;
+			const message = `Server with id ${context.id} has been successfully removed`;
 			try {
 				await this.repository.delete(Number(context.id));
-				const message = `Server with id ${context.id} has been successfully removed`;
 				logger.success(`[${basename(__filename)}]: ${message}`);
-				await bot.sendMessage(msg.chat.id, message);
+				await bot.editMessageText(message, {
+					message_id: messageId,
+					chat_id: msg.chat.id,
+				});
 			} catch (error) {
-				await bot.sendMessage(msg.chat.id, `Error while removing ${error} server`);
+				await bot.editMessageText(`Error while removing ${error} server`, {
+					chat_id: messageId,
+					message_id: msg.message_id,
+				});
 			} finally {
+				this.params.clear();
 				globalHandler.finishCommand();
 			}
 			return;
@@ -203,31 +146,80 @@ URL: ${server.url}
 				}),
 			},
 		]);
-		const inlineKeyboard = {
+		const message = await bot.sendMessage(msg.chat.id, 'Select server to delete:', {
 			reply_markup: {
 				inline_keyboard: [...buttons],
 			},
-		};
-		await bot.sendMessage(msg.chat.id, 'Select server to delete:', inlineKeyboard);
+		});
+		this.params.set('message_id', message.message_id);
 	}
 
 	async createKey(message: Message, context: ServersContext, start = false) {
-		this.keyAction(message, context, ServerCommand.CreateKey, 'create', start);
+		this.log('createKey');
+		this.keyAction(
+			message,
+			context,
+			ServerCommand.CreateKey,
+			`Error occurred while creating key ${message.text} on the server`,
+			async url => {
+				const keysService = new CertificatesService(this.params.get('protocol'), url);
+				await keysService.create(message, message.text, this.params.get('message_id'));
+			},
+			start,
+		);
 	}
 
 	async export(message: Message, context: ServersContext, start = false) {
-		this.keyAction(message, context, ServerCommand.Export, 'export', start);
+		this.log('export');
+		this.keyAction(
+			message,
+			context,
+			ServerCommand.Export,
+			`Error occurred while exporting key ${message.text} from the server`,
+			async url => {
+				const keysService = new CertificatesService(this.params.get('protocol'), url);
+				await keysService.export(message, message.text, this.params.get('message_id'));
+			},
+			start,
+		);
 	}
 
 	async deleteKey(message: Message, context: ServersContext, start = false) {
-		this.keyAction(message, context, ServerCommand.DeleteKey, 'delete', start);
+		this.log('deleteKey');
+		this.keyAction(
+			message,
+			context,
+			ServerCommand.DeleteKey,
+			`Error occurred while deleting key ${message.text} from the server`,
+			async url => {
+				const keysService = new CertificatesService(this.params.get('protocol'), url);
+				await keysService.delete(message, message.text, this.params.get('message_id'));
+			},
+			start,
+		);
+	}
+
+	async getKeyFile(message: Message, context: ServersContext, start = false) {
+		this.log('getKeyFile');
+		this.keyAction(
+			message,
+			context,
+			ServerCommand.GetKeyFile,
+			`Error occurred while loading key ${message.text} file from the server`,
+			async url => {
+				const keysService = new CertificatesService(this.params.get('protocol'), url);
+				await keysService.getFile(message, message.text);
+			},
+			start,
+		);
 	}
 
 	async keyAction(
 		message: Message,
 		context: ServersContext,
 		command: ServerCommand,
-		action: keyof CertificatesService,
+		errorMessage: string,
+		action: (url: string) => Promise<void>,
 		start = false,
 	) {
 		if (start) {
@@ -245,11 +237,12 @@ URL: ${server.url}
 					}),
 				},
 			]);
-			await bot.sendMessage(message.chat.id, 'Select protocol', {
+			const messag = await bot.sendMessage(message.chat.id, 'Select protocol', {
 				reply_markup: {
 					inline_keyboard: [...buttons],
 				},
 			});
+			this.params.set('message_id', messag.message_id);
 			this.params.set('protocolStep', true);
 			return;
 		} else if (this.params.get('protocolStep') === true) {
@@ -261,8 +254,13 @@ URL: ${server.url}
 						? VPNProtocol.WireGuard
 						: VPNProtocol.OpenVPN;
 			this.params.set('protocol', protocol);
-			await bot.sendMessage(message.chat.id, 'Enter key username');
-			return;
+			if (command !== ServerCommand.ListKeys) {
+				await bot.editMessageText('Enter key username', {
+					message_id: this.params.get('message_id'),
+					chat_id: message.chat.id,
+				});
+				return;
+			}
 		}
 
 		let server: VpnServer;
@@ -270,16 +268,18 @@ URL: ${server.url}
 		try {
 			server = await this.repository.getById(Number(this.params.get('serverId')));
 		} catch (error) {
-			await bot.sendMessage(message.chat.id, `Error occurred while loading server by id ${error}`);
+			await bot.editMessageText(`Error occurred while loading server by id ${error}`, {
+				chat_id: message.chat.id,
+				message_id: this.params.get('server_id'),
+			});
 		}
 		try {
-			const keysService = new CertificatesService(this.params.get('protocol'), server.url);
-			await keysService[action](message, message.text);
+			await action(server.url);
 		} catch (error) {
-			await bot.sendMessage(
-				message.chat.id,
-				`Error occurred while exporting key for server ${server.name} ${error}`,
-			);
+			await bot.editMessageText(`${errorMessage} ${server.name} ${error}`, {
+				chat_id: message.chat.id,
+				message_id: this.params.get('server_id'),
+			});
 		} finally {
 			this.params.clear();
 			globalHandler.finishCommand();
@@ -288,51 +288,17 @@ URL: ${server.url}
 
 	async listKeys(message: Message, context: ServersContext, start: boolean) {
 		this.log('listKeys');
-
-		if (start) {
-			this.params.set('serverId', context.id);
-			const buttons = Object.values(VPNProtocol).map(p => [
-				{
-					text: p,
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Servers,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: ServerCommand.ListKeys,
-							pr: p.substring(0, 1),
-						} as ServersContext,
-						[CmdCode.Processing]: 1,
-					}),
-				},
-			]);
-			await bot.sendMessage(message.chat.id, 'Select protocol', {
-				reply_markup: {
-					inline_keyboard: [...buttons],
-				},
-			});
-			return;
-		}
-
-		const protocol =
-			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
-		let server: VpnServer;
-
-		try {
-			server = await this.repository.getById(Number(this.params.get('serverId')));
-		} catch (error) {
-			await bot.sendMessage(message.chat.id, `Error occurred while loading server by id ${error}`);
-		}
-		try {
-			const keysService = new CertificatesService(protocol, server.url);
-			await keysService.getAll(message);
-		} catch (error) {
-			await bot.sendMessage(
-				message.chat.id,
-				`Error occurred while loading keys for server ${server.name} ${error}`,
-			);
-		} finally {
-			this.params.clear();
-			globalHandler.finishCommand();
-		}
+		this.keyAction(
+			message,
+			context,
+			ServerCommand.ListKeys,
+			'Error occurred while loading keys for server',
+			async url => {
+				const keysService = new CertificatesService(this.params.get('protocol'), url);
+				await keysService.getAll(message, this.params.get('message_id'));
+			},
+			start,
+		);
 	}
 
 	async updateURL(message: Message, context: ServersContext, start: boolean) {
@@ -340,16 +306,34 @@ URL: ${server.url}
 
 		if (start) {
 			this.params.set('serverId', context.id);
-			await bot.sendMessage(message.chat.id, 'Enter new URL');
+			const messg = (await bot.editMessageText('Enter new URL', {
+				message_id: message.message_id,
+				chat_id: message.chat.id,
+			})) as Message;
+			this.params.set('message_id', messg.message_id);
 			return;
 		}
 		try {
-			await this.repository.update(this.params.get('serverId'), {
+			const updated = await this.repository.update(this.params.get('serverId'), {
 				url: message.text,
 			});
-			await bot.sendMessage(message.chat.id, `Successfully updated URL to ${message.text}`);
+			await bot.editMessageText(
+				`Successfully updated URL to ${message.text}.
+${updated.name}
+URL: ${updated.url}				`,
+				{
+					message_id: this.params.get('message_id'),
+					chat_id: message.chat.id,
+					reply_markup: {
+						inline_keyboard: getServerKeyboard(updated.id),
+					},
+				},
+			);
 		} catch (error) {
-			await bot.sendMessage(message.chat.id, `Error occurred while updating server URL ${error}`);
+			await bot.editMessageText(`Error occurred while updating server URL ${error}`, {
+				message_id: this.params.get('message_id'),
+				chat_id: message.chat.id,
+			});
 		} finally {
 			this.params.clear();
 			globalHandler.finishCommand();
@@ -360,16 +344,34 @@ URL: ${server.url}
 		this.log('updateName');
 		if (start) {
 			this.params.set('serverId', context.id);
-			await bot.sendMessage(message.chat.id, 'Enter new name');
+			const messg = (await bot.editMessageText('Enter new name', {
+				message_id: message.message_id,
+				chat_id: message.chat.id,
+			})) as Message;
+			this.params.set('message_id', messg.message_id);
 			return;
 		}
 		try {
-			await this.repository.update(this.params.get('serverId'), {
+			const updated = await this.repository.update(this.params.get('serverId'), {
 				name: message.text,
 			});
-			await bot.sendMessage(message.chat.id, `Successfully updated name to ${message.text}`);
+			await bot.editMessageText(
+				`Successfully updated name to ${message.text}.
+${updated.name}
+URL: ${updated.url}`,
+				{
+					message_id: this.params.get('message_id'),
+					chat_id: message.chat.id,
+					reply_markup: {
+						inline_keyboard: getServerKeyboard(updated.id),
+					},
+				},
+			);
 		} catch (error) {
-			await bot.sendMessage(message.chat.id, `Error occurred while updating server URL ${error}`);
+			await bot.editMessageText(`Error occurred while updating server URL ${error}`, {
+				message_id: this.params.get('message_id'),
+				chat_id: message.chat.id,
+			});
 		} finally {
 			this.params.clear();
 			globalHandler.finishCommand();

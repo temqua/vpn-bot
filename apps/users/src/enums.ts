@@ -26,6 +26,7 @@ export enum ServerCommand {
 	CreateKey = 'ck',
 	DeleteKey = 'dk',
 	Export = 'ex',
+	GetKeyFile = 'gkf',
 }
 
 export enum VPNUserCommand {

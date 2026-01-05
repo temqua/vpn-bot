@@ -784,11 +784,12 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 					},
 				];
 			});
-			await bot.sendMessage(message.chat.id, 'Select server', {
+			const msg = await bot.sendMessage(message.chat.id, 'Select server', {
 				reply_markup: {
 					inline_keyboard: [...buttons],
 				},
 			});
+			this.createKeyParams.set('message_id', msg.message_id);
 			this.setCreateKeyStep('serverId');
 			return;
 		}
@@ -807,7 +808,9 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 					}),
 				},
 			]);
-			await bot.sendMessage(message.chat.id, 'Select protocol', {
+			await bot.editMessageText('Select protocol', {
+				message_id: this.createKeyParams.get('message_id'),
+				chat_id: message.chat.id,
 				reply_markup: {
 					inline_keyboard: [...buttons],
 				},
@@ -824,7 +827,10 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 						: VPNProtocol.OpenVPN;
 			this.createKeyParams.set('protocol', protocol);
 			this.setCreateKeyStep('username');
-			await bot.sendMessage(message.chat.id, 'Enter username');
+			await bot.editMessageText('Enter username', {
+				message_id: this.createKeyParams.get('message_id'),
+				chat_id: message.chat.id,
+			});
 			return;
 		}
 		try {
@@ -835,17 +841,23 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 				message.text,
 			);
 			if (created) {
-				await bot.sendMessage(
-					message.chat.id,
+				await bot.editMessageText(
 					`Successfully created database record key ${created.username} for user ${created.user.username} on server ${created.server.name}`,
+					{
+						chat_id: message.chat.id,
+						message_id: this.createKeyParams.get('message_id'),
+					},
 				);
 			}
 			if (!assign) {
 				const service = new CertificatesService(created.protocol, created.server.url);
-				await service.create(message, created.username);
+				await service.create(message, created.username, this.createKeyParams.get('message_id'));
 			}
 		} catch (err) {
-			bot.sendMessage(message.chat.id, `Error occurred while creating user key for server ${err}`);
+			bot.editMessageText(`Error occurred while creating user key for server ${err}`, {
+				message_id: this.createKeyParams.get('message_id'),
+				chat_id: message.chat.id,
+			});
 		} finally {
 			this.createKeyParams.clear();
 			this.resetCreateKeySteps();
@@ -923,18 +935,24 @@ Created at ${formatDate(record.assignedAt)}`,
 
 		try {
 			await this.repository.deleteUserServer(record.id);
-			bot.sendMessage(
-				message.chat.id,
+			bot.editMessageText(
 				`Successfully deleted record from database for ${protocol} key and user ${record.user.username}`,
+				{
+					message_id: message.message_id,
+					chat_id: message.chat.id,
+				},
 			);
 			if (!unassign) {
 				const service = new CertificatesService(protocol, record.server.url);
-				await service.delete(message, record.username);
+				await service.delete(message, record.username, message.message_id);
 			}
 		} catch (error) {
-			bot.sendMessage(
-				message.chat.id,
+			bot.editMessageText(
 				`Error occurred while deleting ${protocol} key for user ${record?.user?.username} ${error}`,
+				{
+					message_id: message.message_id,
+					chat_id: message.chat.id,
+				},
 			);
 		} finally {
 			globalHandler.finishCommand();

@@ -26,6 +26,9 @@ class ServersCommandsHandler implements ICommandHandler {
 		if (context[CmdCode.Command] === ServerCommand.DeleteKey) {
 			await this.service.deleteKey(message, context, start);
 		}
+		if (context[CmdCode.Command] === ServerCommand.GetKeyFile) {
+			await this.service.getKeyFile(message, context, start);
+		}
 		if (context[CmdCode.Command] === ServerCommand.ListUsers) {
 			await this.service.listServerUsers(message, context);
 		}
