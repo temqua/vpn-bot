@@ -44,7 +44,7 @@ export const userCommandsList = {
 	},
 	findUser: {
 		regexp: /@(.*)/,
-		docs: '@<id> — get user by id/username',
+		docs: '@<id/username> — get user by id/username',
 	},
 };
 

@@ -48,7 +48,7 @@ export class PaymentsService {
 		}
 		const payments = await this.repository.getAllByUserId(Number(userId));
 		if (!payments.length) {
-			await bot.sendMessage(message.chat.id, dict.paymentsNotFound[lang]);
+			await bot.sendMessage(message.chat.id, dict.payments_not_found[lang]);
 		}
 		for (const p of payments) {
 			await this.showPaymentInfo(message, p);

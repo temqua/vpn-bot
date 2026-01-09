@@ -1,17 +1,17 @@
 export const dict = {
-	creatingSub: {
+	creating_sub: {
 		en: 'Creating subscription...',
 		ru: 'Создаём подписку...',
 	},
-	deletingSub: {
+	deleting_sub: {
 		en: 'Deleting subscription...',
 		ru: 'Удаляем подписку...',
 	},
-	deletedSub: {
+	deleted_sub: {
 		en: "You've been successfully deleted subscription",
 		ru: 'Подписка была успешно удалена',
 	},
-	deleteSubError: {
+	delete_sub_error: {
 		en: 'Error occurred while deleting. Please send direct message to https://t.me/tesseract_vpn',
 		ru: 'Ошибка удаления. Напишите в личные сообщения https://t.me/tesseract_vpn',
 	},
@@ -55,27 +55,23 @@ The setup process is similar in all apps:
 		ru: '/me — для просмотра информации, которая хранится о вас',
 		en: '/me — to view the information stored about you',
 	},
-	noSub: {
-		ru: 'У вас пока нет подписок. Вы можете создать новую',
+	no_sub: {
+		ru: 'У вас пока нет ключей. Вы можете создать новый',
 		en: "You don't have subscriptions yet. You can create new one.",
 	},
 	createSub: {
-		ru: 'Создать подписку',
+		ru: 'Создать ключ',
 		en: 'Create subscription',
 	},
 	deleteSub: {
-		ru: 'Удалить подписку',
+		ru: 'Удалить ключ',
 		en: 'Delete subscription',
 	},
-	manageSub: {
-		ru: 'Управление подпиской',
-		en: 'Subscription management',
-	},
-	yourLink: {
+	your_link: {
 		ru: 'Ваша ссылка. Кликните, чтобы скопировать в буфер обмена',
 		en: 'Your link. Tap/click the link to copy it to your clipboard',
 	},
-	noPayments: {
+	no_payments: {
 		ru: 'Не обнаружено платежей. Напишите в личные сообщения https://t.me/tesseract_vpn',
 		en: 'No payments found. Please send direct message https://t.me/tesseract_vpn',
 	},
@@ -91,13 +87,17 @@ The setup process is similar in all apps:
 		ru: 'Напишите в личные сообщения https://t.me/tesseract_vpn для регистрации в системе',
 		en: 'Please send a direct message to https://t.me/tesseract_vpn to register in the system.',
 	},
-	paymentsHistory: {
+	payments_history: {
 		ru: '💸 История платежей',
 		en: '💸 Payments history',
 	},
 	keys: {
-		ru: '🔑 Мои VPN-ключи и Subscription ссылка',
-		en: '🔑 My VPN-keys and Subscription links',
+		ru: '🔑 Мои ключи',
+		en: '🔑 My keys',
+	},
+	subscription: {
+		ru: '🔗 Ключ для автоматической настройки',
+		en: '🔗 Subscription link',
 	},
 	guide: {
 		ru: '📖 Гайд',
@@ -107,7 +107,7 @@ The setup process is similar in all apps:
 		ru: '💵 Цены',
 		en: '💵 Prices',
 	},
-	mainMenu: {
+	main_menu: {
 		ru: 'Главное меню',
 		en: 'Main menu',
 	},
@@ -119,9 +119,17 @@ The setup process is similar in all apps:
 		ru: 'Стоимость',
 		en: 'Price',
 	},
-	paymentsNotFound: {
+	payments_not_found: {
 		ru: 'Не найдено платежей для данного пользователя',
 		en: 'Payments not found for user',
+	},
+	no_keys: {
+		ru: 'Не найдено существующих ключей',
+		en: 'No keys found for user',
+	},
+	get_file: {
+		ru: 'Загрузить ключ',
+		en: 'Download key',
 	},
 };
 

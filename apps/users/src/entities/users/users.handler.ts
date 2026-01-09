@@ -124,8 +124,11 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context[CmdCode.Command] === VPNUserCommand.CreateKey) {
 			await this.service.createKey(message, context, start);
 		}
-		if (context[CmdCode.Command] === VPNUserCommand.Keys) {
+		if (context[CmdCode.Command] === VPNUserCommand.KeysAdmin) {
 			await this.service.listKeys(message, context);
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.KeysUser) {
+			await this.service.listKeysForUser(message, from);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.DeleteKey) {
 			await this.service.deleteKey(message, context);

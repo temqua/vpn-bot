@@ -82,7 +82,7 @@ export const getUserMenu = (userId: number) => {
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Users,
 					[CmdCode.Context]: {
-						[CmdCode.Command]: VPNUserCommand.Keys,
+						[CmdCode.Command]: VPNUserCommand.KeysAdmin,
 						id: userId,
 					},
 				}),
@@ -319,7 +319,7 @@ export const deleteSubscriptionButton = (lang: string): InlineKeyboardMarkup => 
 					}),
 				},
 				{
-					text: dict.mainMenu[lang],
+					text: dict.main_menu[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
@@ -346,7 +346,7 @@ export const createSubscriptionButton = (lang: string): InlineKeyboardMarkup => 
 					}),
 				},
 				{
-					text: dict.mainMenu[lang],
+					text: dict.main_menu[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
@@ -364,7 +364,7 @@ export const createBackToMenuButton = (lang: string): InlineKeyboardMarkup => {
 		inline_keyboard: [
 			[
 				{
-					text: dict.mainMenu[lang],
+					text: dict.main_menu[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
@@ -382,7 +382,7 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 		inline_keyboard: [
 			[
 				{
-					text: dict.paymentsHistory[lang],
+					text: dict.payments_history[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
@@ -394,6 +394,17 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 			[
 				{
 					text: dict.keys[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.KeysUser,
+						},
+					}),
+				},
+			],
+			[
+				{
+					text: dict.subscription[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {

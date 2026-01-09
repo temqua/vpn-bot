@@ -107,26 +107,20 @@ export class UsersService {
 				this.params.set('telegram_id', message.user_shared.user_id.toString());
 			}
 
-			const messag = await bot.sendMessage(chatId, 'Enter new username');
-			this.params.set('message_id', messag.message_id);
+			await bot.sendMessage(chatId, 'Enter new username');
 
 			this.setCreateStep('username');
 			return;
 		}
 		if (this.createSteps.username) {
 			this.params.set('username', message?.text);
-			await bot.editMessageText('Enter first name', {
-				chat_id: chatId,
-				message_id: this.params.get('message_id'),
-			});
+			await bot.sendMessage(chatId, 'Enter first name');
 			this.setCreateStep('firstName');
 			return;
 		}
 		if (this.createSteps.firstName) {
 			this.params.set('first_name', message?.text);
-			await bot.editMessageText('Enter last name', {
-				chat_id: chatId,
-				message_id: this.params.get('message_id'),
+			await bot.sendMessage(chatId, 'Enter last name', {
 				reply_markup: {
 					inline_keyboard: [[skipButton]],
 				},
@@ -139,9 +133,7 @@ export class UsersService {
 				this.params.set('last_name', message?.text);
 			}
 			delete context.skip;
-			await bot.editMessageText('Enter telegram link', {
-				chat_id: chatId,
-				message_id: this.params.get('message_id'),
+			await bot.sendMessage(chatId, 'Enter telegram link', {
 				reply_markup: {
 					inline_keyboard: [[skipButton]],
 				},
@@ -154,9 +146,7 @@ export class UsersService {
 				this.params.set('telegram_link', message?.text);
 			}
 			delete context.skip;
-			await bot.editMessageText('Create user in pasarguard?', {
-				chat_id: chatId,
-				message_id: this.params.get('message_id'),
+			await bot.sendMessage(chatId, 'Create user in pasarguard?', {
 				reply_markup: {
 					inline_keyboard: getYesNoKeyboard(VPNUserCommand.Create),
 				},
@@ -718,9 +708,8 @@ ${user.price} рублей стоит месяц
 
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
-			const builtMessage = `${dict.yourLink[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}
-${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
-	`;
+			const builtMessage = `${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
+${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 			bot.editMessageText(builtMessage, {
 				parse_mode: 'MarkdownV2',
 				chat_id: message.chat.id,
@@ -731,13 +720,13 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 			const isPaid = await this.repository.isUserPaid(user.id);
 
 			if (isPaid) {
-				bot.editMessageText(dict.noSub[lang], {
+				bot.editMessageText(dict.no_sub[lang], {
 					message_id: message.message_id,
 					chat_id: message.chat.id,
 					reply_markup: createSubscriptionButton(lang),
 				});
 			} else {
-				bot.editMessageText(dict.noPayments[lang], {
+				bot.editMessageText(dict.no_payments[lang], {
 					message_id: message.message_id,
 					chat_id: message.chat.id,
 				});
@@ -759,7 +748,7 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 	async createSubscription(message: Message, from: TGUser) {
 		this.log('createSubscription');
 		const lang = from?.is_bot ? 'ru' : from?.language_code;
-		bot.editMessageText(dict.creatingSub[lang], {
+		bot.editMessageText(dict.creating_sub[lang], {
 			message_id: message.message_id,
 			chat_id: message.chat.id,
 			reply_markup: getUserKeyboard(lang),
@@ -771,7 +760,7 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 	async deleteSubscription(message: Message, from: TGUser) {
 		this.log('deleteSubscription');
 		const lang = from.is_bot ? 'ru' : from.language_code;
-		bot.sendMessage(message.chat.id, dict.deletingSub[lang]);
+		bot.sendMessage(message.chat.id, dict.deleting_sub[lang]);
 
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		try {
@@ -782,9 +771,9 @@ ${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `
 					pasarguardUsername: null,
 					pasarguardId: null,
 				});
-				bot.sendMessage(message.chat.id, dict.deletedSub[lang]);
+				bot.sendMessage(message.chat.id, dict.deleted_sub[lang]);
 			} else {
-				bot.sendMessage(message.chat.id, dict.deleteSubError[lang]);
+				bot.sendMessage(message.chat.id, dict.delete_sub_error[lang]);
 			}
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка удаления ${error.message}`);
@@ -959,6 +948,44 @@ Created at ${formatDate(record.assignedAt)}`,
 		globalHandler.finishCommand();
 	}
 
+	async listKeysForUser(message: Message, from: TGUser) {
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
+		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		const list = await this.repository.listUserServers(user.id);
+		for (const record of list) {
+			await bot.sendMessage(
+				message.chat.id,
+				`Сервер ${record.server.name} (${record.server.url})
+Протокол: ${record.protocol}
+Дата создания: ${formatDate(record.assignedAt)}`,
+				{
+					reply_markup: {
+						inline_keyboard: [
+							[
+								{
+									text: dict.get_file[lang],
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Users,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: VPNUserCommand.GetKeyFile,
+											sid: record.serverId,
+											id: record.userId,
+											pr: record.protocol.substring(0, 1),
+										},
+									}),
+								},
+							],
+						],
+					},
+				},
+			);
+		}
+		if (!list.length) {
+			bot.sendMessage(message.chat.id, dict.no_keys[lang]);
+		}
+		globalHandler.finishCommand();
+	}
+
 	async deleteKey(message: Message, context: UsersContext, unassign: boolean = false) {
 		const protocol =
 			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
@@ -1008,7 +1035,8 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	async showMenu(message: Message, from: TGUser) {
-		const lang = from.is_bot ? 'ru' : from.language_code;
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
+
 		bot.editMessageText(dict.start[lang], {
 			message_id: message.message_id,
 			chat_id: message.chat.id,
