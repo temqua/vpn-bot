@@ -96,7 +96,7 @@ The setup process is similar in all apps:
 		en: '🔑 My keys',
 	},
 	subscription: {
-		ru: '🔗 Ключ для автоматической настройки',
+		ru: '🔗 Автообновляемый ключ',
 		en: '🔗 Subscription link',
 	},
 	guide: {
