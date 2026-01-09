@@ -1,5 +1,6 @@
 import { User } from '@prisma/client';
 import { CmdCode, UpdateUserPropsMap, VPNUserCommand } from '../../enums';
+import { Message, User as TGUser } from 'node-telegram-bot-api';
 
 export interface UsersContext {
 	[CmdCode.Command]: VPNUserCommand;
@@ -25,4 +26,11 @@ export interface UserUpdateCommandContext extends UsersContext {
 	prop?: keyof User;
 	chatId: number;
 	setNull?: boolean;
+}
+
+export interface CreatePasarguardUserParams {
+	message: Message;
+	user: User;
+	from?: TGUser;
+	isAdmin?: boolean;
 }

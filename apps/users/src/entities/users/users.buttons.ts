@@ -1,9 +1,4 @@
-import {
-	InlineKeyboardButton,
-	InlineKeyboardMarkup,
-	ReplyKeyboardMarkup,
-	SendBasicOptions,
-} from 'node-telegram-bot-api';
+import { InlineKeyboardButton, InlineKeyboardMarkup, SendBasicOptions } from 'node-telegram-bot-api';
 import { dict } from '../../dict';
 import { CmdCode, CommandScope, UpdateUserPropsMap, UserRequest, VPNUserCommand } from '../../enums';
 import { CommandDetailCompressed } from '../../global.handler';
@@ -310,7 +305,7 @@ export const deleteSubscriptionButton = (lang: string): InlineKeyboardMarkup => 
 		inline_keyboard: [
 			[
 				{
-					text: dict.deleteSub[lang],
+					text: dict.delete_sub[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
@@ -337,7 +332,7 @@ export const createSubscriptionButton = (lang: string): InlineKeyboardMarkup => 
 		inline_keyboard: [
 			[
 				{
-					text: dict.createSub[lang],
+					text: dict.create_sub[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {

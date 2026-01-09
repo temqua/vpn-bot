@@ -59,11 +59,11 @@ The setup process is similar in all apps:
 		ru: 'У вас пока нет ключей. Вы можете создать новый',
 		en: "You don't have subscriptions yet. You can create new one.",
 	},
-	createSub: {
+	create_sub: {
 		ru: 'Создать ключ',
 		en: 'Create subscription',
 	},
-	deleteSub: {
+	delete_sub: {
 		ru: 'Удалить ключ',
 		en: 'Delete subscription',
 	},
