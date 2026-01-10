@@ -1,5 +1,3 @@
-import { dict } from './dict';
-
 const plansGroupped = {
 	'1': [
 		{
