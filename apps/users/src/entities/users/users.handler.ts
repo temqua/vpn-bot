@@ -58,8 +58,18 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
+		if (context[CmdCode.Command] === VPNUserCommand.CreateSubscriptionAdmin) {
+			await this.service.createSubscriptionAdmin(message, context);
+			globalHandler.finishCommand();
+			return;
+		}
 		if (context[CmdCode.Command] === VPNUserCommand.CreateSubscription) {
 			await this.service.createSubscription(message, from);
+			globalHandler.finishCommand();
+			return;
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.DeleteSubscriptionAdmin) {
+			await this.service.deleteSubscriptionAdmin(message, context);
 			globalHandler.finishCommand();
 			return;
 		}

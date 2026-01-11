@@ -201,14 +201,16 @@ export class UsersService {
 				params.get('bank'),
 			);
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
-			await this.sendNewUserMenu(chatId, newUser);
+			let finalUser = newUser;
 			if (params.get('pasarguard')) {
-				this.createPasarguardUser({
+				const result = await this.createPasarguardUser({
 					message,
 					user: newUser,
 					isAdmin: true,
 				});
+				finalUser = result.user;
 			}
+			await this.sendNewUserMenu(chatId, finalUser);
 		} catch (error) {
 			logger.error(
 				`[${basename(__filename)}]: Unexpected error occurred while creating user ${username}: ${error}`,
@@ -474,6 +476,12 @@ export class UsersService {
 		this.log('delete');
 		if (!start) {
 			try {
+				const user = await this.repository.getById(Number(context.id));
+				const deleteResult = await this.pasarguardService.deleteUser(user.pasarguardUsername);
+				const deleteMessage = deleteResult.success
+					? `User ${user.pasarguardUsername} has been successfully removed from pasarguard`
+					: `User ${user.pasarguardUsername} has not been removed from pasarguard. Reason ${deleteResult.error}`;
+				await bot.sendMessage(msg.chat.id, deleteMessage);
 				await this.repository.delete(Number(context.id));
 				const message = `User with id ${context.id} has been successfully removed`;
 				logger.success(`[${basename(__filename)}]: ${message}`);
@@ -770,6 +778,53 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		});
 	}
 
+	async createSubscriptionAdmin(message: Message, context: UsersContext) {
+		this.log('createSubscriptionAdmin');
+		const lang = 'ru';
+		await bot.sendMessage(message.chat.id, dict.creating_sub[lang]);
+		const user = await this.repository.getById(Number(context.id));
+		const result = await this.createPasarguardUser({
+			message,
+			user,
+			isAdmin: true,
+		});
+
+		await this.sendNewUserMenu(message.chat.id, result.user);
+	}
+
+	async deleteSubscriptionAdmin(message: Message, context: UsersContext) {
+		this.log('deleteSubscriptionAdmin');
+		const lang = 'ru';
+		const msg = await bot.sendMessage(message.chat.id, dict.deleting_sub[lang]);
+
+		const user = await this.repository.getById(Number(context.id));
+		try {
+			const result = await this.pasarguardService.deleteUser(user.pasarguardUsername);
+			if (result.success) {
+				const updated = await this.repository.update(user.id, {
+					subLink: null,
+					pasarguardUsername: null,
+					pasarguardId: null,
+				});
+				await bot.editMessageText(dict.deleted_sub[lang], {
+					message_id: msg.message_id,
+					chat_id: message.chat.id,
+				});
+				await this.sendNewUserMenu(message.chat.id, updated);
+			} else {
+				await bot.editMessageText(result.error, {
+					message_id: msg.message_id,
+					chat_id: message.chat.id,
+				});
+			}
+		} catch (error) {
+			await bot.editMessageText(`Ошибка удаления ${error.message}`, {
+				message_id: msg.message_id,
+				chat_id: message.chat.id,
+			});
+		}
+	}
+
 	async deleteSubscription(message: Message, from: TGUser) {
 		this.log('deleteSubscription');
 		const lang = from.is_bot ? 'ru' : from.language_code;
@@ -780,8 +835,8 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		try {
-			const result = await this.deletePasarguardUser(user);
-			if (result) {
+			const result = await this.pasarguardService.deleteUser(user.pasarguardUsername);
+			if (result.success) {
 				await this.repository.update(user.id, {
 					subLink: null,
 					pasarguardUsername: null,
@@ -1267,7 +1322,7 @@ Telegram Link: ${user.telegramLink}
 Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Price: ${user.price}
-Subscription link: ${user.subLink}
+Subscription link: ${user.subLink ? 'https://pg.tesseractnpv.com' : ''}${user.subLink}
 Created At: ${formatDate(user.createdAt)}\n`;
 		if (user.bank) {
 			baseInfo = baseInfo.concat(`Bank: ${user.bank}\n`);
@@ -1303,7 +1358,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 		}
 		const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
 		if (newPasarguardUser) {
-			const successMessage = `Пользователь ${newPasarguardUser.username} успешно создан.`;
+			const successMessage = `Пользователь ${newPasarguardUser.username} успешно создан в Pasarguard.`;
 			logger.success(successMessage);
 			if (isAdmin) {
 				await bot.sendMessage(env.ADMIN_USER_ID, successMessage);
@@ -1320,12 +1375,15 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			if (!isAdmin) {
 				await this.showSubGuide(message, from);
 			}
-			await this.repository.update(user.id, {
+			const updated = await this.repository.update(user.id, {
 				subLink: newPasarguardUser.subscription_url,
 				pasarguardUsername: newPasarguardUser.username,
 				pasarguardId: newPasarguardUser.id,
 			});
-			return newPasarguardUser;
+			return {
+				user: updated,
+				pgUser: newPasarguardUser,
+			};
 		} else {
 			await bot.editMessageText(dict.createSubError[lang], {
 				message_id: message.message_id,
@@ -1334,10 +1392,6 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			});
 			return null;
 		}
-	}
-
-	private async deletePasarguardUser(user: User) {
-		return await this.pasarguardService.deleteUser(user.pasarguardUsername);
 	}
 
 	private log(message: string) {

@@ -83,6 +83,28 @@ export const getUserMenu = (userId: number) => {
 				}),
 			},
 		],
+		[
+			{
+				text: 'Create Subscription',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.CreateSubscriptionAdmin,
+						id: userId,
+					},
+				}),
+			},
+			{
+				text: 'Delete Subscription',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.DeleteSubscriptionAdmin,
+						id: userId,
+					},
+				}),
+			},
+		],
 	];
 };
 
@@ -158,7 +180,6 @@ export const userButtons: InlineKeyboardButton[][] = [
 				},
 			}),
 		},
-
 		{
 			text: 'Trial',
 			callback_data: JSON.stringify({

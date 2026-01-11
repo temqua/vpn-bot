@@ -2,59 +2,12 @@ import client from '../../client';
 import env from '../../env';
 import logger from '../../logger';
 import { isJSONErrorResponse } from '../../utils';
-
-type PasarguardAuthResponse = {
-	access_token: string;
-	token_type: string;
-};
-
-type PasarguardErrorResponse = {
-	detail:
-		| string
-		| {
-				[key: string]: string;
-		  };
-};
-
-type PasarguardCreateResponse = {
-	proxy_settings: {
-		vmess: {
-			id: string;
-		};
-		vless: {
-			id: string;
-			flow: string;
-		};
-		trojan: {
-			password: string;
-		};
-		shadowsocks: {
-			password: string;
-			method: string;
-		};
-	};
-	expire: unknown | null;
-	data_limit: number;
-	data_limit_reset_strategy: string;
-	note: string;
-	on_hold_expire_duration: unknown | null;
-	on_hold_timeout: unknown | null;
-	group_ids: number[];
-	auto_delete_in_days: unknown | null;
-	next_plan: unknown | null;
-	id: number;
-	username: string;
-	status: string;
-	used_traffic: number;
-	lifetime_used_traffic: number;
-	created_at: string;
-	edit_at: unknown | null;
-	online_at: unknown | null;
-	subscription_url: string;
-	admin: {
-		username: string;
-	};
-};
+import {
+	PasarguardAuthResponse,
+	PasarguardCreateResponse,
+	PasarguardDeleteResult,
+	PasarguardErrorResponse,
+} from './pasarguard.types';
 
 export class PasarguardService {
 	private apiRoot = env.PASARGUARD_ROOT;
@@ -120,7 +73,7 @@ export class PasarguardService {
 		return result;
 	}
 
-	async deleteUser(username: string) {
+	async deleteUser(username: string): Promise<PasarguardDeleteResult> {
 		const token = await this.auth();
 		const response = await client.delete(`${this.apiRoot}/api/user/${username}`, {
 			headers: {
@@ -132,8 +85,14 @@ export class PasarguardService {
 			const detail =
 				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
 			logger.error(detail);
-			return false;
+			return {
+				success: false,
+				error: detail,
+			};
 		}
-		return response.ok;
+		return {
+			success: response.ok,
+			error: null,
+		};
 	}
 }

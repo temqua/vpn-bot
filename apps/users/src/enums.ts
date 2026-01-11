@@ -32,11 +32,13 @@ export enum ServerCommand {
 export enum VPNUserCommand {
 	AssignKey = 'ask',
 	Create = 'cr',
+	CreateSubscriptionAdmin = 'crsa',
 	CreateSubscription = 'crs',
 	CreateKey = 'crk',
 	List = 'list',
 	Delete = 'del',
 	DeleteSubscription = 'dels',
+	DeleteSubscriptionAdmin = 'delsa',
 	DeleteKey = 'delk',
 	FindByUsername = 'findus',
 	FindByFirstName = 'findfn',
