@@ -1,6 +1,6 @@
 import type { Payment, Plan } from '@prisma/client';
 import { addMonths, parse, subMonths } from 'date-fns';
-import type { Message, User as TGUser } from 'node-telegram-bot-api';
+import type { InlineKeyboardMarkup, Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { getFrequestPaymentAmountsKeyboard, getYesNoKeyboard } from '../../buttons';
@@ -484,18 +484,23 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 				id: p.id.replaceAll('-', ''),
 			},
 		});
+
 		const button = [
 			{
 				text: 'Delete',
 				callback_data: cd,
 			},
 		];
+		const markup: InlineKeyboardMarkup | undefined =
+			message.chat.id === env.ADMIN_USER_ID
+				? {
+						inline_keyboard: [button],
+					}
+				: undefined;
 		if (!p.parentPaymentId) {
 			await bot.sendMessage(message.chat.id, this.formatPayment(p), {
 				parse_mode: 'MarkdownV2',
-				reply_markup: {
-					inline_keyboard: [button],
-				},
+				reply_markup: markup,
 			});
 			return;
 		}
@@ -505,9 +510,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 Expires On: ${p.expiresOn ? formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`) : 'unset'}`,
 			{
 				parse_mode: 'MarkdownV2',
-				reply_markup: {
-					inline_keyboard: [button],
-				},
+				reply_markup: markup,
 			},
 		);
 		const parentPayment = await this.repository.getById(p.parentPaymentId);
@@ -521,9 +524,7 @@ Expires On: ${parentPayment.expiresOn ? formatDate(parentPayment.expiresOn).repl
 Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 				{
 					parse_mode: 'MarkdownV2',
-					reply_markup: {
-						inline_keyboard: [button],
-					},
+					reply_markup: markup,
 				},
 			);
 		}
