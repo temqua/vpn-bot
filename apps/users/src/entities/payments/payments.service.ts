@@ -356,8 +356,9 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 
 	private async calculateMonthsCount(chatId: number, user: VPNUser) {
 		const amount = this.params.get('amount');
-		const dependants = user.dependants?.length ?? 0;
-		const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependants);
+		const dependants = user.dependants.filter(d => d.active && !d.free);
+		const dependantsCount = dependants?.length ?? 0;
+		const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependantsCount);
 		if (user.dependants?.length) {
 			await bot.sendMessage(
 				chatId,
@@ -377,8 +378,8 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 		}
 		const monthsCount = plan
 			? plan.months
-			: dependants > 0
-				? Math.floor(amount / (user.price * (dependants + 1)))
+			: dependantsCount > 0
+				? Math.floor(amount / (user.price * (dependantsCount + 1)))
 				: Math.floor(amount / user.price);
 		await bot.sendMessage(
 			chatId,
