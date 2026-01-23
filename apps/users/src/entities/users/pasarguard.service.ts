@@ -43,7 +43,7 @@ export class PasarguardService {
 			note: '',
 			group_ids: [1],
 			proxy_settings: {
-				vless: {},
+				vless: { flow: 'xtls-rprx-vision' },
 				shadowsocks: {
 					'method': 'chacha20-ietf-poly1305',
 				},
