@@ -202,35 +202,3 @@ bot.onText(userCommandsList.trial.regexp, async (msg: Message) => {
 		} as TelegramBot.CallbackQuery,
 	);
 });
-
-setInterval(() => {
-	globalHandler.execute(
-		{
-			scope: CommandScope.Users,
-			context: {
-				[CmdCode.Command]: VPNUserCommand.ShowUnpaid,
-			},
-		},
-		{
-			message: {
-				chat: {
-					id: env.ADMIN_USER_ID,
-				},
-			},
-		} as TelegramBot.CallbackQuery,
-	);
-}, ms('1d'));
-
-setInterval(() => {
-	globalHandler.execute(
-		{
-			scope: CommandScope.Users,
-			context: {
-				[CmdCode.Command]: VPNUserCommand.NotifyUnpaid,
-			},
-		},
-		{
-			message: {},
-		} as TelegramBot.CallbackQuery,
-	);
-}, ms('1d'));

@@ -1,13 +1,16 @@
+import { addDays, addMonths, subMonths } from 'date-fns';
 import client from '../../client';
 import env from '../../env';
 import logger from '../../logger';
 import { isJSONErrorResponse } from '../../utils';
 import {
 	PasarguardAuthResponse,
-	PasarguardCreateResponse,
+	PasarguardUserResponse,
 	PasarguardDeleteResult,
 	PasarguardErrorResponse,
+	PasarguardUserBody,
 } from './pasarguard.types';
+import { basename } from 'path';
 
 export class PasarguardService {
 	private apiRoot = env.PASARGUARD_ROOT;
@@ -33,13 +36,21 @@ export class PasarguardService {
 		return responseBody?.access_token;
 	}
 
-	async createUser(username: string): Promise<PasarguardCreateResponse> {
+	async createUser(
+		username: string,
+		params: { expiresOn?: Date; isNew?: boolean } = {},
+	): Promise<PasarguardUserResponse> {
+		const { isNew = false, expiresOn } = params;
 		const token = await this.auth();
-		const newUser = {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		const monthAfter = addMonths(today, 1);
+		const expire = isNew || !expiresOn ? monthAfter.toISOString() : addDays(expiresOn, 1).toISOString();
+		const newUser: PasarguardUserBody = {
 			username,
 			status: 'active',
 			data_limit: 0,
-			expire: 0,
+			expire,
 			note: '',
 			group_ids: [1],
 			proxy_settings: {
@@ -61,14 +72,38 @@ export class PasarguardService {
 			const responseBody = (await response.json()) as PasarguardErrorResponse;
 			const detail =
 				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
-			logger.error(detail);
+			logger.error(`[${basename(__filename)}]: ${detail}`);
 			return null;
 		}
 		if (!response.ok) {
-			logger.error(`${response.status} ${response.statusText}`);
+			logger.error(`[${basename(__filename)}]: ${response.status} ${response.statusText}`);
 			return null;
 		}
-		const result = (await response.json()) as PasarguardCreateResponse;
+		const result = (await response.json()) as PasarguardUserResponse;
+
+		return result;
+	}
+
+	async updateUser(username: string, params: PasarguardUserBody): Promise<PasarguardUserResponse> {
+		const token = await this.auth();
+		const response = await client.put(`${this.apiRoot}/api/user/${username}`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify(params),
+		});
+		if (!response.ok && isJSONErrorResponse(response)) {
+			const responseBody = (await response.json()) as PasarguardErrorResponse;
+			const detail =
+				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
+			logger.error(`[${basename(__filename)}]: ${detail}`);
+			return null;
+		}
+		if (!response.ok) {
+			logger.error(`[${basename(__filename)}]: ${response.status} ${response.statusText}`);
+			return null;
+		}
+		const result = (await response.json()) as PasarguardUserResponse;
 
 		return result;
 	}
@@ -84,7 +119,7 @@ export class PasarguardService {
 			const responseBody = (await response.json()) as PasarguardErrorResponse;
 			const detail =
 				typeof responseBody.detail === 'object' ? JSON.stringify(responseBody.detail) : responseBody.detail;
-			logger.error(detail);
+			logger.error(`[${basename(__filename)}]: ${detail}`);
 			return {
 				success: false,
 				error: detail,

@@ -1,5 +1,5 @@
 import type { Payment, Plan } from '@prisma/client';
-import { addMonths, parse, subMonths } from 'date-fns';
+import { addDays, addMonths, parse, subMonths } from 'date-fns';
 import type { InlineKeyboardMarkup, Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
@@ -17,11 +17,13 @@ import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
 import { PaymentsRepository } from './payments.repository';
 import { PaymentsContext } from './payments.types';
+import { PasarguardService } from '../users/pasarguard.service';
 export class PaymentsService {
 	constructor(
 		private repository: PaymentsRepository = new PaymentsRepository(),
 		private plansRepository: PlanRepository = new PlanRepository(),
 		private usersRepository: UsersRepository = new UsersRepository(),
+		private pasarguardService: PasarguardService = new PasarguardService(),
 	) {}
 
 	private nalogService: NalogService = new NalogService();
@@ -422,7 +424,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			if (result) {
 				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. 
 Новая дата истечения срока ${formatDate(expiresOn)}.`;
-				logger.success(`${basename(__filename)}: ${successMessage}`);
+				logger.success(`[${basename(__filename)}]: ${successMessage}`);
 				await bot.sendMessage(chatId, successMessage);
 				await bot.sendMessage(
 					chatId,
@@ -462,6 +464,9 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 						}
 					}
 				}
+				await this.pasarguardService.updateUser(`${user.username}_${user.id}`, {
+					expire: addDays(result.expiresOn, 1).toISOString(),
+				});
 			} else {
 				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} не был создан`;
 				logger.error(`[${basename(__filename)}]: ${errMessage}`);

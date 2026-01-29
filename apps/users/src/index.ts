@@ -1,6 +1,11 @@
-import './commands/main.commands';
-import './commands/users.commands';
-import './commands/expenses.commands';
-import './commands/payments.commands';
-import './commands/servers.commands';
-import './commands/plans.commands';
+import './commands/index';
+import { agenda } from './jobs/agenda';
+import './jobs/index';
+
+async function boostrap() {
+	await agenda.start();
+	await agenda.every('1 day', 'show-unpaid');
+	await agenda.every('1 day', 'notify-unpaid');
+}
+
+boostrap();

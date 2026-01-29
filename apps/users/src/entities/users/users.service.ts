@@ -207,6 +207,7 @@ export class UsersService {
 					message,
 					user: newUser,
 					isAdmin: true,
+					isNew: true,
 				});
 				finalUser = result.user;
 			}
@@ -771,10 +772,12 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 			reply_markup: getUserKeyboard(lang),
 		});
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		const expiresOn = user.payments.length ? user.payments[user.payments.length - 1].expiresOn : undefined;
 		await this.createPasarguardUser({
 			message,
 			user,
 			from,
+			expiresOn,
 		});
 	}
 
@@ -783,10 +786,12 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		const lang = 'ru';
 		await bot.sendMessage(message.chat.id, dict.creating_sub[lang]);
 		const user = await this.repository.getById(Number(context.id));
+		const expiresOn = user.payments.length ? user.payments[user.payments.length - 1].expiresOn : undefined;
 		const result = await this.createPasarguardUser({
 			message,
 			user,
 			isAdmin: true,
+			expiresOn,
 		});
 
 		await this.sendNewUserMenu(message.chat.id, result.user);
@@ -1352,11 +1357,10 @@ Created At: ${formatDate(user.createdAt)}\n`;
 	private async createPasarguardUser(params: CreatePasarguardUserParams) {
 		const { message, user, from, isAdmin = false } = params;
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
-		let pgUsername = `${user.username}_${user.id}`;
-		if (user.telegramId) {
-			pgUsername = pgUsername.concat('_', user.telegramId);
-		}
-		const newPasarguardUser = await this.pasarguardService.createUser(pgUsername);
+		const newPasarguardUser = await this.pasarguardService.createUser(`${user.username}_${user.id}`, {
+			isNew: params.isNew,
+			expiresOn: params.expiresOn,
+		});
 		if (newPasarguardUser) {
 			const successMessage = `Пользователь ${newPasarguardUser.username} успешно создан в Pasarguard.`;
 			logger.success(successMessage);

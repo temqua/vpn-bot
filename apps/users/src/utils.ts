@@ -18,7 +18,7 @@ export function setActiveStep(current: string, steps: { [key: string]: boolean }
 }
 
 export const isJSONErrorResponse = (response: Response) => {
-	return response.body && !response.ok && response.headers.get('content-type')?.includes('json');
+	return response.body && response.headers.get('content-type')?.includes('json');
 };
 
 export function uuid32to36(u: string): string {

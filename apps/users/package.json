@@ -1,6 +1,6 @@
 {
 	"name": "users-bot",
-	"version": "3.10.0",
+	"version": "3.11.0",
 	"scripts": {
 		"generate": "prisma generate",
 		"prestart": "npx prisma generate",
@@ -13,8 +13,10 @@
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
+		"@agendajs/postgres-backend": "^2.0.0",
 		"@prisma/adapter-pg": "^7.1.0",
 		"@prisma/client": "^7.1.0",
+		"agenda": "^6.1.0",
 		"date-fns": "^4.1.0",
 		"dotenv": "^17.2.1",
 		"envalid": "^8.1.0",

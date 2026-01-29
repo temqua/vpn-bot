@@ -33,4 +33,6 @@ export interface CreatePasarguardUserParams {
 	user: User;
 	from?: TGUser;
 	isAdmin?: boolean;
+	isNew?: boolean;
+	expiresOn?: Date;
 }
