@@ -1,13 +1,11 @@
-import ms from 'ms';
 import type { Message } from 'node-telegram-bot-api';
+import TelegramBot from 'node-telegram-bot-api';
 import bot from '../bot';
 import { findUserButtons, userButtons } from '../entities/users/users.buttons';
 import { usersService } from '../entities/users/users.service';
 import { CmdCode, CommandScope, VPNUserCommand } from '../enums';
-import env from '../env';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
-import TelegramBot from 'node-telegram-bot-api';
 
 export const userCommandsList = {
 	user: {

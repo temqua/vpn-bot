@@ -39,7 +39,11 @@ export class UsersRepository {
 			},
 			include: {
 				payer: true,
-				payments: true,
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
 				dependants: true,
 			},
 		});
@@ -52,7 +56,11 @@ export class UsersRepository {
 			},
 			include: {
 				payer: true,
-				payments: true,
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
 				dependants: true,
 			},
 		});
@@ -68,7 +76,11 @@ export class UsersRepository {
 			},
 			include: {
 				payer: true,
-				payments: true,
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
 				dependants: true,
 			},
 		});
@@ -81,7 +93,11 @@ export class UsersRepository {
 			},
 			include: {
 				payer: true,
-				payments: true,
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
 				dependants: true,
 			},
 		});
@@ -97,7 +113,11 @@ export class UsersRepository {
 			},
 			include: {
 				payer: true,
-				payments: true,
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
 				dependants: true,
 			},
 		});
@@ -129,7 +149,11 @@ export class UsersRepository {
 			},
 			include: {
 				payer: true,
-				payments: true,
+				payments: {
+					orderBy: {
+						paymentDate: 'desc',
+					},
+				},
 				dependants: true,
 			},
 		});
