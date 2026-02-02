@@ -216,7 +216,7 @@ export class PaymentsService {
 			this.params.set('user', user);
 			const prices = [user.price];
 			if (user.payments.length) {
-				const lastPayment = user.payments[user.payments.length - 1];
+				const lastPayment = user.payments[0];
 				if (lastPayment.amount !== user.price) {
 					prices.push(lastPayment.amount);
 				}
