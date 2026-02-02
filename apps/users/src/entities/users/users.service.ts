@@ -772,7 +772,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 			reply_markup: getUserKeyboard(lang),
 		});
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
-		const expiresOn = user.payments.length ? user.payments[user.payments.length - 1].expiresOn : undefined;
+		const expiresOn = user.payments.length ? user.payments[0].expiresOn : undefined;
 		await this.createPasarguardUser({
 			message,
 			user,
@@ -786,7 +786,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		const lang = 'ru';
 		await bot.sendMessage(message.chat.id, dict.creating_sub[lang]);
 		const user = await this.repository.getById(Number(context.id));
-		const expiresOn = user.payments.length ? user.payments[user.payments.length - 1].expiresOn : undefined;
+		const expiresOn = user.payments.length ? user.payments[0].expiresOn : undefined;
 		const result = await this.createPasarguardUser({
 			message,
 			user,
