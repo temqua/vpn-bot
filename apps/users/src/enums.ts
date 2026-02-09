@@ -51,6 +51,7 @@ export enum VPNUserCommand {
 	Update = 'u',
 	UpdateNull = 'un',
 	Pay = 'pay',
+	PauseKey = 'pk',
 	Export = 'ex',
 	ExportPayments = 'exp',
 	ExportExpenses = 'expe',

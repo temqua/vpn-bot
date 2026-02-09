@@ -324,6 +324,18 @@ export class UsersRepository {
 		});
 	}
 
+	async getUserServerById(id: number) {
+		return await prisma.serversUsers.findFirst({
+			where: {
+				id,
+			},
+			include: {
+				server: {},
+				user: {},
+			},
+		});
+	}
+
 	async listUserServers(userId: number) {
 		return await prisma.serversUsers.findMany({
 			where: {

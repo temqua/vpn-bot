@@ -205,12 +205,11 @@ export class CertificatesService {
 		const errorHeader = `Error occurred while temporary disabling ${this.protocol} client ${username}`;
 		let response;
 		try {
-			response = this.request('pause', username);
+			response = await this.request('pause', username);
 			const result = await response.text();
 			bot.sendMessage(chatId, result);
 		} catch (error) {
-			bot.sendMessage(chatId, errorHeader);
-			bot.sendMessage(chatId, `${error}`);
+			bot.sendMessage(chatId, `${errorHeader} ${error}`);
 			return;
 		}
 

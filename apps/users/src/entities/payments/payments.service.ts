@@ -421,57 +421,56 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 				expiresOn,
 				plan,
 			});
-			if (result) {
-				const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. 
-Новая дата истечения срока ${formatDate(expiresOn)}.`;
-				logger.success(`[${basename(__filename)}]: ${successMessage}`);
-				await bot.sendMessage(chatId, successMessage);
-				await bot.sendMessage(
-					chatId,
-					`ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
-					{
-						parse_mode: 'MarkdownV2',
-					},
-				);
-				if (nalog) {
-					await this.addPaymentNalog(chatId, user.username, amount, result.id);
-				}
-				if (dependants) {
-					for (const dep of user.dependants) {
-						const childResult = await this.repository.create(dep.id, {
-							amount: 0,
-							monthsCount: Number(monthsCount),
-							expiresOn,
-							plan,
-							parentPaymentId: result.id,
-						});
-						if (childResult) {
-							const successMessage = `Платёж для дочернего юзера на ${monthsCount} месяцев был успешно обработан для пользователя ${dep.username}. 
-Новая дата истечения срока ${formatDate(expiresOn)}`;
-							logger.success(`${basename(__filename)}: ${successMessage}`);
-							await bot.sendMessage(chatId, successMessage);
-							await bot.sendMessage(
-								chatId,
-								`ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
-								{
-									parse_mode: 'MarkdownV2',
-								},
-							);
-						} else {
-							const errMessage = `По непредвиденным обстоятельствам платеж для дочернего пользователя ${dep.username} не был создан`;
-							logger.error(`[${basename(__filename)}]: ${errMessage}`);
-							await bot.sendMessage(chatId, errMessage);
-						}
-					}
-				}
-				await this.pasarguardService.updateUser(`${user.username}_${user.id}`, {
-					expire: addDays(result.expiresOn, 1).toISOString(),
-				});
-			} else {
-				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} не был создан`;
+			if (!result) {
+				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} c ID ${user.id} не был создан`;
 				logger.error(`[${basename(__filename)}]: ${errMessage}`);
 				await bot.sendMessage(chatId, errMessage);
+				return;
 			}
+			const successMessage = `Платёж количеством ${amount} рублей на ${monthsCount} месяцев был успешно обработан для пользователя ${user.username}. 
+Новая дата истечения срока ${formatDate(expiresOn)}.`;
+			logger.success(`[${basename(__filename)}]: ${successMessage}`);
+			await bot.sendMessage(chatId, successMessage);
+			await bot.sendMessage(chatId, `ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``, {
+				parse_mode: 'MarkdownV2',
+			});
+			if (nalog) {
+				await this.addPaymentNalog(chatId, user.username, amount, result.id);
+			}
+			if (dependants) {
+				for (const dep of user.dependants) {
+					const childResult = await this.repository.create(dep.id, {
+						amount: 0,
+						monthsCount: Number(monthsCount),
+						expiresOn,
+						plan,
+						parentPaymentId: result.id,
+					});
+					if (childResult) {
+						const successMessage = `Платёж на ${monthsCount} месяцев был успешно обработан для пользователя ${dep.username} (${dep.id}) дочернего от ${user.username} (${user.id}). 
+Новая дата истечения срока ${formatDate(expiresOn)}`;
+						logger.success(`${basename(__filename)}: ${successMessage}`);
+						await bot.sendMessage(chatId, successMessage);
+						await bot.sendMessage(
+							chatId,
+							`ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``,
+							{
+								parse_mode: 'MarkdownV2',
+							},
+						);
+						await this.pasarguardService.updateUser(`${dep.username}_${dep.id}`, {
+							expire: addDays(childResult.expiresOn, 1).toISOString(),
+						});
+					} else {
+						const errMessage = `По непредвиденным обстоятельствам платеж для дочернего пользователя ${dep.username} не был создан`;
+						logger.error(`[${basename(__filename)}]: ${errMessage}`);
+						await bot.sendMessage(chatId, errMessage);
+					}
+				}
+			}
+			await this.pasarguardService.updateUser(`${user.username}_${user.id}`, {
+				expire: addDays(result.expiresOn, 1).toISOString(),
+			});
 		} catch (err) {
 			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username} ${err}`;
 			logger.error(`[${basename(__filename)}]: ${errMessage}`);

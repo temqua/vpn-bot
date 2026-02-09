@@ -972,6 +972,16 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 	async listKeys(message: Message, context: UsersContext) {
 		const list = await this.repository.listUserServers(Number(context.id));
 		for (const record of list) {
+			const pauseButton = {
+				text: 'Pause',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.PauseKey,
+						rid: record.id,
+					},
+				}),
+			};
 			await bot.sendMessage(
 				message.chat.id,
 				`${record.server.name} (${record.server.url})
@@ -988,35 +998,30 @@ Created at ${formatDate(record.assignedAt)}`,
 										[CmdCode.Scope]: CommandScope.Users,
 										[CmdCode.Context]: {
 											[CmdCode.Command]: VPNUserCommand.GetKeyFile,
-											sid: record.serverId,
-											id: record.userId,
-											pr: record.protocol.substring(0, 1),
+											rid: record.id,
 										},
 									}),
 								},
+								...(record.protocol === VPNProtocol.WireGuard ? [{ ...pauseButton }] : []),
+							],
+							[
 								{
 									text: 'Delete',
 									callback_data: JSON.stringify({
 										[CmdCode.Scope]: CommandScope.Users,
 										[CmdCode.Context]: {
 											[CmdCode.Command]: VPNUserCommand.DeleteKey,
-											sid: record.serverId,
-											id: record.userId,
-											pr: record.protocol.substring(0, 1),
+											rid: record.id,
 										},
 									}),
 								},
-							],
-							[
 								{
 									text: 'Unassign',
 									callback_data: JSON.stringify({
 										[CmdCode.Scope]: CommandScope.Users,
 										[CmdCode.Context]: {
 											[CmdCode.Command]: VPNUserCommand.UnassignKey,
-											sid: record.serverId,
-											id: record.userId,
-											pr: record.protocol.substring(0, 1),
+											rid: record.id,
 										},
 									}),
 								},
@@ -1052,9 +1057,7 @@ Created at ${formatDate(record.assignedAt)}`,
 										[CmdCode.Scope]: CommandScope.Users,
 										[CmdCode.Context]: {
 											[CmdCode.Command]: VPNUserCommand.GetKeyFile,
-											sid: record.serverId,
-											id: record.userId,
-											pr: record.protocol.substring(0, 1),
+											rid: record.id,
 										},
 									}),
 								},
@@ -1071,9 +1074,8 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	async deleteKey(message: Message, context: UsersContext, unassign: boolean = false) {
-		const protocol =
-			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
-		const record = await this.repository.getUserServer(Number(context.id), Number(context.sid), protocol);
+		const record = await this.repository.getUserServerById(Number(context.rid));
+		const protocol = record.protocol;
 
 		try {
 			await this.repository.deleteUserServer(record.id);
@@ -1102,12 +1104,28 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	async getKeyFile(message: Message, context: UsersContext) {
-		const protocol =
-			context.pr === 'I' ? VPNProtocol.IKEv2 : context.pr === 'W' ? VPNProtocol.WireGuard : VPNProtocol.OpenVPN;
-		const record = await this.repository.getUserServer(Number(context.id), Number(context.sid), protocol);
+		const record = await this.repository.getUserServerById(Number(context.rid));
+		const protocol = record.protocol;
 		try {
 			const service = new CertificatesService(protocol, record.server.url);
 			await service.getFile(message, record.username);
+		} catch (error) {
+			bot.sendMessage(
+				message.chat.id,
+				`Error occurred while getting ${protocol} key file for user ${record.user.username} ${error}`,
+			);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
+
+	async pauseKey(message: Message, context: UsersContext) {
+		const record = await this.repository.getUserServerById(Number(context.rid));
+		const protocol = record.protocol;
+
+		try {
+			const service = new CertificatesService(protocol, record.server.url);
+			await service.pause(message, record.username);
 		} catch (error) {
 			bot.sendMessage(
 				message.chat.id,

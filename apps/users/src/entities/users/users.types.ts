@@ -14,6 +14,7 @@ export interface UsersContext {
 	payerId?: string;
 	pr?: 'I' | 'W' | 'O';
 	a?: string;
+	rid?: string;
 	username?: string;
 	[CmdCode.SubOperation]?: VPNUserCommand;
 }
