@@ -69,7 +69,11 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	path := getEnvOrFail("LIST_PATH")
 	out, err := runScript(path)
 	if err != nil {
-		http.Error(w, out, http.StatusInternalServerError)
+		message := out
+		if out == "" {
+			message = err.Error()
+		}
+		http.Error(w, message, http.StatusInternalServerError)
 		return
 	}
 
@@ -77,10 +81,19 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pauseHandler(w http.ResponseWriter, r *http.Request) {
+	username, ok := getUsername(w, r)
+	if !ok {
+		http.Error(w, "Expected username query param", http.StatusBadRequest)
+		return
+	}
 	path := getEnvOrFail("PAUSE_PATH")
-	out, err := runScript(path)
+	out, err := runScript(path, username)
 	if err != nil {
-		http.Error(w, out, http.StatusInternalServerError)
+		message := out
+		if out == "" {
+			message = err.Error()
+		}
+		http.Error(w, message, http.StatusInternalServerError)
 		return
 	}
 
