@@ -10,9 +10,8 @@ on:
                 type: choice
                 options:
                     - turkey
-                    - us
+                    - us2
                     - neth
-                    - fin
 
 jobs:
     build-deploy:

@@ -1,4 +1,4 @@
-name: Build & Deploy VPN Infrastructure
+name: Build & Deploy Wireguard management service
 
 on:
     workflow_dispatch:
@@ -32,20 +32,6 @@ jobs:
                   mkdir -p ~/.ssh
                   ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts
 
-            - name: Build IKEv2 image
-              working-directory: apps/infrastructure
-              run: |
-                  docker compose build ikev2_service
-
-            - name: Upload IKEv2 to server
-              working-directory: apps/infrastructure
-              run: |
-                  docker save ikev2_service:latest \
-                  | gzip \
-                  | ssh -o ServerAliveInterval=15 \
-                          -o ServerAliveCountMax=8 \
-                          ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
-                          'gunzip | docker load'
             - name: Build WireGuard image
               working-directory: apps/infrastructure
               run: |
@@ -61,28 +47,13 @@ jobs:
                           ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
                           'gunzip | docker load'
 
-            - name: Build OpenVPN image
-              working-directory: apps/infrastructure
-              run: |
-                  docker compose build openvpn_service
-
-            - name: Upload OpenVPN to server
-              working-directory: apps/infrastructure
-              run: |
-                  docker save openvpn_service:latest \
-                  | gzip \
-                  | ssh -o ServerAliveInterval=15 \
-                          -o ServerAliveCountMax=8 \
-                          ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} \
-                          'gunzip | docker load'
-
             - name: Upload docker-compose.yml via SSH
               run: |
                   cat ./apps/infrastructure/docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}/docker-compose.yml"
 
-            - name: Restart containers on server
+            - name: Restart Wireguard container on server
               run: |
                   ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
                     cd ${{ secrets.VPN_SERVER_INFRA_DIRECTORY }}
-                    docker compose up -d
+                    docker compose up -d wg_service
                   '
