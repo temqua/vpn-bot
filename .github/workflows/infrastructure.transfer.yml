@@ -12,6 +12,8 @@ on:
                     - turkey
                     - us2
                     - neth
+                    - fin
+                    - albania
 
 jobs:
     build-deploy:
