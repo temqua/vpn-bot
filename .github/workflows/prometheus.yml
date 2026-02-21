@@ -1,0 +1,55 @@
+name: Build & Deploy Prometheus service
+
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: 'Target environment'
+                required: true
+                default: t
+                type: choice
+                options:
+                    - turkey
+                    - us2
+                    - neth
+                    - brazil
+                    - albania
+                    - fin
+
+jobs:
+    build-deploy:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        environment: ${{ inputs.environment }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup SSH
+              uses: webfactory/ssh-agent@v0.9.1
+              with:
+                  ssh-private-key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+
+            - name: Add VPN server to known hosts
+              run: |
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts
+
+            - name: Upload docker-compose.yml via SSH
+              run: |
+                  cat ./monitoring/docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/docker-compose.yml"
+
+            - name: Upload prometheus.yml via SSH
+              run: |
+                  cat ./monitoring/prometheus.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus.yml"
+
+            - name: Restart IKEv2 container on server
+              run: |
+                  ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
+                    cd ${{ secrets.VPN_SERVER_MON_DIRECTORY }}
+                    mkdir -p prometheus
+                    mkdir -p prometheus/config
+                    mkdir -p prometheus/data
+                    mv -n prometheus.yml prometheus/config
+                    docker compose up -d
+                  '
