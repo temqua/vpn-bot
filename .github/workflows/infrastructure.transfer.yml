@@ -14,6 +14,7 @@ on:
                     - neth
                     - fin
                     - albania
+                    - brazil
 
 jobs:
     build-deploy:

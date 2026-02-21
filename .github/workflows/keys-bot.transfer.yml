@@ -12,9 +12,11 @@ on:
                 type: choice
                 options:
                     - turkey
-                    - us
+                    - us2
                     - neth
                     - fin
+                    - albania
+                    - brazil
 
 jobs:
     build_and_deploy:
