@@ -9,12 +9,10 @@ on:
                 default: t
                 type: choice
                 options:
-                    - turkey
                     - us2
                     - neth
                     - brazil
-                    - albania
-                    - fin
+                    - msk
 
 jobs:
     build-deploy:
