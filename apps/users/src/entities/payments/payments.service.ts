@@ -361,10 +361,10 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 		const dependants = user.dependants.filter(d => d.active && !d.free);
 		const dependantsCount = dependants?.length ?? 0;
 		const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependantsCount);
-		if (user.dependants?.length) {
+		if (dependants?.length) {
 			await bot.sendMessage(
 				chatId,
-				`Обнаружено ${user.dependants.length} зависимых клиентов: ${user.dependants.map(u => u.username).join(', ')}`,
+				`Обнаружено ${dependants.length} зависимых клиентов: ${dependants.map(u => u.username).join(', ')}`,
 			);
 		}
 		if (plan) {
@@ -438,7 +438,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 				await this.addPaymentNalog(chatId, user.username, amount, result.id);
 			}
 			if (dependants) {
-				for (const dep of user.dependants) {
+				for (const dep of dependants) {
 					const childResult = await this.repository.create(dep.id, {
 						amount: 0,
 						monthsCount: Number(monthsCount),

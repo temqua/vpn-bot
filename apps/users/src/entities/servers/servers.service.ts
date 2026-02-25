@@ -65,10 +65,7 @@ URL: ${server.url}
 		}
 		if (this.createSteps.name) {
 			this.params.set('name', message?.text);
-			await bot.editMessageText('Enter URL', {
-				message_id: this.params.get('message_id'),
-				chat_id: chatId,
-			});
+			await bot.sendMessage(chatId, 'Enter URL');
 			this.setCreateStep('url');
 			return;
 		}
@@ -78,11 +75,10 @@ URL: ${server.url}
 		try {
 			const created = await this.repository.create(params.get('name'), params.get('url'));
 			if (created) {
-				await bot.editMessageText(
+				await bot.sendMessage(
+					chatId,
 					`Server ${created.name} with URL ${created.url} has been successfully created`,
 					{
-						chat_id: chatId,
-						message_id: this.params.get('message_id'),
 						reply_markup: {
 							inline_keyboard: getServerKeyboard(created.id),
 						},
@@ -255,10 +251,7 @@ URL: ${server.url}
 						: VPNProtocol.OpenVPN;
 			this.params.set('protocol', protocol);
 			if (command !== ServerCommand.ListKeys) {
-				await bot.editMessageText('Enter key username', {
-					message_id: this.params.get('message_id'),
-					chat_id: message.chat.id,
-				});
+				await bot.sendMessage(message.chat.id, 'Enter key username');
 				return;
 			}
 		}

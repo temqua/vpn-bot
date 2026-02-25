@@ -16,6 +16,11 @@ export class ServersRepository {
 	}
 
 	async delete(id: number) {
+		await prisma.serversUsers.deleteMany({
+			where: {
+				serverId: id,
+			},
+		});
 		return await prisma.vpnServer.delete({
 			where: {
 				id,
