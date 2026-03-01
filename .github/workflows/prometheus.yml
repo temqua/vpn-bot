@@ -40,11 +40,11 @@ jobs:
 
             - name: Upload prometheus.yml via SSH
               run: |
-                  cat ./monitoring/prometheus.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus.yml"
+                  cat ./monitoring/prometheus.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus/config/prometheus.yml"
 
             - name: Upload web.yml via SSH
               run: |
-                  cat ./monitoring/web.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/web.yml"
+                  cat ./monitoring/web.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus/config/web.yml"
 
             - name: Restart IKEv2 container on server
               run: |
