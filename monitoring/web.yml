@@ -1,0 +1,6 @@
+tls_server_config:
+    cert_file: /etc/ssl/certs/api/cert.pem
+    key_file: /etc/ssl/certs/api/key.pem
+
+basic_auth_users:
+    p-admin: $2y$10$p08UUWCFFyxwUsU7hATN/.GV66KpBX2JPgZc5cxBtq3yW8RdQRyt
