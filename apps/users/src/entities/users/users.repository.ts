@@ -18,6 +18,7 @@ export class UsersRepository {
 		lastName: string | null,
 		devices: Device[],
 		bank: Bank,
+		payerId: number | null,
 	): Promise<User> {
 		return await prisma.user.create({
 			data: {
@@ -28,6 +29,7 @@ export class UsersRepository {
 				lastName,
 				devices,
 				bank,
+				payerId,
 			},
 		});
 	}

@@ -292,7 +292,7 @@ export class PaymentsService {
 		}
 		if (this.paymentSteps.nalog) {
 			this.params.set('nalog', Boolean(context?.accept));
-			if (user.dependants.length) {
+			if (user.dependants.filter(u => u.active).length) {
 				await bot.sendMessage(chatId, `Добавить платежи для дочерних юзеров?`, {
 					reply_markup: {
 						inline_keyboard: getYesNoKeyboard(),
@@ -398,7 +398,9 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 		if (lastPayment) {
 			await bot.sendMessage(
 				chatId,
-				`Последний платёж этого пользователя количеством ${lastPayment.amount} ${lastPayment.currency} создан ${formatDate(lastPayment.paymentDate)} на ${lastPayment.monthsCount} месяцев и истекает ${lastPayment.expiresOn ? formatDate(lastPayment.expiresOn) : 'unset'}`,
+				`Последний платёж этого пользователя количеством ${lastPayment.amount} ${lastPayment.currency} 
+создан ${formatDate(lastPayment.paymentDate)} на ${lastPayment.monthsCount} месяцев 
+и истекает ${lastPayment.expiresOn ? formatDate(lastPayment.expiresOn) : 'unset'}`,
 			);
 		}
 		const calculated = addMonths(lastPayment?.expiresOn ?? new Date(), months);
@@ -409,12 +411,12 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 
 	private async executePayment(chatId: number, user: VPNUser) {
 		try {
-			const amount = this.params.get('amount');
-			const monthsCount = this.params.get('months');
-			const expiresOn = this.params.get('expires');
-			const nalog = this.params.get('nalog');
-			const plan: Plan = this.params.get('plan') ?? null;
-			const dependants = this.params.get('dependants');
+			const amount: number = this.params.get('amount');
+			const monthsCount: number = this.params.get('months');
+			const expiresOn: Date = this.params.get('expires');
+			const nalog: boolean = this.params.get('nalog');
+			const plan: Plan | null = this.params.get('plan') ?? null;
+			const addDependants: boolean | undefined = this.params.get('dependants');
 			const result = await this.repository.create(user.id, {
 				amount: Number(amount),
 				monthsCount: Number(monthsCount),
@@ -437,8 +439,8 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			if (nalog) {
 				await this.addPaymentNalog(chatId, user.username, amount, result.id);
 			}
-			if (dependants) {
-				for (const dep of dependants) {
+			if (addDependants) {
+				for (const dep of user.dependants.filter(u => u.active)) {
 					const childResult = await this.repository.create(dep.id, {
 						amount: 0,
 						monthsCount: Number(monthsCount),
@@ -468,9 +470,11 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 					}
 				}
 			}
-			await this.pasarguardService.updateUser(`${user.username}_${user.id}`, {
-				expire: addDays(result.expiresOn, 1).toISOString(),
-			});
+			if (env.BOT_ENV !== 'local') {
+				await this.pasarguardService.updateUser(`${user.username}_${user.id}`, {
+					expire: addDays(result.expiresOn, 1).toISOString(),
+				});
+			}
 		} catch (err) {
 			const errMessage = `Ошибка при обработке платежа для пользователя ${user.username} ${err}`;
 			logger.error(`[${basename(__filename)}]: ${errMessage}`);

@@ -84,6 +84,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context[CmdCode.Command] === VPNUserCommand.Create) {
 			await this.service.create(message, context as UserCreateCommandContext, this.state.init);
 		}
+		if (context[CmdCode.Command] === VPNUserCommand.CreateChild) {
+			await this.service.create(message, context as UserCreateCommandContext, this.state.init, true);
+		}
 		if (context[CmdCode.Command] === VPNUserCommand.GetById) {
 			await this.service.getById(message, context);
 		}
@@ -164,7 +167,7 @@ class UsersCommandsHandler implements ICommandHandler {
 	async handlePoll(context: UsersContext, poll: Poll) {
 		const selected = poll.options.filter(o => o.voter_count > 0).map(o => o.text as Device | VPNProtocol | Bank);
 		if (context[CmdCode.Command] === VPNUserCommand.Create) {
-			await this.service.create(null, context as UserCreateCommandContext, false, selected);
+			await this.service.create(null, context as UserCreateCommandContext, false, false, selected);
 		} else if (context[CmdCode.Command] === VPNUserCommand.Update) {
 			await this.service.update(null, context as UserUpdateCommandContext, this.state, selected);
 		} else if (context[CmdCode.Command] === VPNUserCommand.Pay) {

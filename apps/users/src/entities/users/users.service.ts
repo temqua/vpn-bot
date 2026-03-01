@@ -82,12 +82,16 @@ export class UsersService {
 		message: Message | null,
 		context: UserCreateCommandContext,
 		start = false,
+		createChild = false,
 		selectedOptions: (Device | VPNProtocol | Bank)[] = [],
 	) {
 		this.log(`create. Active step ${this.getActiveStep(this.createSteps) ?? 'start'}`);
 
 		const chatId = message ? message.chat.id : context.chatId;
 		if (start) {
+			if (createChild) {
+				this.params.set('payer_id', context.id);
+			}
 			await bot.sendMessage(chatId, 'Share user. For skipping just send any text', {
 				reply_markup: {
 					keyboard: [
@@ -199,6 +203,7 @@ export class UsersService {
 				params.get('last_name'),
 				params.get('devices'),
 				params.get('bank'),
+				params.get('payer_id'),
 			);
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			let finalUser = newUser;

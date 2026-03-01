@@ -105,6 +105,18 @@ export const getUserMenu = (userId: number) => {
 				}),
 			},
 		],
+		[
+			{
+				text: 'Create Child',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.CreateChild,
+						id: userId,
+					},
+				}),
+			},
+		],
 	];
 };
 

@@ -32,6 +32,7 @@ export enum ServerCommand {
 export enum VPNUserCommand {
 	AssignKey = 'ask',
 	Create = 'cr',
+	CreateChild = 'cc',
 	CreateSubscriptionAdmin = 'crsa',
 	CreateSubscription = 'crs',
 	CreateKey = 'crk',
