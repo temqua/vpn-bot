@@ -3,4 +3,4 @@ tls_server_config:
     key_file: /etc/prometheus/certs/key.pem
 
 basic_auth_users:
-    p-admin: $2y$10$p08UUWCFFyxwUsU7hATN/.GV66KpBX2JPgZc5cxBtq3yW8RdQRyt
+    padmin: $2y$10$CZcrG6VzPpZwUAmoaz85Ke9mO41ju0CYQ8qBLUSobr7b6FjxiSwzq
