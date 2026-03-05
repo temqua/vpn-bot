@@ -3,8 +3,19 @@ import { dict } from '../../dict';
 import { CmdCode, CommandScope, UpdateUserPropsMap, UserRequest, VPNUserCommand } from '../../enums';
 import { CommandDetailCompressed } from '../../global.handler';
 
-export const getUserMenu = (userId: number) => {
-	return [
+export const getUserMenu = (userId: number, isChildUser: boolean = false) => {
+	const createChildBtn: InlineKeyboardButton = {
+		text: 'Create Child',
+		callback_data: JSON.stringify({
+			[CmdCode.Scope]: CommandScope.Users,
+			[CmdCode.Context]: {
+				[CmdCode.Command]: VPNUserCommand.CreateChild,
+				id: userId,
+			},
+		}),
+	};
+
+	const buttons: InlineKeyboardButton[][] = [
 		[
 			{
 				text: 'Update',
@@ -105,19 +116,11 @@ export const getUserMenu = (userId: number) => {
 				}),
 			},
 		],
-		[
-			{
-				text: 'Create Child',
-				callback_data: JSON.stringify({
-					[CmdCode.Scope]: CommandScope.Users,
-					[CmdCode.Context]: {
-						[CmdCode.Command]: VPNUserCommand.CreateChild,
-						id: userId,
-					},
-				}),
-			},
-		],
 	];
+	if (!isChildUser) {
+		buttons.push([createChildBtn]);
+	}
+	return buttons;
 };
 
 export const findUserButtons: InlineKeyboardButton[][] = [

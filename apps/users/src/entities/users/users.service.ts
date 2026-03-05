@@ -1295,9 +1295,10 @@ Created at ${formatDate(record.assignedAt)}`,
 
 	private async sendUserMenu(chatId: number, user: VPNUser) {
 		await bot.sendMessage(chatId, this.formatUserInfo(user));
+
 		await bot.sendMessage(chatId, 'Select operation', {
 			reply_markup: {
-				inline_keyboard: getUserMenu(user.id),
+				inline_keyboard: getUserMenu(user.id, Boolean(user.payer)),
 			},
 		});
 		if (user.dependants.length) {
