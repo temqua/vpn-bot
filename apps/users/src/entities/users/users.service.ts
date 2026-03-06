@@ -1314,11 +1314,13 @@ Created at ${formatDate(record.assignedAt)}`,
 					}),
 				},
 			]);
+
 			await bot.sendMessage(chatId, 'Dependants', {
 				reply_markup: {
 					inline_keyboard: buttons,
 				},
 			});
+			
 		}
 		if (user.payerId != null) {
 			await bot.sendMessage(chatId, 'Payer', {

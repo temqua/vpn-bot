@@ -1,20 +1,4 @@
 services:
-    prometheus:
-        image: prom/prometheus
-        container_name: prometheus
-        network_mode: host
-        volumes:
-            - ./prometheus/config:/etc/prometheus
-            - ./prometheus/data:/prometheus
-            - /etc/ssl/certs/api:/etc/prometheus/certs:ro
-        command:
-            [
-                '--config.file=/etc/prometheus/prometheus.yml',
-                '--web.listen-address=:9090',
-                '--web.config.file=/etc/prometheus/web.yml',
-            ]
-        restart: unless-stopped
-
     node_exporter:
         image: quay.io/prometheus/node-exporter
         container_name: node-exporter
