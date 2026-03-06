@@ -44,12 +44,14 @@ import {
 	UsersContext,
 	UserUpdateCommandContext,
 } from './users.types';
+import { PlanRepository } from '../plans/plans.repository';
 
 export class UsersService {
 	constructor(
 		private repository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
 		private serversRepository: ServersRepository = new ServersRepository(),
+		private plansRepository: PlanRepository = new PlanRepository(),
 	) {}
 
 	params = new Map();
@@ -1151,6 +1153,33 @@ Created at ${formatDate(record.assignedAt)}`,
 		});
 	}
 
+	async showGuide(message: Message, context: UsersContext) {
+		try {
+			const user = await this.repository.getById(Number(context.id));
+			const mess = `
+Для работы с подпиской необходимо установить **happ**
+[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
+[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Сайт](https://www.happ.su/main/)
+После установки happ скопируйте ссылку, нажав на неё
+\`${user.subLink}\`
+Затем зайдите в happ и
+а\\) На телефоне нажмите на кнопку Из буфера внизу слева
+б\\) На компьютере вставьте ссылку в поле ввода
+`;
+			bot.sendMessage(message.chat.id, mess, {
+				parse_mode: 'MarkdownV2',
+			});
+		} catch (error) {
+			bot.sendMessage(
+				message.chat.id,
+				`Error occurred while generating guide for user with id ${context.id} ${error}`,
+			);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
+
 	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {
 		return await this.repository.createUserServer(Number(userId), Number(serverId), protocol, username);
 	}
@@ -1314,13 +1343,17 @@ Created at ${formatDate(record.assignedAt)}`,
 					}),
 				},
 			]);
-
+			const plans = await this.plansRepository.findByPriceAndCount(user.price, 1 + user.dependants.length);
+			const msg = plans.map(p => `${p.amount} ${p.currency} на ${p.months} месяцев`).join('\n');
+			await bot.sendMessage(
+				chatId,
+				`Подходящие планы для подписки на ${1 + user.dependants.length} человек:\n${msg}`,
+			);
 			await bot.sendMessage(chatId, 'Dependants', {
 				reply_markup: {
 					inline_keyboard: buttons,
 				},
 			});
-			
 		}
 		if (user.payerId != null) {
 			await bot.sendMessage(chatId, 'Payer', {

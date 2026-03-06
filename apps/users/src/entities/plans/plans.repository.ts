@@ -17,6 +17,20 @@ export class PlanRepository {
 		});
 	}
 
+	async findByPriceAndCount(price: number, count: number) {
+		return await prisma.plan.findMany({
+			where: {
+				price,
+				minCount: {
+					lte: count,
+				},
+				maxCount: {
+					gte: count,
+				},
+			},
+		});
+	}
+
 	async getAll(): Promise<Plan[]> {
 		return await prisma.plan.findMany({
 			orderBy: [

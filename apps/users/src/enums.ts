@@ -57,6 +57,7 @@ export enum VPNUserCommand {
 	ExportPayments = 'exp',
 	ExportExpenses = 'expe',
 	Expand = 'e',
+	ShowGuide = 'sg',
 	ShowPayments = 'sp',
 	ShowUnpaid = 'su',
 	NotifyUnpaid = 'nu',

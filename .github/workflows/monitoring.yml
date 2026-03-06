@@ -1,4 +1,4 @@
-name: Build & Deploy Prometheus service
+name: Update exporters
 
 on:
     workflow_dispatch:

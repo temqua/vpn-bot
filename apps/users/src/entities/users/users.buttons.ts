@@ -116,6 +116,18 @@ export const getUserMenu = (userId: number, isChildUser: boolean = false) => {
 				}),
 			},
 		],
+		[
+			{
+				text: 'Show Guide',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.ShowGuide,
+						id: userId,
+					},
+				}),
+			},
+		],
 	];
 	if (!isChildUser) {
 		buttons.push([createChildBtn]);
