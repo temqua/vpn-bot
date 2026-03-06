@@ -733,7 +733,7 @@ ${user.price} рублей стоит месяц
 
 		const user = await this.repository.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
-			const builtMessage = `${`\`https://pg.tesseractnpv.com${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
+			const builtMessage = `${`\`${env.PASARGUARD_ROOT}${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
 ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 			bot.editMessageText(builtMessage, {
 				parse_mode: 'MarkdownV2',
@@ -1160,11 +1160,13 @@ Created at ${formatDate(record.assignedAt)}`,
 Для работы с подпиской необходимо установить **happ**
 [Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
 [App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)
+[macOS](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973)
 [Сайт](https://www.happ.su/main/)
 После установки happ скопируйте ссылку, нажав на неё
-\`${user.subLink}\`
+\`${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}\`
 Затем зайдите в happ и
-а\\) На телефоне нажмите на кнопку Из буфера внизу слева
+а\\) На телефоне нажмите на кнопку "Из буфера" внизу слева
 б\\) На компьютере вставьте ссылку в поле ввода
 `;
 			bot.sendMessage(message.chat.id, mess, {
@@ -1386,7 +1388,7 @@ Telegram Link: ${user.telegramLink}
 Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Price: ${user.price}
-Subscription link: ${user.subLink ? 'https://pg.tesseractnpv.com' : ''}${user.subLink}
+Subscription link: ${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}
 Created At: ${formatDate(user.createdAt)}\n`;
 		if (user.bank) {
 			baseInfo = baseInfo.concat(`Bank: ${user.bank}\n`);
@@ -1428,7 +1430,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			} else {
 				await bot.sendMessage(
 					message.chat.id,
-					`\`https://pg.tesseractnpv.com${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
+					`\`${env.PASARGUARD_ROOT}${newPasarguardUser.subscription_url.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``,
 					{
 						parse_mode: 'MarkdownV2',
 					},
