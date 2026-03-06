@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
 
 jobs:
-    build-deploy:
+    upload:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
