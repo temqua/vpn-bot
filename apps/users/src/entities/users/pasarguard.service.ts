@@ -1,16 +1,16 @@
-import { addDays, addMonths, subMonths } from 'date-fns';
+import { addDays, addMonths } from 'date-fns';
+import { basename } from 'path';
 import client from '../../client';
 import env from '../../env';
 import logger from '../../logger';
 import { isJSONErrorResponse } from '../../utils';
 import {
 	PasarguardAuthResponse,
-	PasarguardUserResponse,
 	PasarguardDeleteResult,
 	PasarguardErrorResponse,
 	PasarguardUserBody,
+	PasarguardUserResponse,
 } from './pasarguard.types';
-import { basename } from 'path';
 
 export class PasarguardService {
 	private apiRoot = env.PASARGUARD_ROOT;
