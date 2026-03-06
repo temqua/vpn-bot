@@ -7,7 +7,6 @@ jobs:
     build-deploy:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        environment: ${{ inputs.environment }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -15,29 +14,29 @@ jobs:
             - name: Setup SSH
               uses: webfactory/ssh-agent@v0.9.1
               with:
-                  ssh-private-key: ${{ secrets.VPN_SERVER_SSH_KEY }}
+                  ssh-private-key: ${{ secrets.MON_SERVER_SSH_KEY }}
 
             - name: Add VPN server to known hosts
               run: |
                   mkdir -p ~/.ssh
-                  ssh-keyscan -H ${{ secrets.VPN_SERVER_HOST }} >> ~/.ssh/known_hosts
+                  ssh-keyscan -H ${{ secrets.MON_SERVER_HOST }} >> ~/.ssh/known_hosts
 
             - name: Upload docker-compose.yml via SSH
               run: |
-                  cat ./monitoring/docker-compose.prom.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/docker-compose.yml"
+                  cat ./monitoring/docker-compose.prom.yml | ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} "cat > ${{ secrets.MON_SERVER_DIRECTORY }}/docker-compose.yml"
 
             - name: Upload prometheus.yml via SSH
               run: |
-                  cat ./monitoring/prometheus.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus/config/prometheus.yml"
+                  cat ./monitoring/prometheus.yml | ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} "cat > ${{ secrets.MON_SERVER_DIRECTORY }}/prometheus/config/prometheus.yml"
 
             - name: Upload web.yml via SSH
               run: |
-                  cat ./monitoring/web.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus/config/web.yml"
+                  cat ./monitoring/web.yml | ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} "cat > ${{ secrets.MON_SERVER_DIRECTORY }}/prometheus/config/web.yml"
 
             - name: Restart prometheus on server
               run: |
-                  ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
-                    cd ${{ secrets.VPN_SERVER_MON_DIRECTORY }}
+                  ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} '
+                    cd ${{ secrets.MON_SERVER_DIRECTORY }}
                     mkdir -p prometheus
                     mkdir -p prometheus/config
                     mkdir -p prometheus/data
