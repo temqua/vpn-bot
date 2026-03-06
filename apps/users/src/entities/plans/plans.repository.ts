@@ -28,6 +28,11 @@ export class PlanRepository {
 					gte: count,
 				},
 			},
+			orderBy: [
+				{
+					months: 'asc',
+				},
+			],
 		});
 	}
 

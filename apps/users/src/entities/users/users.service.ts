@@ -1347,7 +1347,7 @@ Created at ${formatDate(record.assignedAt)}`,
 			const msg = plans.map(p => `${p.amount} ${p.currency} на ${p.months} месяцев`).join('\n');
 			await bot.sendMessage(
 				chatId,
-				`Подходящие планы для подписки на ${1 + user.dependants.length} человек:\n${msg}`,
+				`Подходящие планы для подписки на ${1 + user.dependants.length} человек при цене ${user.price}:\n${msg}`,
 			);
 			await bot.sendMessage(chatId, 'Dependants', {
 				reply_markup: {
