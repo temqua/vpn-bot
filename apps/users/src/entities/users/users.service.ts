@@ -1157,7 +1157,7 @@ Created at ${formatDate(record.assignedAt)}`,
 		try {
 			const user = await this.repository.getById(Number(context.id));
 			const mess = `
-Для работы с подпиской необходимо установить **happ**
+Для работы с подпиской необходимо установить приложение **happ**
 [Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
 [App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
 [Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)

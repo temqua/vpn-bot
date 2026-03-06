@@ -20,10 +20,15 @@ export const dict = {
 ⚫️ **happ** — предпочтительнее всего
 [Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
 [App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
-[Official Site](https://www.happ.su/main/)				 
+[Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)
+[macOS](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973)
+[Сайт](https://www.happ.su/main/)				 
 ⚫️ **v2RayTun** 
 [Play Market](https://play.google.com/store/apps/details?id=com.v2raytun.android&hl=en) 
 [App Store](https://apps.apple.com/us/app/v2raytun/id6476628951)
+[Windows](https://storage.v2raytun.com/v2RayTun_Setup.exe)
+[macOS](https://apps.apple.com/en/app/v2raytun/id6476628951)
+[Сайт](https://v2raytun.com/)		
 ⚫️  или любой другой клиент, поддерживающий subscription\\-ссылки
 Алгоритм подключения примерно одинаков во всех приложениях:
 1\\. Нажмите на subscription\\-ссылку, она автоматически скопируется в буфер обмена\\. 
@@ -35,10 +40,16 @@ export const dict = {
 `,
 		en: `To use the subscription, you need an Xray client:
 ⚫️ **happ** — preferred
-[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) [App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
+[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)
+[macOS](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973)
 [Official Site](https://www.happ.su/main/)		
 ⚫️ **v2RayTun** 
-[Play Market](https://play.google.com/store/apps/details?id=com.v2raytun.android&hl=en) [App Store](https://apps.apple.com/us/app/v2raytun/id6476628951)
+[Play Market](https://play.google.com/store/apps/details?id=com.v2raytun.android&hl=en) 
+[App Store](https://apps.apple.com/us/app/v2raytun/id6476628951)
+[Windows](https://storage.v2raytun.com/v2RayTun_Setup.exe)
+[macOS](https://apps.apple.com/en/app/v2raytun/id6476628951)
 [Official Site](https://v2raytun.com/)		
 ⚫️ or any other client that supports subscription links
 The setup process is similar in all apps:
