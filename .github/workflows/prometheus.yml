@@ -29,10 +29,6 @@ jobs:
               run: |
                   cat ./monitoring/prometheus.yml | ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} "cat > ${{ secrets.MON_SERVER_DIRECTORY }}/prometheus/config/prometheus.yml"
 
-            - name: Upload web.yml via SSH
-              run: |
-                  cat ./monitoring/web.yml | ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} "cat > ${{ secrets.MON_SERVER_DIRECTORY }}/prometheus/config/web.yml"
-
             - name: Restart prometheus on server
               run: |
                   ssh ${{ secrets.MON_SERVER_USERNAME }}@${{ secrets.MON_SERVER_HOST }} '
