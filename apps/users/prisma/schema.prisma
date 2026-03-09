@@ -30,6 +30,7 @@ model User {
   pasarguardUsername String?        @unique @map(name: "pasarguard_username")
   pasarguardId       Int?           @map(name: "pasarguard_id")
   payerId            Int?           @map(name: "payer_id")
+  referralId         Int?           @map(name: "referral_id")
   devices            Device[]       @default([])
   payments           Payment[]
   payer              User?          @relation("UserToPayer", fields: [payerId], references: [id])
