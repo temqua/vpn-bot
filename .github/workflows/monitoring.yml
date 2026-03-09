@@ -15,7 +15,8 @@ on:
                     - msk
                     - greece
                     - norway
-
+                    - sweden
+                    - austria
 jobs:
     upload:
         runs-on: ubuntu-latest

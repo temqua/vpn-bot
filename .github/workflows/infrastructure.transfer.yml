@@ -15,7 +15,8 @@ on:
                     - msk
                     - greece
                     - norway
-
+                    - sweden
+                    - austria
 jobs:
     build-deploy:
         runs-on: ubuntu-latest
