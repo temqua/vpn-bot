@@ -40,10 +40,6 @@ jobs:
               run: |
                   cat ./monitoring/docker-compose.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/docker-compose.yml"
 
-            - name: Upload web.yml via SSH
-              run: |
-                  cat ./monitoring/web.yml | ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} "cat > ${{ secrets.VPN_SERVER_MON_DIRECTORY }}/prometheus/config/web.yml"
-
             - name: Restart exporters on server
               run: |
                   ssh ${{ secrets.VPN_SERVER_USERNAME }}@${{ secrets.VPN_SERVER_HOST }} '
