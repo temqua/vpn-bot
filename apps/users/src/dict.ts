@@ -142,6 +142,32 @@ The setup process is similar in all apps:
 		ru: 'Загрузить ключ',
 		en: 'Download key',
 	},
+	installation_guide: {
+		ru: (link: string) => {
+			return `Для работы с подпиской необходимо установить приложение **happ**
+[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
+[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)
+[macOS](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973)
+[Сайт](https://www.happ.su/main/)
+После установки happ скопируйте ссылку, нажав на неё
+\`${link}\`
+Затем зайдите в happ и
+а\\) На телефоне нажмите на кнопку "Из буфера" внизу слева
+б\\) На компьютере вставьте ссылку в поле ввода`;
+		},
+		en: (link: string) => `To use the subscription, you need **happ** application
+[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
+[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
+[Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)
+[macOS](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973)
+[Official site](https://www.happ.su/main/)
+After installation copy the link by clicking on it
+\`${link}\`
+Then go to the app and:
+a\\) On the phone, tap the “From Clipboard” button at the bottom left
+b\\) On the computer, paste the link into the input field`,
+	},
 };
 
 export const getPeopleCountMessage = (minCount: number, lang: string) => {

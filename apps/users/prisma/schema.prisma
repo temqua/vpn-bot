@@ -78,6 +78,7 @@ model Plan {
   minCount  Int       @default(1) @map(name: "min_count")
   maxCount  Int       @default(1) @map(name: "max_count")
   createdAt DateTime  @default(now()) @map("created_at")
+  legacy    Boolean?
   Payment   Payment[]
 
   @@map("plans")

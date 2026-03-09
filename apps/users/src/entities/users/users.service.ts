@@ -4,7 +4,7 @@ import type { InlineKeyboardButton, Message, SendBasicOptions, User as TGUser } 
 import { basename } from 'path';
 import bot from '../../bot';
 import { getYesNoKeyboard } from '../../buttons';
-import { dict } from '../../dict';
+import { dict, getMonthsCountMessage } from '../../dict';
 import {
 	Bank,
 	BoolFieldState,
@@ -1153,22 +1153,49 @@ Created at ${formatDate(record.assignedAt)}`,
 		});
 	}
 
-	async showGuide(message: Message, context: UsersContext) {
+	async showInstallationGuide(message: Message, context: UsersContext, from?: TGUser) {
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		try {
 			const user = await this.repository.getById(Number(context.id));
-			const mess = `
-Для работы с подпиской необходимо установить приложение **happ**
-[Play Market](https://play.google.com/store/apps/details?id=com.happproxy) 
-[App Store](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973) 
-[Windows](https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe)
-[macOS](https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973)
-[Сайт](https://www.happ.su/main/)
-После установки happ скопируйте ссылку, нажав на неё
-\`${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}\`
-Затем зайдите в happ и
-а\\) На телефоне нажмите на кнопку "Из буфера" внизу слева
-б\\) На компьютере вставьте ссылку в поле ввода
-`;
+			const link = `${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}`;
+			const messg = dict.installation_guide[lang](link);
+			bot.sendMessage(message.chat.id, messg, {
+				parse_mode: 'MarkdownV2',
+			});
+		} catch (error) {
+			bot.sendMessage(
+				message.chat.id,
+				`Error occurred while generating guide for user with id ${context.id} ${error}`,
+			);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
+
+	async showPaymentGuide(message: Message, context: UsersContext, from?: TGUser) {
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
+
+		try {
+			const user = await this.repository.getById(Number(context.id));
+			const dependantsCount = user.dependants.length
+				? user.dependants.filter(d => d.active && !d.free).length
+				: 0;
+			const count = 1 + dependantsCount;
+			const plans = await this.plansRepository.findByPriceAndCount(user.price, count);
+			let mess = dependantsCount > 0 ? '' : `${user.price} рублей стоит ${getMonthsCountMessage(1, lang)}`;
+			if (plans.length) {
+				const additional = plans
+					.map(p => `${p.amount} ${p.currency} стоит ${getMonthsCountMessage(p.months, lang)}`)
+					.join('\n');
+				mess = `${mess}\n${additional}`;
+			}
+			// 			const mess = `
+			// ${user.price} рублей стоит месяц
+			// 800 полгода
+			// 1500 год
+			// 2200700156700659 т-банк
+			// 2202205048878992 сбер
+			// `;
 			bot.sendMessage(message.chat.id, mess, {
 				parse_mode: 'MarkdownV2',
 			});
@@ -1346,7 +1373,9 @@ Created at ${formatDate(record.assignedAt)}`,
 				},
 			]);
 			const plans = await this.plansRepository.findByPriceAndCount(user.price, 1 + user.dependants.length);
-			const msg = plans.map(p => `${p.amount} ${p.currency} на ${p.months} месяцев`).join('\n');
+			const msg = plans
+				.map(p => `${p.amount} ${p.currency} стоит ${getMonthsCountMessage(p.months, 'ru')}`)
+				.join('\n');
 			await bot.sendMessage(
 				chatId,
 				`Подходящие планы для подписки на ${1 + user.dependants.length} человек при цене ${user.price}:\n${msg}`,
