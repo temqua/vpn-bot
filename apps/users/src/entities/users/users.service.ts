@@ -715,8 +715,7 @@ currently have a trial period `,
 						user.telegramId,
 						`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн @whirliswaiting
 ${user.price} рублей стоит месяц
-2200700156700659 т-банк
-2202205048878992 сбер
+${env.PAYMENT_CARDS}
 `,
 					);
 				} catch (err) {
@@ -1189,13 +1188,8 @@ Created at ${formatDate(record.assignedAt)}`,
 					.join('\n');
 				mess = `${mess}\n${additional}`;
 			}
-			// 			const mess = `
-			// ${user.price} рублей стоит месяц
-			// 800 полгода
-			// 1500 год
-			// 2200700156700659 т-банк
-			// 2202205048878992 сбер
-			// `;
+			mess = `${mess}
+${env.PAYMENT_CARDS}`;
 			bot.sendMessage(message.chat.id, mess, {
 				parse_mode: 'MarkdownV2',
 			});
