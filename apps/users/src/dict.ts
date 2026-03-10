@@ -12,8 +12,8 @@ export const dict = {
 		ru: 'Подписка была успешно удалена',
 	},
 	delete_sub_error: {
-		en: 'Error occurred while deleting. Please send direct message to https://t.me/tesseract_vpn',
-		ru: 'Ошибка удаления. Напишите в личные сообщения https://t.me/tesseract_vpn',
+		en: (url: string) => `Error occurred while deleting. Please send direct message to ${url}`,
+		ru: (url: string) => `Ошибка удаления. Напишите в личные сообщения ${url}`,
 	},
 	intro: {
 		ru: `Для работы с подпиской нужен один из xray\\-клиентов:
@@ -83,8 +83,8 @@ The setup process is similar in all apps:
 		en: 'Your link. Tap/click the link to copy it to your clipboard',
 	},
 	no_payments: {
-		ru: 'Не обнаружено платежей. Напишите в личные сообщения https://t.me/tesseract_vpn',
-		en: 'No payments found. Please send direct message https://t.me/tesseract_vpn',
+		ru: (url: string) => `Не обнаружено платежей. Напишите в личные сообщения ${url}`,
+		en: (url: string) => `No payments found. Please send direct message ${url}`,
 	},
 	welcome: {
 		ru: 'Добро пожаловать в бот тессеракт впн.',
@@ -95,8 +95,8 @@ The setup process is similar in all apps:
 		en: 'Hello',
 	},
 	registration: {
-		ru: 'Напишите в личные сообщения https://t.me/tesseract_vpn для регистрации в системе',
-		en: 'Please send a direct message to https://t.me/tesseract_vpn to register in the system.',
+		ru: (url: string) => `Напишите в личные сообщения ${url} для регистрации в системе`,
+		en: (url: string) => `Please send a direct message to ${url} to register in the system.`,
 	},
 	payments_history: {
 		ru: '💸 История платежей',
@@ -107,7 +107,7 @@ The setup process is similar in all apps:
 		en: '🔑 My keys',
 	},
 	subscription: {
-		ru: '🔗 Автообновляемый ключ',
+		ru: '🔗 Ссылка для happ/v2RayTun',
 		en: '🔗 Subscription link',
 	},
 	guide: {
@@ -117,6 +117,10 @@ The setup process is similar in all apps:
 	prices: {
 		ru: '💵 Цены',
 		en: '💵 Prices',
+	},
+	pay: {
+		ru: '💳 Оплатить',
+		en: '💳 Pay',
 	},
 	main_menu: {
 		ru: 'Главное меню',
@@ -134,10 +138,6 @@ The setup process is similar in all apps:
 		ru: 'Не найдено платежей для данного пользователя',
 		en: 'Payments not found for user',
 	},
-	pay: {
-		ru: 'Оплатить',
-		en: 'Pay'
-	},
 	no_keys: {
 		ru: 'Не найдено существующих ключей',
 		en: 'No keys found for user',
@@ -145,6 +145,22 @@ The setup process is similar in all apps:
 	get_file: {
 		ru: 'Загрузить ключ',
 		en: 'Download key',
+	},
+	payment_request: {
+		ru: 'Ваша заявка на платёж учтена. Необходимо дождаться подтверждения от администратора.',
+		en: 'Your payment request has been recorded. Please wait for confirmation from the administrator.',
+	},
+	paid: {
+		ru: 'Оплачено',
+		en: 'Paid',
+	},
+	click_to_confirm_payment: {
+		ru: 'После оплаты нажмите на кнопку Оплачено',
+		en: 'Click on Paid button after payment'
+	},
+	confirm_payment: {
+		ru: 'Подтвердить платёж',
+		en: 'Confirm payment',
 	},
 	installation_guide: {
 		ru: (link: string) => {

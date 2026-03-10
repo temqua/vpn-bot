@@ -30,12 +30,15 @@ model User {
   pasarguardUsername String?        @unique @map(name: "pasarguard_username")
   pasarguardId       Int?           @map(name: "pasarguard_id")
   payerId            Int?           @map(name: "payer_id")
-  referralId         Int?           @map(name: "referral_id")
+  referrerId         Int?           @map(name: "referrer_id")
   devices            Device[]       @default([])
   payments           Payment[]
   payer              User?          @relation("UserToPayer", fields: [payerId], references: [id])
+  referrer           User?          @relation("UserToReferer", fields: [referrerId], references: [id])
   dependants         User[]         @relation("UserToPayer")
   servers            ServersUsers[]
+  actions            UserAction[]
+  referrals          User[]         @relation("UserToReferer")
 
   @@map("users")
 }
@@ -105,6 +108,17 @@ model ServersUsers {
   assignedAt DateTime    @default(now())
 
   @@map("servers_users")
+}
+
+model UserAction {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map(name: "user_id")
+  command   String?
+  action    String?
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("user_actions")
 }
 
 enum VPNProtocol {

@@ -448,22 +448,22 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 			],
 			[
 				{
-					text: dict.keys[lang],
+					text: dict.subscription[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.KeysUser,
+							[CmdCode.Command]: VPNUserCommand.ShowSubLink,
 						},
 					}),
 				},
 			],
 			[
 				{
-					text: dict.subscription[lang],
+					text: dict.keys[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.ShowSubLink,
+							[CmdCode.Command]: VPNUserCommand.KeysUser,
 						},
 					}),
 				},
@@ -490,17 +490,17 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 					}),
 				},
 			],
-			// [
-			// 	{
-			// 		text: dict.pay[lang],
-			// 		callback_data: JSON.stringify({
-			// 			[CmdCode.Scope]: CommandScope.Users,
-			// 			[CmdCode.Context]: {
-			// 				[CmdCode.Command]: VPNUserCommand.UserPay,
-			// 			},
-			// 		}),
-			// 	},
-			// ],
+			[
+				{
+					text: dict.pay[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.UserPay,
+						},
+					}),
+				},
+			],
 		],
 	};
 };

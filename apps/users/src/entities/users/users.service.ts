@@ -750,7 +750,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 					reply_markup: createSubscriptionButton(lang),
 				});
 			} else {
-				bot.editMessageText(dict.no_payments[lang], {
+				bot.editMessageText(dict.no_payments[lang](env.CHANNEL_URL), {
 					message_id: message.message_id,
 					chat_id: message.chat.id,
 				});
@@ -859,7 +859,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 					reply_markup: getUserKeyboard(lang),
 				});
 			} else {
-				await bot.editMessageText(dict.delete_sub_error[lang], {
+				await bot.editMessageText(dict.delete_sub_error[lang](env.CHANNEL_URL), {
 					message_id: message.message_id,
 					chat_id: message.chat.id,
 					reply_markup: getUserKeyboard(lang),
@@ -1190,20 +1190,23 @@ Created at ${formatDate(record.assignedAt)}`,
 		}
 	}
 
-	async pay(message: Message, context: UsersContext, from?: TGUser, start = true) {
+	async paymentRequest(message: Message, context: UsersContext, from?: TGUser, start = true) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		if (!start) {
-			bot.sendMessage(env.ADMIN_USER_ID, `Пользователь `, {
+			const user = await this.repository.getById(Number(context.id));
+			const userInfo = this.params.get('user_info') ?? '';
+			bot.sendMessage(message.chat.id, dict.payment_request[lang]);
+			bot.sendMessage(env.ADMIN_USER_ID, `Пользователь ${user.username} (id = ${context.id}) ${userInfo} оставил заявку на платёж`, {
 				reply_markup: {
 					inline_keyboard: [
 						[
 							{
-								text: 'Подтвердить платёж',
+								text: dict.confirm_payment[lang],
 								callback_data: JSON.stringify({
 									[CmdCode.Scope]: CommandScope.Users,
 									[CmdCode.Context]: {
 										[CmdCode.Command]: VPNUserCommand.ApprovePayment,
-										id: context.id
+										id: context.id,
 									},
 								}),
 							},
@@ -1211,24 +1214,28 @@ Created at ${formatDate(record.assignedAt)}`,
 					],
 				},
 			});
+
+			globalHandler.finishCommand();
+			return;
 		}
+		this.params.set('user_info', `${from.username ?? ''} ${from.first_name ?? ''} ${from.last_name ?? ''}`)
 		try {
 			const user = await this.repository.getByTelegramId(message.chat.id.toString());
 			const mess = await this.getPaymentString(user, lang);
-			bot.sendMessage(message.chat.id, `${mess}\nПосле оплаты нажмите на кнопку Оплачено`, {
+			bot.sendMessage(message.chat.id, `${mess}\n${dict.click_to_confirm_payment[lang]}`, {
 				parse_mode: 'MarkdownV2',
 				reply_markup: {
 					inline_keyboard: [
 						[
 							{
-								text: 'Оплачено',
+								text: dict.paid[lang],
 								callback_data: JSON.stringify({
 									[CmdCode.Scope]: CommandScope.Users,
 									[CmdCode.Context]: {
 										[CmdCode.Command]: VPNUserCommand.UserPay,
-										[CmdCode.Processing]: 1,
-										id: user.id
+										id: user.id,
 									},
+									[CmdCode.Processing]: 1,
 								}),
 							},
 						],
@@ -1238,13 +1245,8 @@ Created at ${formatDate(record.assignedAt)}`,
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка обработки платежа ${error}`);
 			bot.sendMessage(env.ADMIN_USER_ID, `Ошибка обработки платежа для пользователя ${message.chat.id} ${error}`);
-		} finally {
 			globalHandler.finishCommand();
 		}
-	}
-
-	async approvePayment(message: Message, context: UsersContext) {
-		
 	}
 
 	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {

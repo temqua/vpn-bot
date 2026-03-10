@@ -170,6 +170,11 @@ export class PaymentsService {
 		}
 	}
 
+	async approvePayment(message: Message, context: UsersContext) {
+		setActiveStep('user', this.paymentSteps);
+		await this.pay(message, context, false);
+	}
+
 	async pay(message: Message | null, context: UsersContext, start: boolean) {
 		this.log(`pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;

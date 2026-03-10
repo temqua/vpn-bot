@@ -54,7 +54,7 @@ bot.onText(/\/start/, async (msg: Message) => {
 		} else {
 			await bot.sendMessage(
 				msg.chat.id,
-				`${dict.hello[lang]}, ${msg?.from?.first_name}! ${dict.registration[lang]}`,
+				`${dict.hello[lang]}, ${msg?.from?.first_name}! ${dict.registration[lang](env.CHANNEL_URL)}`,
 			);
 		}
 	}
