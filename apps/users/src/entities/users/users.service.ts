@@ -1176,20 +1176,7 @@ Created at ${formatDate(record.assignedAt)}`,
 
 		try {
 			const user = await this.repository.getById(Number(context.id));
-			const dependantsCount = user.dependants.length
-				? user.dependants.filter(d => d.active && !d.free).length
-				: 0;
-			const count = 1 + dependantsCount;
-			const plans = await this.plansRepository.findByPriceAndCount(user.price, count);
-			let mess = dependantsCount > 0 ? '' : `${user.price} рублей стоит ${getMonthsCountMessage(1, lang)}`;
-			if (plans.length) {
-				const additional = plans
-					.map(p => `${p.amount} ${p.currency} стоит ${getMonthsCountMessage(p.months, lang)}`)
-					.join('\n');
-				mess = `${mess}\n${additional}`;
-			}
-			mess = `${mess}
-${env.PAYMENT_CARDS}`;
+			const mess = await this.getPaymentString(user, lang);
 			bot.sendMessage(message.chat.id, mess, {
 				parse_mode: 'MarkdownV2',
 			});
@@ -1201,6 +1188,63 @@ ${env.PAYMENT_CARDS}`;
 		} finally {
 			globalHandler.finishCommand();
 		}
+	}
+
+	async pay(message: Message, context: UsersContext, from?: TGUser, start = true) {
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
+		if (!start) {
+			bot.sendMessage(env.ADMIN_USER_ID, `Пользователь `, {
+				reply_markup: {
+					inline_keyboard: [
+						[
+							{
+								text: 'Подтвердить платёж',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Users,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: VPNUserCommand.ApprovePayment,
+										id: context.id
+									},
+								}),
+							},
+						],
+					],
+				},
+			});
+		}
+		try {
+			const user = await this.repository.getByTelegramId(message.chat.id.toString());
+			const mess = await this.getPaymentString(user, lang);
+			bot.sendMessage(message.chat.id, `${mess}\nПосле оплаты нажмите на кнопку Оплачено`, {
+				parse_mode: 'MarkdownV2',
+				reply_markup: {
+					inline_keyboard: [
+						[
+							{
+								text: 'Оплачено',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Users,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: VPNUserCommand.UserPay,
+										[CmdCode.Processing]: 1,
+										id: user.id
+									},
+								}),
+							},
+						],
+					],
+				},
+			});
+		} catch (error) {
+			bot.sendMessage(message.chat.id, `Ошибка обработки платежа ${error}`);
+			bot.sendMessage(env.ADMIN_USER_ID, `Ошибка обработки платежа для пользователя ${message.chat.id} ${error}`);
+		} finally {
+			globalHandler.finishCommand();
+		}
+	}
+
+	async approvePayment(message: Message, context: UsersContext) {
+		
 	}
 
 	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {
@@ -1480,6 +1524,21 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			});
 			return null;
 		}
+	}
+
+	private async getPaymentString(user: VPNUser, lang: string) {
+		const dependantsCount = user.dependants.length ? user.dependants.filter(d => d.active && !d.free).length : 0;
+		const count = 1 + dependantsCount;
+		const plans = await this.plansRepository.findByPriceAndCount(user.price, count);
+		let mess = dependantsCount > 0 ? '' : `${user.price} рублей стоит ${getMonthsCountMessage(1, lang)}`;
+		if (plans.length) {
+			const additional = plans
+				.map(p => `${p.amount} ${p.currency} стоит ${getMonthsCountMessage(p.months, lang)}`)
+				.join('\n');
+			mess = `${mess}\n${additional}`;
+		}
+		return `${mess}
+${env.PAYMENT_CARDS}`;
 	}
 
 	private log(message: string) {

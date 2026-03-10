@@ -164,6 +164,12 @@ class UsersCommandsHandler implements ICommandHandler {
 		if (context[CmdCode.Command] === VPNUserCommand.ShowMenu) {
 			await this.service.showMenu(message, from);
 		}
+		if (context[CmdCode.Command] === VPNUserCommand.UserPay) {
+			await this.service.pay(message, context, from, this.state.init);
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.ApprovePayment) {
+			await this.service.approvePayment(message, context);
+		}
 	}
 
 	async handleQuery(context: UsersContext, query: TelegramBot.CallbackQuery, start = false) {

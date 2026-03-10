@@ -490,6 +490,17 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 					}),
 				},
 			],
+			// [
+			// 	{
+			// 		text: dict.pay[lang],
+			// 		callback_data: JSON.stringify({
+			// 			[CmdCode.Scope]: CommandScope.Users,
+			// 			[CmdCode.Context]: {
+			// 				[CmdCode.Command]: VPNUserCommand.UserPay,
+			// 			},
+			// 		}),
+			// 	},
+			// ],
 		],
 	};
 };

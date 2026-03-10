@@ -134,6 +134,10 @@ The setup process is similar in all apps:
 		ru: 'Не найдено платежей для данного пользователя',
 		en: 'Payments not found for user',
 	},
+	pay: {
+		ru: 'Оплатить',
+		en: 'Pay'
+	},
 	no_keys: {
 		ru: 'Не найдено существующих ключей',
 		en: 'No keys found for user',

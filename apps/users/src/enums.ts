@@ -30,6 +30,7 @@ export enum ServerCommand {
 }
 
 export enum VPNUserCommand {
+	ApprovePayment = 'ap',
 	AssignKey = 'ask',
 	Create = 'cr',
 	CreateChild = 'cc',
@@ -68,6 +69,7 @@ export enum VPNUserCommand {
 	ShowPlans = 'shpl',
 	ShowMenu = 'sm',
 	UnassignKey = 'uask',
+	UserPay = 'up'
 }
 
 export enum PaymentCommand {
