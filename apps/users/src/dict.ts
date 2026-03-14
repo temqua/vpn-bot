@@ -156,7 +156,7 @@ The setup process is similar in all apps:
 	},
 	click_to_confirm_payment: {
 		ru: 'После оплаты нажмите на кнопку Оплачено',
-		en: 'Click on Paid button after payment'
+		en: 'Click on Paid button after payment',
 	},
 	confirm_payment: {
 		ru: 'Подтвердить платёж',

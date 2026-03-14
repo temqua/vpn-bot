@@ -170,9 +170,8 @@ export class PaymentsService {
 		}
 	}
 
-	async approvePayment(message: Message, context: UsersContext) {
-		setActiveStep('user', this.paymentSteps);
-		await this.pay(message, context, false);
+	async approvePayment(message: Message, context: UsersContext, start: boolean) {
+		await this.pay(message, context, start);
 	}
 
 	async pay(message: Message | null, context: UsersContext, start: boolean) {

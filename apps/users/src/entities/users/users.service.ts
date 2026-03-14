@@ -1196,29 +1196,33 @@ Created at ${formatDate(record.assignedAt)}`,
 			const user = await this.repository.getById(Number(context.id));
 			const userInfo = this.params.get('user_info') ?? '';
 			bot.sendMessage(message.chat.id, dict.payment_request[lang]);
-			bot.sendMessage(env.ADMIN_USER_ID, `Пользователь ${user.username} (id = ${context.id}) ${userInfo} оставил заявку на платёж`, {
-				reply_markup: {
-					inline_keyboard: [
-						[
-							{
-								text: dict.confirm_payment[lang],
-								callback_data: JSON.stringify({
-									[CmdCode.Scope]: CommandScope.Users,
-									[CmdCode.Context]: {
-										[CmdCode.Command]: VPNUserCommand.ApprovePayment,
-										id: context.id,
-									},
-								}),
-							},
+			bot.sendMessage(
+				env.ADMIN_USER_ID,
+				`Пользователь ${user.username} (id = ${context.id}) ${userInfo} оставил заявку на платёж`,
+				{
+					reply_markup: {
+						inline_keyboard: [
+							[
+								{
+									text: dict.confirm_payment[lang],
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Users,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: VPNUserCommand.ApprovePayment,
+											id: context.id,
+										},
+									}),
+								},
+							],
 						],
-					],
+					},
 				},
-			});
+			);
 
 			globalHandler.finishCommand();
 			return;
 		}
-		this.params.set('user_info', `${from.username ?? ''} ${from.first_name ?? ''} ${from.last_name ?? ''}`)
+		this.params.set('user_info', `${from.username ?? ''} ${from.first_name ?? ''} ${from.last_name ?? ''}`);
 		try {
 			const user = await this.repository.getByTelegramId(message.chat.id.toString());
 			const mess = await this.getPaymentString(user, lang);

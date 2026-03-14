@@ -69,7 +69,7 @@ export enum VPNUserCommand {
 	ShowPlans = 'shpl',
 	ShowMenu = 'sm',
 	UnassignKey = 'uask',
-	UserPay = 'up'
+	UserPay = 'up',
 }
 
 export enum PaymentCommand {
