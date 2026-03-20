@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 import env from './env';
+import { ServiceTokenGuard } from './guards/auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
   app.setGlobalPrefix('/api/v1');
+  app.useGlobalGuards(new ServiceTokenGuard());
   await app.listen(env.PORT ?? 3000);
 }
 bootstrap();
