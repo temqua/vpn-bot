@@ -1,10 +1,10 @@
 services:
-    app:
-        image: tesseract-api
-        container_name: tesseract-api
-        build:
-            context: .
-            dockerfile: ./Dockerfile
-        env_file: .env
-        network_mode: host
-        restart: always
+  app:
+    container_name: tesseract-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: tesseract-api
+    env_file: .env
+    network_mode: host
+    restart: always

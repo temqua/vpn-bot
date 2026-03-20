@@ -1,10 +1,10 @@
 services:
     app:
-        image: tesseract-bot
         container_name: tesseract-bot
         build:
             context: .
             dockerfile: ./Dockerfile
+        image: tesseract-bot
         env_file: .env
         network_mode: host
         restart: always

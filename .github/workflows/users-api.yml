@@ -28,11 +28,10 @@ jobs:
               working-directory: apps/users
               run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
 
-
             - name: Build Docker image
               working-directory: apps/api
               run: |
-                docker compose build --no-cache
+                  docker compose build --no-cache
 
             - name: Upload Docker image
               working-directory: apps/api
