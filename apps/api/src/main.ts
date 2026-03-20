@@ -6,8 +6,8 @@ import env from './env';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
-    .setTitle('LoryShop')
-    .setDescription('The lory shop API description')
+    .setTitle('Tesseract')
+    .setDescription('The Tesseract API description')
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
