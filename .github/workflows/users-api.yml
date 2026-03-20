@@ -1,0 +1,55 @@
+name: Build and Transfer users-api
+
+run-name: 'Build and Transfer users-api'
+
+on:
+    workflow_dispatch:
+
+jobs:
+    build_and_deploy:
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.environment }}
+        timeout-minutes: 10
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup SSH
+              uses: webfactory/ssh-agent@v0.9.1
+              with:
+                  ssh-private-key: ${{ secrets.BOT_SERVER_SSH_KEY }}
+
+            - name: Add VPN server to known hosts
+              run: |
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{ secrets.BOT_SERVER_HOST }} >> ~/.ssh/known_hosts
+
+            - name: Add sheets-api.json
+              working-directory: apps/users
+              run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
+
+            - name: Build Docker image
+              working-directory: apps/api
+              run: docker compose build
+
+            - name: Upload Docker image
+              working-directory: apps/api
+              run: |
+                  docker save users-api:latest \
+                  | gzip \
+                  | ssh -o ServerAliveInterval=15 \
+                          -o ServerAliveCountMax=8 \
+                          ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} \
+                          'gunzip | docker load'
+
+            - name: Upload docker-compose.yml via SSH
+              working-directory: apps/api
+              run: |
+                  cat docker-compose.yml | ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} "cat > ${{ secrets.BOT_SERVER_API_DIRECTORY }}/docker-compose.yml"
+
+            - name: Restart container on server
+              run: |
+                  ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} '
+                    cd ${{ secrets.BOT_SERVER_API_DIRECTORY }}
+                    docker compose up -d
+                  '
