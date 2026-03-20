@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 Int            @id @default(autoincrement())
+  username           String         @unique
+  telegramId         String?        @unique @map(name: "telegram_id")
+  telegramLink       String?        @unique @map(name: "telegram_link")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  firstName          String?        @map(name: "first_name")
+  lastName           String?        @map(name: "last_name")
+  languageCode       String?        @default("ru") @map(name: "language_code")
+  price              Int            @default(150) @map(name: "price")
+  free               Boolean        @default(false) @map(name: "is_free")
+  active             Boolean        @default(true)
+  bank               String?
+  currency           String         @default("RUB")
+  subLink            String?        @default("") @map(name: "subscription_url")
+  pasarguardUsername String?        @unique @map(name: "pasarguard_username")
+  pasarguardId       Int?           @map(name: "pasarguard_id")
+  payerId            Int?           @map(name: "payer_id")
+  referrerId         Int?           @map(name: "referrer_id")
+  devices            Device[]       @default([])
+  payments           Payment[]
+  payer              User?          @relation("UserToPayer", fields: [payerId], references: [id])
+  referrer           User?          @relation("UserToReferer", fields: [referrerId], references: [id])
+  dependants         User[]         @relation("UserToPayer")
+  servers            ServersUsers[]
+  actions            UserAction[]
+  referrals          User[]         @relation("UserToReferer")
+
+  @@map("users")
+}
+
+model Payment {
+  id              String    @id @default(uuid())
+  userId          Int       @map(name: "user_id")
+  paymentDate     DateTime  @default(now()) @map(name: "payment_date")
+  amount          Int
+  currency        String    @default("RUB")
+  monthsCount     Int?      @map(name: "months_count")
+  expiresOn       DateTime? @map(name: "expires_on")
+  parentPaymentId String?   @map(name: "parent_payment_id")
+  planId          Int?      @map(name: "plan_id")
+  plan            Plan?     @relation(fields: [planId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
+  parentPayment   Payment?  @relation("PaymentToChildPayment", fields: [parentPaymentId], references: [id])
+  childPayments   Payment[] @relation("PaymentToChildPayment")
+
+  @@map("payments")
+}
+
+model Expense {
+  id          String          @id @default(uuid())
+  paymentDate DateTime        @default(now()) @map(name: "payment_date")
+  amount      Decimal
+  currency    String          @default("RUB")
+  category    ExpenseCategory
+  description String?
+
+  @@map("expenses")
+}
+
+model Plan {
+  id        Int       @id @default(autoincrement())
+  name      String
+  amount    Int
+  months    Int
+  price     Int       @default(150)
+  currency  String    @default("RUB")
+  minCount  Int       @default(1) @map(name: "min_count")
+  maxCount  Int       @default(1) @map(name: "max_count")
+  createdAt DateTime  @default(now()) @map("created_at")
+  legacy    Boolean?
+  Payment   Payment[]
+
+  @@map("plans")
+}
+
+model VpnServer {
+  id    Int            @id @default(autoincrement())
+  name  String
+  url   String
+  users ServersUsers[]
+
+  @@map("vpn_servers")
+}
+
+model ServersUsers {
+  id         Int         @id @default(autoincrement())
+  user       User        @relation(fields: [userId], references: [id])
+  userId     Int
+  server     VpnServer   @relation(fields: [serverId], references: [id])
+  serverId   Int
+  protocol   VPNProtocol
+  username   String?
+  assignedAt DateTime    @default(now())
+
+  @@map("servers_users")
+}
+
+model UserAction {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map(name: "user_id")
+  command   String?
+  action    String?
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("user_actions")
+}
+
+enum VPNProtocol {
+  WireGuard
+  IKEv2
+  OpenVPN
+
+  @@map("vpn_protocol")
+}
+
+enum Device {
+  Android
+  iOS
+  macOS
+  Linux
+  Windows
+  AndroidTV
+  GoogleTV
+  AppleTV
+}
+
+enum ExpenseCategory {
+  Nalog
+  Servers
+
+  @@map("expense_category")
+}
