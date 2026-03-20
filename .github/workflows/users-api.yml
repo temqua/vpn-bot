@@ -1,6 +1,6 @@
-name: Build and Transfer users-api
+name: Build and Transfer tesseract-api
 
-run-name: 'Build and Transfer users-api'
+run-name: 'Build and Transfer tesseract-api'
 
 on:
     workflow_dispatch:
@@ -28,14 +28,16 @@ jobs:
               working-directory: apps/users
               run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
 
+
             - name: Build Docker image
               working-directory: apps/api
-              run: docker compose build
+              run: |
+                docker compose build --no-cache
 
             - name: Upload Docker image
               working-directory: apps/api
               run: |
-                  docker save users-api:latest \
+                  docker save tesseract-api:latest \
                   | gzip \
                   | ssh -o ServerAliveInterval=15 \
                           -o ServerAliveCountMax=8 \

@@ -1,6 +1,6 @@
-name: Build and Transfer users-bot
+name: Build and Transfer tesseract-bot
 
-run-name: 'Build and Transfer users-bot'
+run-name: 'Build and Transfer tesseract-bot'
 
 on:
     workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
             - name: Upload Docker image
               working-directory: apps/users
               run: |
-                  docker save users-bot:latest \
+                  docker save tesseract-bot:latest \
                   | gzip \
                   | ssh -o ServerAliveInterval=15 \
                           -o ServerAliveCountMax=8 \
