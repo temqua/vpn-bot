@@ -37,3 +37,4 @@ export interface CreatePasarguardUserParams {
 	isNew?: boolean;
 	expiresOn?: Date;
 }
+

@@ -45,6 +45,7 @@ import {
 	UserUpdateCommandContext,
 } from './users.types';
 import { PlanRepository } from '../plans/plans.repository';
+import { UsersClient } from './users.client';
 
 export class UsersService {
 	constructor(
@@ -52,6 +53,7 @@ export class UsersService {
 		private pasarguardService: PasarguardService = new PasarguardService(),
 		private serversRepository: ServersRepository = new ServersRepository(),
 		private plansRepository: PlanRepository = new PlanRepository(),
+		private client: UsersClient = new UsersClient(),
 	) {}
 
 	params = new Map();
@@ -233,7 +235,7 @@ export class UsersService {
 
 	async list(message: Message) {
 		this.log('list');
-		const users = await this.repository.list();
+		const users = await this.client.list();
 		const chunkSize = 50;
 		const buttons = users.map(({ id, username, firstName, lastName }) => [
 			{
@@ -313,7 +315,7 @@ export class UsersService {
 		}
 		const id = context.id ?? message.text;
 		try {
-			const user = await this.repository.getById(Number(id));
+			const user = await this.client.getById(Number(id));
 			if (user) {
 				await this.sendUserMenu(message.chat.id, user);
 			} else {
@@ -1403,7 +1405,7 @@ Created at ${formatDate(record.assignedAt)}`,
 				inline_keyboard: getUserMenu(user.id, Boolean(user.payer)),
 			},
 		});
-		if (user.dependants.length) {
+		if (user.dependants?.length) {
 			const buttons: InlineKeyboardButton[][] = user.dependants.map(d => [
 				{
 					text: d.username,
@@ -1480,7 +1482,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 		if (user.payer?.username) {
 			userInfo = userInfo.concat(`Payer: ${user.payer.username} (${user.payerId}) \n`);
 		}
-		if (user.dependants.length) {
+		if (user.dependants?.length) {
 			userInfo = userInfo.concat(
 				`Dependants: ${user.dependants?.map(u => `${u.username} ${u.telegramLink ?? ''}\n`).join(', ')}\n`,
 			);

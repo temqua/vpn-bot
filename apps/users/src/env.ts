@@ -21,6 +21,8 @@ const env = cleanEnv(process.env, {
 	PUBLIC_URL: str({ default: '' }),
 	PAYMENT_CARDS: str({ default: '' }),
 	CHANNEL_URL: str({ default: '' }),
+	API_URL: str({ default: '' }),
+	API_TOKEN: str({ default: '' }),
 });
 
 export default env;
