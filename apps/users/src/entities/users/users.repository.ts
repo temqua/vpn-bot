@@ -9,24 +9,18 @@ export type VPNUser = User & {
 };
 
 export class UsersRepository {
-	async create(
-		username: string,
-		firstName: string,
-		telegramId: string | null,
-		telegramLink: string | null,
-		lastName: string | null,
-		devices: Device[],
-		payerId: number | null,
-	): Promise<User> {
+	async create(args: {
+		username: string;
+		firstName: string;
+		telegramId: string | null;
+		telegramLink: string | null;
+		lastName: string | null;
+		devices?: Device[];
+		payerId?: number | null;
+	}): Promise<User> {
 		return await prisma.user.create({
 			data: {
-				username,
-				firstName,
-				telegramLink,
-				telegramId,
-				lastName,
-				devices,
-				payerId,
+				...args,
 			},
 		});
 	}

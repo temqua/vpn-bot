@@ -196,7 +196,7 @@ export class UsersService {
 		const username = params.get('username');
 
 		try {
-			const newUser: User = await this.client.create({
+			const newUser: User = await this.repository.create({
 				username,
 				firstName: params.get('first_name'),
 				telegramId: params.get('telegram_id'),
@@ -1348,7 +1348,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 		}
 		const fr: TGUser = this.signUpParams.get('new-user');
 		try {
-			const newUser: User = await this.client.create({
+			const newUser: User = await this.repository.create({
 				username: fr.username,
 				firstName: fr.first_name,
 				telegramId: String(fr.id),
