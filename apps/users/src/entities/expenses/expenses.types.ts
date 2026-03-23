@@ -12,3 +12,15 @@ export interface ExpensesContext {
 export interface ExpenseCreateContext extends ExpensesContext {
 	chatId: number;
 }
+
+export interface CreateExpenseDto {
+	category: ExpenseCategory;
+
+	amount: number;
+
+	description?: string;
+}
+
+export interface ExpenseSumDto {
+	amount: string;
+}

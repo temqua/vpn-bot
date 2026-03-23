@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
 import { PlansRepository } from './plans.repository';
@@ -36,7 +36,11 @@ export class PlansService {
   }
 
   async findOne(id: number) {
-    return await this.repository.getById(id);
+    const plan = await this.repository.getById(id);
+    if (!plan) {
+      throw new NotFoundException(`Plan with id ${id} not found`);
+    }
+    return plan;
   }
 
   async update(id: number, updatePlanDto: UpdatePlanDto) {

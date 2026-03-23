@@ -81,11 +81,12 @@ export class PaymentsRepository {
   }
 
   async sum() {
-    return await this.databaseService.client.payment.aggregate({
+    const result = await this.databaseService.client.payment.aggregate({
       _sum: {
         amount: true,
       },
     });
+    return result?._sum;
   }
 
   async remove(id: string) {

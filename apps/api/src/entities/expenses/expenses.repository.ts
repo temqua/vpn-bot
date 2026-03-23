@@ -29,20 +29,28 @@ export class ExpensesRepository {
     });
   }
 
-  async list() {
-    return await this.databaseService.client.expense.findMany();
+  async list(category?: ExpenseCategory) {
+    const params = category
+      ? {
+          where: {
+            category,
+          },
+        }
+      : undefined;
+    return await this.databaseService.client.expense.findMany(params);
   }
 
   async sum() {
-    return await this.databaseService.client.expense.aggregate({
+    const result = await this.databaseService.client.expense.aggregate({
       _sum: {
         amount: true,
       },
     });
+    return result?._sum;
   }
 
   async sumNalogs() {
-    return await this.databaseService.client.expense.aggregate({
+    const result = await this.databaseService.client.expense.aggregate({
       where: {
         category: ExpenseCategory.Nalog,
       },
@@ -50,9 +58,10 @@ export class ExpensesRepository {
         amount: true,
       },
     });
+    return result?._sum;
   }
   async sumServers() {
-    return await this.databaseService.client.expense.aggregate({
+    const result = await this.databaseService.client.expense.aggregate({
       where: {
         category: ExpenseCategory.Servers,
       },
@@ -60,6 +69,7 @@ export class ExpensesRepository {
         amount: true,
       },
     });
+    return result?._sum;
   }
 
   async update(id: string, updateExpenseDto: UpdateExpenseDto) {

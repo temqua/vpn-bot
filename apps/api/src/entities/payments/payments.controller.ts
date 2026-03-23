@@ -16,27 +16,35 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentsService.create(createPaymentDto);
+  async create(@Body() createPaymentDto: CreatePaymentDto) {
+    return await this.paymentsService.create(createPaymentDto);
   }
 
   @Get()
-  findAll() {
-    return this.paymentsService.findAll();
+  async findAll() {
+    return await this.paymentsService.findAll();
+  }
+
+  @Get('/sum')
+  async sum() {
+    return await this.paymentsService.sum();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.paymentsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
-    return this.paymentsService.update(id, updatePaymentDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updatePaymentDto: UpdatePaymentDto,
+  ) {
+    return await this.paymentsService.update(id, updatePaymentDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymentsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.paymentsService.remove(id);
   }
 }

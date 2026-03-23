@@ -200,10 +200,10 @@ export class PaymentsService {
 	}
 
 	async approvePayment(message: Message, context: UsersContext, start: boolean) {
-		await this.pay(message, context, start, true);
+		await this.pay(message, context, start);
 	}
 
-	async pay(message: Message | null, context: UsersContext, start: boolean, approve = false) {
+	async pay(message: Message | null, context: UsersContext, start: boolean) {
 		this.log(`pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (start) {
@@ -339,7 +339,7 @@ export class PaymentsService {
 		if (this.paymentSteps.dependants) {
 			this.params.set('dependants', Boolean(context?.accept));
 		}
-		await this.executePayment(chatId, user, approve);
+		await this.executePayment(chatId, user);
 	}
 
 	async showAll(msg: Message) {

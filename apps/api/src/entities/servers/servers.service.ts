@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateServerDto } from './dto/create-server.dto';
 import { UpdateServerDto } from './dto/update-server.dto';
 import { ServersRepository } from './servers.repository';
@@ -19,7 +19,11 @@ export class ServersService {
   }
 
   async findOne(id: number) {
-    return await this.repository.getById(id);
+    const server = await this.repository.getById(id);
+    if (!server) {
+      throw new NotFoundException(`Server with id ${id} not found`);
+    }
+    return server;
   }
 
   async update(id: number, updateServerDto: UpdateServerDto) {

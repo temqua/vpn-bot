@@ -9,9 +9,13 @@ import pollOptions from '../../pollOptions';
 import { formatDate, setActiveStep } from '../../utils';
 import { ExpensesRepository } from './expenses.repository';
 import { ExpenseCreateContext, ExpensesContext } from './expenses.types';
+import { ExpensesClient } from './expenses.client';
 
 export class ExpensesService {
-	constructor(private repository: ExpensesRepository = new ExpensesRepository()) {}
+	constructor(
+		private repository: ExpensesRepository = new ExpensesRepository(),
+		private client: ExpensesClient = new ExpensesClient(),
+	) {}
 	params = new Map();
 	createSteps = {
 		category: false,
@@ -46,7 +50,11 @@ export class ExpensesService {
 		try {
 			const category = this.params.get('category');
 			const amount = this.params.get('amount');
-			await this.repository.create(category, amount, message?.text);
+			await this.client.create({
+				category,
+				amount,
+				description: message?.text,
+			});
 			const msg = `Expense in category ${category} with amount ${amount} has been successfully created`;
 			logger.success(msg);
 			await bot.sendMessage(context.chatId, `✅ ${msg}`);
@@ -61,7 +69,7 @@ export class ExpensesService {
 
 	async list(message: Message) {
 		this.log('list');
-		const expenses = await this.repository.list();
+		const expenses = await this.client.getAll();
 		for (const expense of expenses) {
 			await bot.sendMessage(
 				message.chat.id,
@@ -104,17 +112,17 @@ Additional info: ${expense.description.replace(/[-.*#_]/g, match => `\\${match}`
 	async delete(msg: Message, context: ExpensesContext, start = false) {
 		this.log('delete');
 		if (!start) {
-			await this.repository.delete(context.id);
+			await this.client.delete(context.id);
 			const message = `Expense with id ${context.id} has been successfully removed`;
 			logger.success(`[${basename(__filename)}]: ${message}`);
 			await bot.sendMessage(msg.chat.id, message);
 			globalHandler.finishCommand();
 			return;
 		}
-		const expenses = await this.repository.list();
-		const buttons = expenses.map(({ description, id }) => [
+		const expenses = await this.client.getAll();
+		const buttons = expenses.map(({ category, paymentDate, id }) => [
 			{
-				text: description,
+				text: `${category} ${paymentDate}`,
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Expenses,
 					[CmdCode.Context]: {
@@ -130,17 +138,21 @@ Additional info: ${expense.description.replace(/[-.*#_]/g, match => `\\${match}`
 				inline_keyboard: [...buttons],
 			},
 		};
-		await bot.sendMessage(msg.chat.id, 'Select expense to delete:', inlineKeyboard);
+		try {
+			await bot.sendMessage(msg.chat.id, 'Select expense to delete:', inlineKeyboard);
+		} catch (err) {
+			await bot.sendMessage(msg.chat.id, err);
+		}
 	}
 
 	async sumNalogs(message: Message) {
-		const result = await this.repository.sumNalogs();
-		await bot.sendMessage(message.chat.id, `Sum of nalog expenses: ${result._sum.amount}`);
+		const result = await this.client.sumNalogs();
+		await bot.sendMessage(message.chat.id, `Sum of nalog expenses: ${result.amount}`);
 	}
 
 	async sumServers(message: Message) {
-		const result = await this.repository.sumServers();
-		await bot.sendMessage(message.chat.id, `Sum of server expenses: ${result._sum.amount}`);
+		const result = await this.client.sumServers();
+		await bot.sendMessage(message.chat.id, `Sum of server expenses: ${result.amount}`);
 	}
 
 	private setCreateStep(current: string) {

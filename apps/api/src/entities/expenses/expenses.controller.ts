@@ -6,14 +6,18 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  Logger,
 } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
+import { ExpenseCategory } from '@prisma/client';
 
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
+  private logger = new Logger('ExpensesController');
 
   @Post()
   async create(@Body() createExpenseDto: CreateExpenseDto) {
@@ -21,8 +25,13 @@ export class ExpensesController {
   }
 
   @Get()
-  async findAll() {
-    return await this.expensesService.list();
+  async findAll(@Query('category') category?: ExpenseCategory) {
+    return await this.expensesService.list(category);
+  }
+
+  @Get('/sum')
+  async sum(@Query('category') category?: ExpenseCategory) {
+    return await this.expensesService.sum(category);
   }
 
   @Get(':id')

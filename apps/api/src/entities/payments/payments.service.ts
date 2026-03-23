@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { PaymentsRepository } from './payments.repository';
@@ -16,7 +16,11 @@ export class PaymentsService {
   }
 
   async findOne(id: string) {
-    return await this.repository.findOne(id);
+    const payment = await this.repository.findOne(id);
+    if (!payment) {
+      throw new NotFoundException(`Payment with id ${id} not found`);
+    }
+    return payment;
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto) {
@@ -25,5 +29,9 @@ export class PaymentsService {
 
   async remove(id: string) {
     return await this.repository.remove(id);
+  }
+
+  async sum() {
+    return await this.repository.sum();
   }
 }

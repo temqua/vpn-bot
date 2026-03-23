@@ -5,7 +5,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch IKEv2 receiver",
+			"name": "IKEv2 receiver",
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
@@ -13,7 +13,7 @@
 			"envFile": "${workspaceFolder}/apps/infrastructure/ikev2/.env"
 		},
 		{
-			"name": "Launch WireGuard receiver",
+			"name": "WireGuard receiver",
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
@@ -21,7 +21,7 @@
 			"envFile": "${workspaceFolder}/apps/infrastructure/wireguard/.env"
 		},
 		{
-			"name": "Launch Keys Bot",
+			"name": "Keys Bot",
 			"program": "${workspaceFolder}/apps/keys/src/index.ts",
 			"request": "launch",
 			"skipFiles": ["<node_internals>/**"],
@@ -31,7 +31,7 @@
 			"preLaunchTask": "tsc: build - apps/keys/tsconfig.json"
 		},
 		{
-			"name": "Launch Users Bot",
+			"name": "Users Bot",
 			"program": "${workspaceFolder}/apps/users/src/index.ts",
 			"request": "launch",
 			"skipFiles": ["<node_internals>/**"],
@@ -39,6 +39,15 @@
 			"envFile": "${workspaceFolder}/apps/users/.env",
 			"outFiles": ["${workspaceFolder}/apps/users/dist/src/**/*.js"],
 			"preLaunchTask": "tsc: build - apps/users/tsconfig.dev.json"
+		},
+		{
+			"name": "API",
+			"program": "${workspaceFolder}/apps/api/src/main.ts",
+			"request": "launch",
+			"skipFiles": ["<node_internals>/**"],
+			"type": "node",
+			"envFile": "${workspaceFolder}/apps/api/.env",
+			"outFiles": ["${workspaceFolder}/apps/api/dist/src/**/*.js"]
 		}
 	]
 }

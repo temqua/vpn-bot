@@ -196,7 +196,7 @@ export class UsersService {
 		const username = params.get('username');
 
 		try {
-			const newUser: User = await this.repository.create({
+			const newUser: User = await this.client.create({
 				username,
 				firstName: params.get('first_name'),
 				telegramId: params.get('telegram_id'),
@@ -231,7 +231,7 @@ export class UsersService {
 
 	async list(message: Message) {
 		this.log('list');
-		const users = await this.repository.list();
+		const users = await this.client.list();
 		const chunkSize = 50;
 		const buttons = users.map(({ id, username, firstName, lastName }) => [
 			{
@@ -311,7 +311,7 @@ export class UsersService {
 		}
 		const id = context.id ?? message.text;
 		try {
-			const user = await this.repository.getById(Number(id));
+			const user = await this.client.getById(Number(id));
 			if (user) {
 				await this.sendUserMenu(message.chat.id, user);
 			} else {
@@ -328,7 +328,7 @@ export class UsersService {
 		this.log('getByTelegramId');
 		if (!start) {
 			if (message?.user_shared) {
-				const user = await this.repository.getByTelegramId(message?.user_shared?.user_id?.toString());
+				const user = await this.client.getByTelegramId(message?.user_shared?.user_id?.toString());
 				if (user) {
 					await this.sendUserMenu(message.chat.id, user);
 				} else {
@@ -360,7 +360,7 @@ export class UsersService {
 
 	async getById(message: Message, context: UsersContext) {
 		this.log('getById');
-		const user = await this.repository.getById(Number(context.id));
+		const user = await this.client.getById(Number(context.id));
 		if (user) {
 			await this.sendUserMenu(message.chat.id, user);
 		}
@@ -482,7 +482,7 @@ export class UsersService {
 		this.log('delete');
 		if (!start) {
 			try {
-				const user = await this.repository.getById(Number(context.id));
+				const user = await this.client.getById(Number(context.id));
 				if (user.pasarguardUsername) {
 					const deleteResult = await this.pasarguardService.deleteUser(user.pasarguardUsername);
 					const deleteMessage = deleteResult.success
@@ -490,7 +490,7 @@ export class UsersService {
 						: `User ${user.pasarguardUsername} has not been removed from pasarguard. Reason ${deleteResult.error}`;
 					await bot.sendMessage(msg.chat.id, deleteMessage);
 				}
-				await this.repository.delete(Number(context.id));
+				await this.client.delete(Number(context.id));
 				const message = `User with id ${context.id} has been successfully removed`;
 				logger.success(`[${basename(__filename)}]: ${message}`);
 				await bot.editMessageText(message, {
@@ -583,7 +583,7 @@ export class UsersService {
 
 	async export(message: Message) {
 		this.log('export');
-		const data = await this.repository.list();
+		const data = await this.client.list();
 		const preparedData = data.map(row => {
 			return [
 				row.firstName ?? '',
@@ -611,7 +611,7 @@ export class UsersService {
 
 	async showUnpaid(message: Message) {
 		this.log('showUnpaid');
-		const users = await this.repository.getUnpaidUsers();
+		const users = await this.client.getUnpaid();
 		for (const user of users) {
 			if (user.payments.length) {
 				const lastPayment = user.payments[0];
@@ -671,7 +671,7 @@ have no payments for next month.`,
 
 	async showTrial(message: Message) {
 		this.log('trial');
-		const users = await this.repository.getTrialUsers();
+		const users = await this.client.getTrial();
 		if (users.length) {
 			await bot.sendMessage(
 				message.chat.id,
@@ -706,7 +706,7 @@ currently have a trial period `,
 
 	async notifyUnpaid() {
 		this.log('notifyUnpaid');
-		const users = await this.repository.getUnpaidUsers();
+		const users = await this.client.getUnpaid();
 		for (const user of users) {
 			if (user.telegramId) {
 				const message = user.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
@@ -730,7 +730,7 @@ ${env.PAYMENT_CARDS}
 		this.log('showSubscriptionURL');
 		const lang = from?.is_bot ? 'ru' : from?.language_code;
 
-		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		const user = await this.client.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
 			const builtMessage = `${`\`${env.PASARGUARD_ROOT}${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
 ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
@@ -785,7 +785,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		} catch (err) {
 			logger.error(err);
 		}
-		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		const user = await this.client.getByTelegramId(message.chat.id.toString());
 		const expiresOn = user.payments.length ? user.payments[0].expiresOn : undefined;
 		await this.createPasarguardUser({
 			message,
@@ -799,7 +799,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		this.log('createSubscriptionAdmin');
 		const lang = 'ru';
 		await bot.sendMessage(message.chat.id, dict.creating_sub[lang]);
-		const user = await this.repository.getById(Number(context.id));
+		const user = await this.client.getById(Number(context.id));
 		const expiresOn = user.payments.length ? user.payments[0].expiresOn : undefined;
 		const result = await this.createPasarguardUser({
 			message,
@@ -816,7 +816,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		const lang = 'ru';
 		const msg = await bot.sendMessage(message.chat.id, dict.deleting_sub[lang]);
 
-		const user = await this.repository.getById(Number(context.id));
+		const user = await this.client.getById(Number(context.id));
 		try {
 			const result = await this.pasarguardService.deleteUser(user.pasarguardUsername);
 			if (result.success) {
@@ -852,7 +852,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 			chat_id: message.chat.id,
 		});
 
-		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		const user = await this.client.getByTelegramId(message.chat.id.toString());
 		try {
 			const result = await this.pasarguardService.deleteUser(user.pasarguardUsername);
 			if (result.success) {
@@ -1053,7 +1053,7 @@ Created at ${formatDate(record.assignedAt)}`,
 
 	async listKeysForUser(message: Message, from: TGUser) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
-		const user = await this.repository.getByTelegramId(message.chat.id.toString());
+		const user = await this.client.getByTelegramId(message.chat.id.toString());
 		const list = await this.repository.listUserServers(user.id);
 		for (const record of list) {
 			await bot.sendMessage(
@@ -1163,7 +1163,7 @@ Created at ${formatDate(record.assignedAt)}`,
 	async showInstallationGuide(message: Message, context: UsersContext, from?: TGUser) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		try {
-			const user = await this.repository.getById(Number(context.id));
+			const user = await this.client.getById(Number(context.id));
 			const link = `${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}`;
 			const messg = dict.installation_guide[lang](link);
 			bot.sendMessage(message.chat.id, messg, {
@@ -1183,7 +1183,7 @@ Created at ${formatDate(record.assignedAt)}`,
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 
 		try {
-			const user = await this.repository.getById(Number(context.id));
+			const user = await this.client.getById(Number(context.id));
 			const mess = await this.getPaymentString(user, lang);
 			bot.sendMessage(message.chat.id, mess, {
 				parse_mode: 'MarkdownV2',
@@ -1202,7 +1202,7 @@ Created at ${formatDate(record.assignedAt)}`,
 		// const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		const lang = 'ru';
 		try {
-			const user = await this.repository.getById(Number(context.id));
+			const user = await this.client.getById(Number(context.id));
 			const mess = await this.getPaymentString(user, lang, false);
 			const final = `${dict.free_month[lang]}, ${dict.then[lang]} 
 ${mess}
@@ -1223,7 +1223,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 	async paymentRequest(message: Message, context: UsersContext, from?: TGUser, start = true) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		if (!start) {
-			const user = await this.repository.getById(Number(context.id));
+			const user = await this.client.getById(Number(context.id));
 			const userInfo = this.params.get('user_info') ?? '';
 			bot.sendMessage(message.chat.id, dict.payment_request[lang]);
 			bot.sendMessage(
@@ -1254,7 +1254,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 		}
 		this.params.set('user_info', `${from.username ?? ''} ${from.first_name ?? ''} ${from.last_name ?? ''}`);
 		try {
-			const user = await this.repository.getByTelegramId(message.chat.id.toString());
+			const user = await this.client.getByTelegramId(message.chat.id.toString());
 			const mess = await this.getPaymentString(user, lang);
 			bot.sendMessage(message.chat.id, `${mess}\n${dict.click_to_confirm_payment[lang]}`, {
 				parse_mode: 'MarkdownV2',
@@ -1348,7 +1348,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 		}
 		const fr: TGUser = this.signUpParams.get('new-user');
 		try {
-			const newUser: User = await this.repository.create({
+			const newUser: User = await this.client.create({
 				username: fr.username,
 				firstName: fr.first_name,
 				telegramId: String(fr.id),
