@@ -23,6 +23,7 @@ const env = cleanEnv(process.env, {
 	CHANNEL_URL: str({ default: '' }),
 	API_URL: str({ default: '' }),
 	API_TOKEN: str({ default: '' }),
+	HOOK_PORT: num({ default: 4000 }),
 });
 
 export default env;

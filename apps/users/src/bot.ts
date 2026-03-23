@@ -5,7 +5,7 @@ const isProduction = env.BOT_ENV === 'production';
 const config = isProduction
 	? {
 			webHook: {
-				port: 4000,
+				port: env.HOOK_PORT,
 			},
 		}
 	: { polling: true };
