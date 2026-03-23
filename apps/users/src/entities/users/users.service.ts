@@ -311,7 +311,7 @@ export class UsersService {
 		}
 		const id = context.id ?? message.text;
 		try {
-			const user = await this.client.getById(Number(id));
+			const user = await this.repository.getById(Number(id));
 			if (user) {
 				await this.sendUserMenu(message.chat.id, user);
 			} else {
