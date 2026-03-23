@@ -3,19 +3,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import env from './env';
 import { ServiceTokenGuard } from './guards/auth.guard';
-import fs from 'fs';
 import { RequestsInterceptor } from './logging-interceptor';
 async function bootstrap() {
-  const options =
-    env.APP_ENV === 'local'
-      ? undefined
-      : {
-          httpsOptions: {
-            key: fs.readFileSync(env.SSL_PATH + '/key.pem'),
-            cert: fs.readFileSync(env.SSL_PATH + '/cert.pem'),
-          },
-        };
-  const app = await NestFactory.create(AppModule, options);
+  const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
     .setTitle('Tesseract')
     .setDescription('The Tesseract API description')
