@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Logger,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,6 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+  private logger = new Logger('UsersController');
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
@@ -66,7 +68,11 @@ export class UsersController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    try {
+      return this.usersService.remove(+id);
+    } catch (err) {
+      this.logger.error(err);
+    }
   }
 
   @Get('/:id/servers')

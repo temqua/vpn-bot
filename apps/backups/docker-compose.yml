@@ -16,6 +16,8 @@ services:
             interval: 10s
             timeout: 30s
             retries: 5
+        networks:
+            - tesseract-network
     backups-bot:
         image: backups-bot
         container_name: backups-bot
@@ -23,7 +25,8 @@ services:
             context: .
             dockerfile: ./Dockerfile
         env_file: .env
-        network_mode: host
+        networks:
+            - tesseract-network        
         restart: unless-stopped
         volumes:
             - backups:/home/vpnadmin/backups
@@ -32,3 +35,7 @@ volumes:
     vpn-bot_vpn-data:
         external: true
     backups:
+
+networks:
+    tesseract-network:
+      external: true

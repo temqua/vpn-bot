@@ -1,0 +1,32 @@
+services:
+    tesseract-api:
+        container_name: tesseract-api
+        build:
+            context: ./apps/api
+            dockerfile: ./Dockerfile
+        image: tesseract-api
+        env_file: .env.api
+        ports:
+            - 3002:3002
+        restart: always
+        networks:
+            - tesseract-network
+        volumes:
+            - /etc/ssl/certs/tg:/etc/ssl/certs/tg:ro
+    tesseract-bot:
+        container_name: tesseract-bot
+        build:
+            context: ./apps/users
+            dockerfile: ./Dockerfile
+        image: tesseract-bot
+        env_file: .env.bot
+        ports:
+            - 443:443
+        restart: always
+        networks:
+            - tesseract-network
+        volumes:
+            - /etc/ssl/certs/tg:/etc/ssl/certs/tg:ro
+networks:
+    tesseract-network:
+      external: true
