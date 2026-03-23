@@ -29,12 +29,10 @@ jobs:
               run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
 
             - name: Build Docker image
-              working-directory: apps/api
               run: |
-                  docker compose build --no-cache
+                  docker compose build tesseract-api --no-cache
 
             - name: Upload Docker image
-              working-directory: apps/api
               run: |
                   docker save tesseract-api:latest \
                   | gzip \
@@ -44,13 +42,12 @@ jobs:
                           'gunzip | docker load'
 
             - name: Upload docker-compose.yml via SSH
-              working-directory: apps/api
               run: |
-                  cat docker-compose.yml | ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} "cat > ${{ secrets.BOT_SERVER_API_DIRECTORY }}/docker-compose.yml"
+                  cat docker-compose.yml | ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} "cat > ${{ secrets.BOT_SERVER_APP_DIRECTORY }}/docker-compose.yml"
 
             - name: Restart container on server
               run: |
                   ssh ${{ secrets.BOT_SERVER_USERNAME }}@${{ secrets.BOT_SERVER_HOST }} '
-                    cd ${{ secrets.BOT_SERVER_API_DIRECTORY }}
+                    cd ${{ secrets.BOT_SERVER_APP_DIRECTORY }}
                     docker compose up -d
                   '

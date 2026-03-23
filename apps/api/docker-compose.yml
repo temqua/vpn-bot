@@ -1,5 +1,5 @@
 services:
-  app:
+  api:
     container_name: tesseract-api
     build:
       context: .
