@@ -8,12 +8,32 @@ export const dict = {
 		ru: 'Удаляем подписку...',
 	},
 	deleted_sub: {
-		en: "You've been successfully deleted subscription",
+		en: 'Your subscription has been successfully deleted',
 		ru: 'Подписка была успешно удалена',
 	},
 	delete_sub_error: {
 		en: (url: string) => `Error occurred while deleting. Please send direct message to ${url}`,
 		ru: (url: string) => `Ошибка удаления. Напишите в личные сообщения ${url}`,
+	},
+	costs: {
+		en: 'costs',
+		ru: 'стоит',
+	},
+	payment_intro: {
+		en: (price: number, currency: string) => `1 month is free, then 1 month costs ${price} ${currency}`,
+		ru: (price: number, currency: string) => `1 месяц бесплатно, после 1 месяц стоит \n${price} ${currency}`,
+	},
+	free_month: {
+		en: '1 month is free',
+		ru: '1 месяц бесплатно',
+	},
+	payment_through: {
+		en: 'Payment through',
+		ru: 'Оплата через',
+	},
+	then: {
+		en: 'then',
+		ru: 'потом',
 	},
 	intro: {
 		ru: `Для работы с подпиской нужен один из xray\\-клиентов:
@@ -57,8 +77,7 @@ The setup process is similar in all apps:
 2\\. Open your Xray client and: 
  a\\) in **happ**, tap "From clipboard"
  b\\) in **v2RayTun**, tap "\\+" → "Import from clipboard"
-3\\. The Tesseract VPN profile will appear in the app\\.
-3\\. Select any server from the list\\.
+3\\. Select any server from the list with the Tesseract header\\.
 4\\. Turn the VPN on\\.         
         `,
 	},
@@ -84,31 +103,39 @@ The setup process is similar in all apps:
 	},
 	no_payments: {
 		ru: (url: string) => `Не обнаружено платежей. Напишите в личные сообщения ${url}`,
-		en: (url: string) => `No payments found. Please send direct message ${url}`,
+		en: (url: string) => `No payments found. Please send a direct message to ${url}`,
 	},
 	welcome: {
-		ru: 'Добро пожаловать в бот тессеракт впн.',
-		en: 'Welcome to tesseract vpn bot!',
+		ru: 'Добро пожаловать в бот тессеракт клуба.',
+		en: 'Welcome to the tesseract club bot!',
 	},
 	hello: {
 		ru: 'Здравствуйте',
 		en: 'Hello',
 	},
 	registration: {
-		ru: (url: string) => `Напишите в личные сообщения ${url} для регистрации в системе`,
-		en: (url: string) => `Please send a direct message to ${url} to register in the system.`,
+		ru: (url: string) => `Нажмите для регистрации в системе`,
+		en: (url: string) => `Click on the button to sign up`,
 	},
 	payments_history: {
 		ru: '💸 История платежей',
 		en: '💸 Payments history',
 	},
+	last_payment: {
+		ru: '💸 Последний платёж',
+		en: '💸 Last payment',
+	},
+	sign_up: {
+		ru: 'Зарегистрироваться',
+		en: 'Sign Up',
+	},
 	keys: {
-		ru: '🔑 Мои ключи',
-		en: '🔑 My keys',
+		ru: '🔑 Мои OpenVPN/Wireguard/IKEv2 ключи',
+		en: '🔑 My OpenVPN/Wireguard/IKEv2 keys',
 	},
 	subscription: {
 		ru: '🔗 Ссылка для happ/v2RayTun',
-		en: '🔗 Subscription link',
+		en: '🔗 Subscription link for happ/v2RayTun',
 	},
 	guide: {
 		ru: '📖 Гайд',
@@ -147,20 +174,36 @@ The setup process is similar in all apps:
 		en: 'Download key',
 	},
 	payment_request: {
-		ru: 'Ваша заявка на платёж учтена. Необходимо дождаться подтверждения от администратора.',
-		en: 'Your payment request has been recorded. Please wait for confirmation from the administrator.',
+		ru: 'Ваша заявка на платёж учтена. Ожидайте подтверждения от администратора.',
+		en: 'Your payment request has been accepted. Please wait for confirmation from the administrator.',
 	},
 	paid: {
 		ru: 'Оплачено',
 		en: 'Paid',
 	},
 	click_to_confirm_payment: {
-		ru: 'После оплаты нажмите на кнопку Оплачено',
-		en: 'Click on Paid button after payment',
+		ru: 'После оплаты нажмите на кнопку "Оплачено"',
+		en: 'After payment, click the "Paid" button',
+	},
+	enter_username: {
+		ru: 'Введите username для нового пользователя',
+		en: 'Enter username for the new user',
 	},
 	confirm_payment: {
 		ru: 'Подтвердить платёж',
 		en: 'Confirm payment',
+	},
+	wait_for_admin: {
+		ru: 'Ожидайте подтверждения администратора',
+		en: 'Wait for the administrator to approve your sign up request',
+	},
+	request_approved: {
+		en: 'Your sign up request has been approved by the administrator',
+		ru: 'Вы были зарегистрированы в системе',
+	},
+	payment_processed: {
+		en: 'Your payment has been successfully processed',
+		ru: 'Ваш платёж был успешно обработан',
 	},
 	installation_guide: {
 		ru: (link: string) => {

@@ -116,6 +116,9 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.service.delete(message, context, this.state.init);
 			this.state.init = false;
 		}
+		if (context[CmdCode.Command] === VPNUserCommand.ShowLastPayment) {
+			await this.paymentsService.showLastPayment(message, context, from);
+		}
 		if (context[CmdCode.Command] === VPNUserCommand.ShowPayments) {
 			await this.paymentsService.showPayments(message, context, from);
 		}
@@ -127,6 +130,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.ShowPaymentGuide) {
 			await this.service.showPaymentGuide(message, context);
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.ShowPaymentIntroGuide) {
+			await this.service.showPaymentIntroGuide(message, context, from);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.ShowPlans) {
 			await this.plansService.showForUser(message, from);
@@ -169,6 +175,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.ApprovePayment) {
 			await this.paymentsService.approvePayment(message, context, this.state.init);
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.RequestCreation) {
+			await this.service.signUp(message, context, from, this.state.init);
 		}
 	}
 

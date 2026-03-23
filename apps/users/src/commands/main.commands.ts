@@ -4,7 +4,7 @@ import bot from '../bot';
 import { dict } from '../dict';
 import { getUserContactKeyboard, getUserKeyboard } from '../entities/users/users.buttons';
 import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
-import { CmdCode, UserRequest } from '../enums';
+import { CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../enums';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../global.handler';
 import logger from '../logger';
 import { formatDate, isAdmin } from '../utils';
@@ -55,6 +55,23 @@ bot.onText(/\/start/, async (msg: Message) => {
 			await bot.sendMessage(
 				msg.chat.id,
 				`${dict.hello[lang]}, ${msg?.from?.first_name}! ${dict.registration[lang](env.CHANNEL_URL)}`,
+				{
+					reply_markup: {
+						inline_keyboard: [
+							[
+								{
+									text: dict.sign_up[lang],
+									callback_data: JSON.stringify({
+										[CmdCode.Scope]: CommandScope.Users,
+										[CmdCode.Context]: {
+											[CmdCode.Command]: VPNUserCommand.RequestCreation,
+										},
+									}),
+								},
+							],
+						],
+					},
+				},
 			);
 		}
 	}
@@ -63,8 +80,12 @@ bot.onText(/\/start/, async (msg: Message) => {
 bot.on('message', async (msg: Message) => {
 	logger.log(`${msg?.from?.id} (${msg?.from?.first_name}) — ${msg.text}`);
 
-	if (msg.from.id !== env.ADMIN_USER_ID) {
-		return;
+	const hasCommand = globalHandler.hasActiveCommand();
+	if (msg.from.id !== env.ADMIN_USER_ID && hasCommand) {
+		const activeCmd = globalHandler.getActiveCommand();
+		if (activeCmd.context[CmdCode.Command] !== VPNUserCommand.RequestCreation) {
+			return;
+		}
 	}
 
 	if (msg.text && ['cancel', 'Cancel'].includes(msg.text)) {
@@ -73,7 +94,7 @@ bot.on('message', async (msg: Message) => {
 		return;
 	}
 
-	if (globalHandler.hasActiveCommand()) {
+	if (hasCommand) {
 		globalHandler.handleNewMessage(msg);
 		return;
 	}

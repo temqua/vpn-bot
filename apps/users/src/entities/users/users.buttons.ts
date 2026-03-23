@@ -140,6 +140,18 @@ export const getUserMenu = (userId: number, isChildUser: boolean = false) => {
 				}),
 			},
 		],
+		[
+			{
+				text: 'Payment Intro Guide',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.ShowPaymentIntroGuide,
+						id: userId,
+					},
+				}),
+			},
+		],
 	];
 	if (!isChildUser) {
 		buttons.push([createChildBtn]);
@@ -437,11 +449,11 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 		inline_keyboard: [
 			[
 				{
-					text: dict.payments_history[lang],
+					text: dict.last_payment[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.ShowPayments,
+							[CmdCode.Command]: VPNUserCommand.ShowLastPayment,
 						},
 					}),
 				},

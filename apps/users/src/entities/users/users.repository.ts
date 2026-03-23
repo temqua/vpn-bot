@@ -1,6 +1,5 @@
 import type { Device, Payment, User, VPNProtocol } from '@prisma/client';
 import { subMonths, subWeeks } from 'date-fns';
-import type { Bank } from '../../enums';
 import { prisma } from '../../prisma';
 
 export type VPNUser = User & {
@@ -17,7 +16,6 @@ export class UsersRepository {
 		telegramLink: string | null,
 		lastName: string | null,
 		devices: Device[],
-		bank: Bank,
 		payerId: number | null,
 	): Promise<User> {
 		return await prisma.user.create({
@@ -28,7 +26,6 @@ export class UsersRepository {
 				telegramId,
 				lastName,
 				devices,
-				bank,
 				payerId,
 			},
 		});

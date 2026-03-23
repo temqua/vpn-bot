@@ -5,25 +5,29 @@ import { basename } from 'path';
 import bot from '../../bot';
 import { getFrequestPaymentAmountsKeyboard, getYesNoKeyboard } from '../../buttons';
 import { dict } from '../../dict';
-import { CmdCode, CommandScope, PaymentCommand, UserRequest } from '../../enums';
+import { CmdCode, CommandScope, PaymentCommand, UserRequest, VPNUserCommand } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { formatDate, setActiveStep, uuid32to36 } from '../../utils';
 import { PlanRepository } from '../plans/plans.repository';
 import { NalogService } from '../users/nalog.service';
-import { acceptKeyboard } from '../users/users.buttons';
+import { acceptKeyboard, getUserKeyboard } from '../users/users.buttons';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
 import { PaymentsRepository } from './payments.repository';
 import { PaymentsContext } from './payments.types';
 import { PasarguardService } from '../users/pasarguard.service';
+import { PaymentsClient } from './payments.client';
+import { UsersClient } from '../users/users.client';
 export class PaymentsService {
 	constructor(
 		private repository: PaymentsRepository = new PaymentsRepository(),
 		private plansRepository: PlanRepository = new PlanRepository(),
 		private usersRepository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
+		private client: PaymentsClient = new PaymentsClient(),
+		private usersClient: UsersClient = new UsersClient(),
 	) {}
 
 	private nalogService: NalogService = new NalogService();
@@ -58,6 +62,31 @@ export class PaymentsService {
 		globalHandler.finishCommand();
 	}
 
+	async showLastPayment(message: Message, context: UsersContext, from?: TGUser) {
+		const lang = from?.is_bot ? 'ru' : from?.language_code;
+		let userId: string = context.id;
+		if (!context.id) {
+			const user = await this.usersClient.getByTelegramId(message.chat.id.toString());
+			userId = user.id.toString();
+		}
+		const payment = await this.usersClient.getLastPayment(Number(userId));
+		if (payment) {
+			try {
+				await bot.editMessageText(this.formatUserPayment(payment), {
+					parse_mode: 'MarkdownV2',
+					message_id: message.message_id,
+					chat_id: message.chat.id,
+					reply_markup: getUserKeyboard(lang),
+				});
+			} catch (err) {
+				logger.error(err);
+			}
+		} else {
+			await bot.sendMessage(message.chat.id, dict.payments_not_found[lang]);
+		}
+		globalHandler.finishCommand();
+	}
+
 	async sum(chatId: number) {
 		const result = await this.repository.sum();
 		const amount = result._sum.amount;
@@ -85,7 +114,7 @@ export class PaymentsService {
 			await bot.sendMessage(message.chat.id, 'Enter payment id');
 			return;
 		}
-		const found = await this.repository.getById(message?.text ?? '');
+		const found = await this.client.getById(message?.text ?? '');
 		if (found) {
 			await bot.sendMessage(message.chat.id, 'В системе найден следующий платёж по введённому ID:');
 			await this.showPaymentInfo(message, found);
@@ -171,10 +200,10 @@ export class PaymentsService {
 	}
 
 	async approvePayment(message: Message, context: UsersContext, start: boolean) {
-		await this.pay(message, context, start);
+		await this.pay(message, context, start, true);
 	}
 
-	async pay(message: Message | null, context: UsersContext, start: boolean) {
+	async pay(message: Message | null, context: UsersContext, start: boolean, approve = false) {
 		this.log(`pay. Active step "${this.getActiveStep(this.paymentSteps) ?? 'start'}"`);
 		const chatId = message?.chat?.id ?? env.ADMIN_USER_ID;
 		if (start) {
@@ -202,11 +231,11 @@ export class PaymentsService {
 		if (this.paymentSteps.user) {
 			let user: VPNUser | null;
 			if (context.id) {
-				user = await this.usersRepository.getById(Number(context.id));
+				user = await this.usersClient.getById(Number(context.id));
 			} else if (message?.user_shared?.user_id) {
-				user = await this.usersRepository.getByTelegramId(message.user_shared.user_id.toString());
+				user = await this.usersClient.getByTelegramId(message.user_shared.user_id.toString());
 			} else {
-				user = await this.usersRepository.getByUsername(message?.text ?? '');
+				user = await this.usersClient.getByUsername(message?.text ?? '');
 			}
 
 			if (!user) {
@@ -219,7 +248,7 @@ export class PaymentsService {
 			}
 			this.params.set('user', user);
 			const prices = [user.price];
-			if (user.payments.length) {
+			if (user.payments?.length) {
 				const lastPayment = user.payments[0];
 				if (lastPayment.amount !== user.price) {
 					prices.push(lastPayment.amount);
@@ -296,7 +325,7 @@ export class PaymentsService {
 		}
 		if (this.paymentSteps.nalog) {
 			this.params.set('nalog', Boolean(context?.accept));
-			if (user.dependants.filter(u => u.active).length) {
+			if (user.dependants?.filter(u => u.active)?.length) {
 				await bot.sendMessage(chatId, `Добавить платежи для дочерних юзеров?`, {
 					reply_markup: {
 						inline_keyboard: getYesNoKeyboard(),
@@ -310,11 +339,11 @@ export class PaymentsService {
 		if (this.paymentSteps.dependants) {
 			this.params.set('dependants', Boolean(context?.accept));
 		}
-		await this.executePayment(chatId, user);
+		await this.executePayment(chatId, user, approve);
 	}
 
 	async showAll(msg: Message) {
-		const payments = await this.repository.getAll();
+		const payments = await this.client.getAll();
 		for (const p of payments) {
 			await this.showPaymentInfo(msg, p);
 		}
@@ -351,6 +380,11 @@ export class PaymentsService {
 		}
 	}
 
+	private formatUserPayment(p: Payment) {
+		return `${p.amount} ${p.currency} оплачено ${formatDate(p.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)} на срок до ${p.expiresOn ? formatDate(p.expiresOn).replace(/[-.*#_]/g, match => `\\${match}`) : 'unset'}
+UUID: \`${p.id}\``;
+	}
+
 	private formatPayment(p: Payment) {
 		return `UUID: \`${p.id}\`				
 Дата оплаты: ${formatDate(p.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)}
@@ -359,10 +393,9 @@ export class PaymentsService {
 Сумма: ${p.amount} ${p.currency}
 ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 	}
-
 	private async calculateMonthsCount(chatId: number, user: VPNUser) {
 		const amount = this.params.get('amount');
-		const dependants = user.dependants.filter(d => d.active && !d.free);
+		const dependants = user.dependants?.filter(d => d.active && !d.free);
 		const dependantsCount = dependants?.length ?? 0;
 		const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependantsCount);
 		if (dependants?.length) {
@@ -398,7 +431,7 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 
 	private async calculateExpirationDate(chatId: number, user: VPNUser) {
 		const months = this.params.get('months');
-		const lastPayment = await this.repository.getLastPayment(user.id);
+		const lastPayment = await this.usersClient.getLastPayment(user.id);
 		if (lastPayment) {
 			await bot.sendMessage(
 				chatId,
@@ -421,11 +454,12 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			const nalog: boolean = this.params.get('nalog');
 			const plan: Plan | null = this.params.get('plan') ?? null;
 			const addDependants: boolean | undefined = this.params.get('dependants');
-			const result = await this.repository.create(user.id, {
+			const result = await this.client.create({
+				userId: user.id,
 				amount: Number(amount),
 				monthsCount: Number(monthsCount),
-				expiresOn,
-				plan,
+				expiresOn: expiresOn.toISOString(),
+				planId: plan?.id,
 			});
 			if (!result) {
 				const errMessage = `По непредвиденным обстоятельствам платеж для пользователя ${user.username} c ID ${user.id} не был создан`;
@@ -440,16 +474,18 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			await bot.sendMessage(chatId, `ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``, {
 				parse_mode: 'MarkdownV2',
 			});
+			await bot.sendMessage(user.telegramId, dict.payment_processed['ru']);
 			if (nalog) {
 				await this.addPaymentNalog(chatId, user.username, amount, result.id);
 			}
 			if (addDependants) {
 				for (const dep of user.dependants.filter(u => u.active)) {
-					const childResult = await this.repository.create(dep.id, {
+					const childResult = await this.client.create({
+						userId: dep.id,
 						amount: 0,
 						monthsCount: Number(monthsCount),
-						expiresOn,
-						plan,
+						expiresOn: expiresOn.toISOString(),
+						planId: plan?.id,
 						parentPaymentId: result.id,
 					});
 					if (childResult) {
@@ -504,12 +540,9 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 				callback_data: cd,
 			},
 		];
-		const markup: InlineKeyboardMarkup | undefined =
-			message.chat.id === env.ADMIN_USER_ID
-				? {
-						inline_keyboard: [button],
-					}
-				: undefined;
+		const markup: InlineKeyboardMarkup = {
+			inline_keyboard: [button],
+		};
 		if (!p.parentPaymentId) {
 			await bot.sendMessage(message.chat.id, this.formatPayment(p), {
 				parse_mode: 'MarkdownV2',
@@ -526,7 +559,7 @@ Expires On: ${p.expiresOn ? formatDate(p.expiresOn).replace(/[-.*#_]/g, match =>
 				reply_markup: markup,
 			},
 		);
-		const parentPayment = await this.repository.getById(p.parentPaymentId);
+		const parentPayment = await this.client.getById(p.parentPaymentId);
 		if (parentPayment) {
 			await bot.sendMessage(
 				message.chat.id,
@@ -545,7 +578,7 @@ Amount: ${parentPayment.amount} ${parentPayment.currency}`,
 
 	private async deletePayment(message: Message, id: string) {
 		try {
-			const result = await this.repository.delete(id);
+			const result = await this.client.delete(id);
 			await bot.sendMessage(
 				message.chat.id,
 				`Выбранный платёж \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\` датой ${formatDate(result.paymentDate).replace(/[-.*#_]/g, match => `\\${match}`)} успешно удалён из системы`,

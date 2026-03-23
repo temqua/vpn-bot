@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { Device, User } from '@prisma/client';
 import { CmdCode, UpdateUserPropsMap, VPNUserCommand } from '../../enums';
 import { Message, User as TGUser } from 'node-telegram-bot-api';
 
@@ -38,3 +38,24 @@ export interface CreatePasarguardUserParams {
 	expiresOn?: Date;
 }
 
+export interface CreateUserDto {
+	username: string;
+
+	firstName: string;
+
+	telegramId: string | null;
+	telegramLink: string | null;
+
+	lastName?: string | null;
+	payerId?: number | null;
+	subLink?: string | null;
+	devices?: Device[];
+	pasarguardUsername?: string | null;
+	pasarguardId?: number | null;
+}
+
+export interface SearchUserDto {
+	username?: string;
+	telegramId?: string;
+	firstName?: string;
+}

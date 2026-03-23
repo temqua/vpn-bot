@@ -1,3 +1,4 @@
+import { Device } from '@prisma/client';
 import { IsString } from 'class-validator';
 
 export class CreateUserDto {
@@ -12,4 +13,8 @@ export class CreateUserDto {
 
   lastName: string | null;
   payerId: number | null;
+  devices?: Device[];
+  subLink: string | null;
+  pasarguardUsername: string | null;
+  pasarguardId: number | null;
 }

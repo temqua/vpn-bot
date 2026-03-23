@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import env from './env';
 import { ServiceTokenGuard } from './guards/auth.guard';
 import fs from 'fs';
+import { RequestsInterceptor } from './logging-interceptor';
 async function bootstrap() {
   const options =
     env.APP_ENV === 'local'
@@ -25,6 +26,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('/api/v1');
   app.useGlobalGuards(new ServiceTokenGuard());
+  app.useGlobalInterceptors(new RequestsInterceptor());
   await app.listen(env.PORT ?? 3000);
 }
 bootstrap();

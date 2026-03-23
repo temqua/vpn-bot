@@ -10,12 +10,12 @@ import logger from '../../logger';
 import { setActiveStep } from '../../utils';
 import { getUserKeyboard } from '../users/users.buttons';
 import { UsersRepository } from '../users/users.repository';
-import { PlanRepository } from './plans.repository';
+import { PlansClient } from './plans.client';
 import { PlansContext } from './plans.types';
 export class PlansService {
 	constructor(
-		private readonly repository: PlanRepository = new PlanRepository(),
 		private readonly usersRepo: UsersRepository = new UsersRepository(),
+		private client: PlansClient = new PlansClient(),
 	) {}
 
 	createSteps: { [key: string]: boolean } = {
@@ -34,7 +34,7 @@ export class PlansService {
 
 	async showAll(chatId: number) {
 		this.log('showAll');
-		const plans = await this.repository.getAll();
+		const plans = await this.client.getAll();
 		for (const plan of plans) {
 			await bot.sendMessage(chatId, this.formatPlan(plan), {
 				reply_markup: {
@@ -74,7 +74,7 @@ export class PlansService {
 		const lang = from.is_bot ? 'ru' : from.language_code;
 		this.log('showForUser');
 		const user = await this.usersRepo.getByTelegramId(chatId.toString());
-		const plans = await this.repository.getByPrice(user.price);
+		const plans = await this.client.getAll(user.price);
 		const plansGroupped = Object.groupBy(plans, p => p.minCount);
 
 		const prepared = Object.keys(plansGroupped)
@@ -149,14 +149,14 @@ export class PlansService {
 			const amount = Number(params.get('amount'));
 			const monthsCount = Number(params.get('monthsCount'));
 			this.validate();
-			const created = await this.repository.create(
-				params.get('name'),
+			const created = await this.client.create({
+				name: params.get('name'),
 				amount,
 				price,
 				minCount,
 				maxCount,
 				monthsCount,
-			);
+			});
 			if (created) {
 				await bot.sendMessage(
 					chatId,
@@ -218,7 +218,7 @@ export class PlansService {
 		const isNumberProp = this.props.number.includes(context.prop);
 		const newValue = isNumberProp ? Number(message.text) : message.text;
 		try {
-			const updated = await this.repository.update(this.params.get('id'), {
+			const updated = await this.client.update(this.params.get('id'), {
 				[context.prop]: newValue,
 			});
 			bot.sendMessage(chatId, `Successfully updated ${context.prop} for plan ${updated.name}`);
@@ -235,14 +235,14 @@ export class PlansService {
 		this.log('delete');
 		const chatId = msg.chat.id;
 		if (!start) {
-			await this.repository.delete(Number(context.id));
+			await this.client.delete(Number(context.id));
 			const message = `Plan with id ${context.id} has been successfully removed`;
 			logger.success(`[${basename(__filename)}]: ${message}`);
 			await bot.sendMessage(chatId, message);
 			globalHandler.finishCommand();
 			return;
 		}
-		const plans = await this.repository.getAll();
+		const plans = await this.client.getAll();
 		const buttons = plans.map(({ name, id }) => [
 			{
 				text: name,

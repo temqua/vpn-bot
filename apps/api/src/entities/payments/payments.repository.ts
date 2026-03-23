@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../database.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { Payment } from '@prisma/client';
+import { endOfDay, startOfDay } from 'date-fns';
+import { UpdatePaymentDto } from './dto/update-payment.dto';
 
 @Injectable()
 export class PaymentsRepository {
@@ -13,7 +16,7 @@ export class PaymentsRepository {
         amount: createPaymentDto.amount,
         monthsCount: createPaymentDto.monthsCount,
         expiresOn: createPaymentDto.expiresOn,
-        planId: createPaymentDto.plan?.id ?? null,
+        planId: createPaymentDto.planId ?? null,
         parentPaymentId: createPaymentDto.parentPaymentId ?? null,
         currency: 'RUB',
       },
@@ -25,24 +28,65 @@ export class PaymentsRepository {
   }
 
   async findOne(id: string) {
-    return await this.databaseService.client.payment.findFirst({
+    return await this.databaseService.client.payment.findUnique({
       where: {
         id,
       },
     });
   }
 
-  // async update(id: string, updatePaymentDto: UpdatePaymentDto) {
-  //   return await this.databaseService.client.payment.update({
-  //     data: {
+  async update(id: string, updatePaymentDto: UpdatePaymentDto) {
+    return await this.databaseService.client.payment.update({
+      data: {
+        ...updatePaymentDto,
+      },
+      where: {
+        id,
+      },
+    });
+  }
 
-  //       ...updatePaymentDto,
-  //     },
-  //     where: {
-  //       id,
-  //     },
-  //   });
-  // }
+  async getAllForSheet() {
+    return await this.databaseService.client.payment.findMany({
+      orderBy: {
+        paymentDate: 'desc',
+      },
+      include: {
+        user: {},
+        plan: {},
+      },
+    });
+  }
+
+  async getByDate(date: Date): Promise<Payment[]> {
+    return await this.databaseService.client.payment.findMany({
+      where: {
+        paymentDate: {
+          gte: startOfDay(date),
+          lte: endOfDay(date),
+        },
+      },
+    });
+  }
+
+  async getByDateRange(from: Date, to: Date): Promise<Payment[]> {
+    return await this.databaseService.client.payment.findMany({
+      where: {
+        paymentDate: {
+          gte: startOfDay(from),
+          lte: endOfDay(to),
+        },
+      },
+    });
+  }
+
+  async sum() {
+    return await this.databaseService.client.payment.aggregate({
+      _sum: {
+        amount: true,
+      },
+    });
+  }
 
   async remove(id: string) {
     return await this.databaseService.client.payment.delete({

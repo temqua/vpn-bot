@@ -1,5 +1,4 @@
-import { Plan } from '@prisma/client';
-import { IsDate, IsNumber } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsNumber()
@@ -11,10 +10,12 @@ export class CreatePaymentDto {
   @IsNumber()
   monthsCount: number;
 
-  @IsDate()
-  expiresOn: Date;
+  @IsString()
+  expiresOn: string;
 
-  plan?: Plan | null;
+  @IsNumber()
+  planId?: number | null;
 
+  @IsString()
   parentPaymentId?: string | null;
 }

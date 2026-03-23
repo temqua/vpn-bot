@@ -1,6 +1,6 @@
 {
 	"name": "tesseract-bot",
-	"version": "3.11.0",
+	"version": "3.12.0",
 	"scripts": {
 		"generate": "prisma generate",
 		"prestart": "npx prisma generate",

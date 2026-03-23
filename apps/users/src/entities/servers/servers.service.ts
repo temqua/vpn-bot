@@ -11,9 +11,13 @@ import { CertificatesService } from '../keys/certificates.service';
 import { getServerKeyboard } from './servers.buttons';
 import { ServersRepository } from './servers.repository';
 import { ServersContext } from './servers.types';
+import { ServersClient } from './servers.client';
 
 export class ServersService {
-	constructor(private readonly repository: ServersRepository = new ServersRepository()) {}
+	constructor(
+		private readonly repository: ServersRepository = new ServersRepository(),
+		private client: ServersClient = new ServersClient(),
+	) {}
 	createSteps: { [key: string]: boolean } = {
 		name: false,
 		url: false,
@@ -22,7 +26,7 @@ export class ServersService {
 
 	async list(message: Message) {
 		this.log('list');
-		const servers = await this.repository.getAll();
+		const servers = await this.client.getAll();
 
 		for (const server of servers) {
 			const info = `${server.name}
@@ -73,7 +77,7 @@ URL: ${server.url}
 
 		const params = this.params;
 		try {
-			const created = await this.repository.create(params.get('name'), params.get('url'));
+			const created = await this.client.create({ name: params.get('name'), url: params.get('url') });
 			if (created) {
 				await bot.sendMessage(
 					chatId,
@@ -111,7 +115,7 @@ URL: ${server.url}
 			const messageId = this.params.get('message_id') ?? msg.message_id;
 			const message = `Server with id ${context.id} has been successfully removed`;
 			try {
-				await this.repository.delete(Number(context.id));
+				await this.client.delete(Number(context.id));
 				logger.success(`[${basename(__filename)}]: ${message}`);
 				await bot.editMessageText(message, {
 					message_id: messageId,
@@ -128,7 +132,7 @@ URL: ${server.url}
 			}
 			return;
 		}
-		const servers = await this.repository.getAll();
+		const servers = await this.client.getAll();
 		const buttons = servers.map(({ name, id }) => [
 			{
 				text: name,
@@ -259,7 +263,7 @@ URL: ${server.url}
 		let server: VpnServer;
 
 		try {
-			server = await this.repository.getById(Number(this.params.get('serverId')));
+			server = await this.client.getById(Number(this.params.get('serverId')));
 		} catch (error) {
 			await bot.editMessageText(`Error occurred while loading server by id ${error}`, {
 				chat_id: message.chat.id,
@@ -307,7 +311,7 @@ URL: ${server.url}
 			return;
 		}
 		try {
-			const updated = await this.repository.update(this.params.get('serverId'), {
+			const updated = await this.client.update(this.params.get('serverId'), {
 				url: message.text,
 			});
 			await bot.editMessageText(
@@ -345,7 +349,7 @@ URL: ${updated.url}				`,
 			return;
 		}
 		try {
-			const updated = await this.repository.update(this.params.get('serverId'), {
+			const updated = await this.client.update(this.params.get('serverId'), {
 				name: message.text,
 			});
 			await bot.editMessageText(

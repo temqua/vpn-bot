@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
+import { ExpensesRepository } from './expenses.repository';
 
 @Injectable()
 export class ExpensesService {
-  create(createExpenseDto: CreateExpenseDto) {
-    return 'This action adds a new expense';
+  constructor(private repository: ExpensesRepository) {}
+
+  async create(createExpenseDto: CreateExpenseDto) {
+    return await this.repository.create(
+      createExpenseDto.category,
+      createExpenseDto.amount,
+      createExpenseDto.description,
+    );
   }
 
-  findAll() {
-    return `This action returns all expenses`;
+  async findOne(id: string) {
+    return await this.repository.findOne(id);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} expense`;
+  async list() {
+    return await this.repository.list();
   }
 
-  update(id: number, updateExpenseDto: UpdateExpenseDto) {
-    return `This action updates a #${id} expense`;
+  async update(id: string, updateExpenseDto: UpdateExpenseDto) {
+    return await this.repository.update(id, updateExpenseDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} expense`;
+  async remove(id: string) {
+    return this.repository.delete(id);
   }
 }

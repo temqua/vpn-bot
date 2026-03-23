@@ -6,3 +6,8 @@ export interface ServersContext {
 	prop?: 'name' | 'url';
 	pr?: 'I' | 'W' | 'O';
 }
+
+export interface CreateServerDto {
+	url: string;
+	name: string;
+}

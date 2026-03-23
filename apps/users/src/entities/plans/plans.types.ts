@@ -7,3 +7,17 @@ export interface PlansContext {
 	prop?: string;
 	setNull?: boolean;
 }
+
+export interface CreatePlanDto {
+	name: string;
+
+	amount: number;
+
+	price: number;
+
+	minCount: number;
+
+	maxCount: number;
+
+	monthsCount: number;
+}

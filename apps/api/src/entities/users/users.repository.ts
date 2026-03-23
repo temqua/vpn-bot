@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { DatabaseService } from '../../database.service';
+import { Payment, User, VPNProtocol } from '@prisma/client';
 import { subMonths, subWeeks } from 'date-fns';
-import { VPNProtocol } from '@prisma/client';
+import { DatabaseService } from '../../database.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { VPNUser } from './users.types';
 
 @Injectable()
 export class UsersRepository {
@@ -26,6 +27,15 @@ export class UsersRepository {
       where: {
         id,
       },
+      include: {
+        payer: true,
+        payments: {
+          orderBy: {
+            paymentDate: 'desc',
+          },
+        },
+        dependants: true,
+      },
     });
   }
 
@@ -37,6 +47,11 @@ export class UsersRepository {
       where: {
         id,
       },
+      include: {
+        payer: true,
+        payments: true,
+        dependants: true,
+      },
     });
   }
 
@@ -44,6 +59,80 @@ export class UsersRepository {
     return await this.databaseService.client.user.delete({
       where: {
         id,
+      },
+    });
+  }
+
+  async getByTelegramId(telegramId: string): Promise<VPNUser | null> {
+    return await this.databaseService.client.user.findUnique({
+      where: {
+        telegramId,
+      },
+      include: {
+        payer: true,
+        payments: {
+          orderBy: {
+            paymentDate: 'desc',
+          },
+        },
+        dependants: true,
+      },
+    });
+  }
+
+  async findByUsername(username: string): Promise<VPNUser[]> {
+    return await this.databaseService.client.user.findMany({
+      where: {
+        username: {
+          mode: 'insensitive',
+          contains: username,
+        },
+      },
+      include: {
+        payer: true,
+        payments: {
+          orderBy: {
+            paymentDate: 'desc',
+          },
+        },
+        dependants: true,
+      },
+    });
+  }
+
+  async getByUsername(username: string): Promise<VPNUser | null> {
+    return await this.databaseService.client.user.findUnique({
+      where: {
+        username,
+      },
+      include: {
+        payer: true,
+        payments: {
+          orderBy: {
+            paymentDate: 'desc',
+          },
+        },
+        dependants: true,
+      },
+    });
+  }
+
+  async findByFirstName(firstName: string): Promise<VPNUser[]> {
+    return await this.databaseService.client.user.findMany({
+      where: {
+        firstName: {
+          mode: 'insensitive',
+          contains: firstName,
+        },
+      },
+      include: {
+        payer: true,
+        payments: {
+          orderBy: {
+            paymentDate: 'desc',
+          },
+        },
+        dependants: true,
       },
     });
   }
@@ -70,6 +159,19 @@ export class UsersRepository {
             paymentDate: 'desc',
           },
         },
+      },
+    });
+  }
+
+  async payersList(userId: number): Promise<User[]> {
+    return await this.databaseService.client.user.findMany({
+      where: {
+        id: {
+          not: userId,
+        },
+      },
+      orderBy: {
+        firstName: 'asc',
       },
     });
   }
@@ -217,6 +319,25 @@ export class UsersRepository {
       include: {
         server: {},
         user: {},
+      },
+    });
+  }
+
+  async getLastUserPayment(userId: number): Promise<Payment | null> {
+    return await this.databaseService.client.payment.findFirst({
+      where: {
+        userId,
+      },
+      orderBy: {
+        paymentDate: 'desc',
+      },
+    });
+  }
+
+  async getUserPayments(userId: number): Promise<Payment[]> {
+    return await this.databaseService.client.payment.findMany({
+      where: {
+        userId,
       },
     });
   }

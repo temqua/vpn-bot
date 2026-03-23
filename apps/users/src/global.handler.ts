@@ -30,6 +30,10 @@ export type CommandContext = UsersContext | ExpensesContext | PaymentsContext | 
 class GlobalHandler {
 	private activeCommand: CommandDetails = null;
 
+	getActiveCommand() {
+		return this.activeCommand;
+	}
+
 	hasActiveCommand() {
 		return Boolean(this.activeCommand);
 	}
