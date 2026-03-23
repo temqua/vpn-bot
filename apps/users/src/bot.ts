@@ -5,9 +5,7 @@ const isProduction = env.BOT_ENV === 'production';
 const config = isProduction
 	? {
 			webHook: {
-				port: 443,
-				key: '/etc/ssl/certs/tg/key.pem',
-				cert: '/etc/ssl/certs/tg/cert.pem',
+				port: 4000,
 			},
 		}
 	: { polling: true };

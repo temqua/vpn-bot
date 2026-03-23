@@ -11,8 +11,6 @@ services:
         restart: always
         networks:
             - tesseract-network
-        volumes:
-            - /etc/ssl/certs/tg:/etc/ssl/certs/tg:ro
     tesseract-bot:
         container_name: tesseract-bot
         build:
@@ -21,12 +19,10 @@ services:
         image: tesseract-bot
         env_file: .env.bot
         ports:
-            - 443:443
+            - 4000:4000
         restart: always
         networks:
             - tesseract-network
-        volumes:
-            - /etc/ssl/certs/tg:/etc/ssl/certs/tg:ro
 networks:
     tesseract-network:
         external: true
