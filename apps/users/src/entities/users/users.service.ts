@@ -360,7 +360,7 @@ export class UsersService {
 
 	async getById(message: Message, context: UsersContext) {
 		this.log('getById');
-		const user = await this.client.getById(Number(context.id));
+		const user = await this.repository.getById(Number(context.id));
 		if (user) {
 			await this.sendUserMenu(message.chat.id, user);
 		}
