@@ -1369,7 +1369,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			delete context.accept;
 			await this.sendNewUserMenu(env.ADMIN_USER_ID, finalUser);
 			await bot.sendMessage(newUser.telegramId, dict.request_approved[lang]);
-			const link = `${newUser.subLink ? env.PASARGUARD_ROOT : ''}${newUser.subLink}`;
+			const link = `${finalUser.subLink ? env.PASARGUARD_ROOT : ''}${finalUser.subLink}`;
 			const messg = dict.installation_guide[lang](link);
 			await bot.sendMessage(newUser.telegramId, messg, {
 				parse_mode: 'MarkdownV2',
