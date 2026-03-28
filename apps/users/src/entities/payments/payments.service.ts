@@ -474,7 +474,9 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			await bot.sendMessage(chatId, `ID платежа: \`${result.id.replace(/[-.*#_]/g, match => `\\${match}`)}\``, {
 				parse_mode: 'MarkdownV2',
 			});
-			await bot.sendMessage(user.telegramId, dict.payment_processed['ru']);
+			if (user.telegramId) {
+				await bot.sendMessage(user.telegramId, dict.payment_processed['ru']);
+			}
 			if (nalog) {
 				await this.addPaymentNalog(chatId, user.username, amount, result.id);
 			}
