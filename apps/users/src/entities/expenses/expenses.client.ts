@@ -45,4 +45,9 @@ export class ExpensesClient {
 		const result = await client.get('/expenses/sum?category=Servers');
 		return result as ExpenseSumDto;
 	}
+
+	async sum(): Promise<ExpenseSumDto | null> {
+		const result = await client.get('/expenses/sum');
+		return result as ExpenseSumDto;
+	}
 }

@@ -9,15 +9,11 @@ import logger from '../../logger';
 import { setActiveStep } from '../../utils';
 import { CertificatesService } from '../keys/certificates.service';
 import { getServerKeyboard } from './servers.buttons';
-import { ServersRepository } from './servers.repository';
-import { ServersContext } from './servers.types';
 import { ServersClient } from './servers.client';
+import { ServersContext } from './servers.types';
 
 export class ServersService {
-	constructor(
-		private readonly repository: ServersRepository = new ServersRepository(),
-		private client: ServersClient = new ServersClient(),
-	) {}
+	constructor(private client: ServersClient = new ServersClient()) {}
 	createSteps: { [key: string]: boolean } = {
 		name: false,
 		url: false,
@@ -43,12 +39,12 @@ URL: ${server.url}
 
 	async listServerUsers(message: Message, context: ServersContext) {
 		try {
-			const usersServers = await this.repository.getUsers(Number(context.id));
+			const usersServers = await this.client.getServerUsers(Number(context.id));
 			const chunkSize = 50;
 			const chunksCount = Math.ceil(usersServers.length / chunkSize);
 			for (let i = 0; i < chunksCount; i++) {
 				const chunk = usersServers.slice(i * chunkSize, i * chunkSize + chunkSize);
-				await bot.sendMessage(message.chat.id, chunk.map(u => u.user.username).join(', '));
+				await bot.sendMessage(message.chat.id, chunk.map(u => u.username).join(', '));
 			}
 			await bot.sendMessage(message.chat.id, `Server users count ${usersServers.length}`);
 		} catch (error) {

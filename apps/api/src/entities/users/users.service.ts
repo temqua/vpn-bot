@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
@@ -47,7 +51,11 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    return await this.repository.remove(id);
+    try {
+      return await this.repository.remove(id);
+    } catch (err) {
+      throw new InternalServerErrorException(err);
+    }
   }
 
   async getUserPayments(id: string) {

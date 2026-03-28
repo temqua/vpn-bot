@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -21,8 +22,12 @@ export class PaymentsController {
   }
 
   @Get()
-  async findAll() {
-    return await this.paymentsService.findAll();
+  async findAll(
+    @Query('user_id') userId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return await this.paymentsService.findAll({ userId, from, to });
   }
 
   @Get('/sum')

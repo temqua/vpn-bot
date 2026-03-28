@@ -1,6 +1,7 @@
 import { VpnServer } from '@prisma/client';
 import client from '../../api-client';
 import { CreateServerDto } from './servers.types';
+import { VPNUser } from '../users/users.repository';
 
 export class ServersClient {
 	async getAll(): Promise<VpnServer[]> {
@@ -32,5 +33,10 @@ export class ServersClient {
 	async delete(id: number) {
 		const result = await client.delete(`/servers/${id}`);
 		return result;
+	}
+
+	async getServerUsers(id: number): Promise<VPNUser[]> {
+		const result = await client.get(`/servers/${id}/users`);
+		return result as VPNUser[];
 	}
 }

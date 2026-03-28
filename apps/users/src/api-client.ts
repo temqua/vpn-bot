@@ -21,6 +21,9 @@ class ApiClient {
 		const isJson = response.headers.get('Content-Type')?.includes('application/json');
 		if (!response.ok && response.body && isJson) {
 			const errorBody: IErrorBody = await response.json();
+			if (!errorBody.message) {
+				throw new Error(JSON.stringify(errorBody));
+			}
 			throw new Error(errorBody.message);
 		}
 		if (!response.ok) {

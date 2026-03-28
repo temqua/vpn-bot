@@ -18,3 +18,7 @@ export interface CreatePaymentDto {
 
 	parentPaymentId?: string | null;
 }
+
+export interface PaymentSumDto {
+	amount: string;
+}

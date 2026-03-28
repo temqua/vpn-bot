@@ -58,16 +58,16 @@ export class PaymentsRepository {
     });
   }
 
-  async getByDate(date: Date): Promise<Payment[]> {
-    return await this.databaseService.client.payment.findMany({
-      where: {
-        paymentDate: {
-          gte: startOfDay(date),
-          lte: endOfDay(date),
-        },
-      },
-    });
-  }
+  // async getByDate(date: Date): Promise<Payment[]> {
+  //   return await this.databaseService.client.payment.findMany({
+  //     where: {
+  //       paymentDate: {
+  //         gte: startOfDay(date),
+  //         lte: endOfDay(date),
+  //       },
+  //     },
+  //   });
+  // }
 
   async getByDateRange(from: Date, to: Date): Promise<Payment[]> {
     return await this.databaseService.client.payment.findMany({
@@ -93,6 +93,14 @@ export class PaymentsRepository {
     return await this.databaseService.client.payment.delete({
       where: {
         id,
+      },
+    });
+  }
+
+  async getAllByUserId(userId: number): Promise<Payment[]> {
+    return await this.databaseService.client.payment.findMany({
+      where: {
+        userId,
       },
     });
   }

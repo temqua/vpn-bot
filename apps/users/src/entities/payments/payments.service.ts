@@ -1,28 +1,26 @@
 import type { Payment, Plan } from '@prisma/client';
-import { addDays, addMonths, parse, subMonths } from 'date-fns';
+import { addDays, addMonths, subMonths } from 'date-fns';
 import type { InlineKeyboardMarkup, Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
 import { getFrequestPaymentAmountsKeyboard, getYesNoKeyboard } from '../../buttons';
 import { dict } from '../../dict';
-import { CmdCode, CommandScope, PaymentCommand, UserRequest, VPNUserCommand } from '../../enums';
+import { CmdCode, CommandScope, PaymentCommand, UserRequest } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { formatDate, setActiveStep, uuid32to36 } from '../../utils';
 import { PlanRepository } from '../plans/plans.repository';
 import { NalogService } from '../users/nalog.service';
+import { PasarguardService } from '../users/pasarguard.service';
 import { acceptKeyboard, getUserKeyboard } from '../users/users.buttons';
+import { UsersClient } from '../users/users.client';
 import { UsersRepository, type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
-import { PaymentsRepository } from './payments.repository';
-import { PaymentsContext } from './payments.types';
-import { PasarguardService } from '../users/pasarguard.service';
 import { PaymentsClient } from './payments.client';
-import { UsersClient } from '../users/users.client';
+import { PaymentsContext } from './payments.types';
 export class PaymentsService {
 	constructor(
-		private repository: PaymentsRepository = new PaymentsRepository(),
 		private plansRepository: PlanRepository = new PlanRepository(),
 		private usersRepository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
@@ -49,10 +47,10 @@ export class PaymentsService {
 		const lang = from?.is_bot ? 'ru' : from?.language_code;
 		let userId: string = context.id;
 		if (!context.id) {
-			const user = await this.usersRepository.getByTelegramId(message.chat.id.toString());
+			const user = await this.usersClient.getByTelegramId(message.chat.id.toString());
 			userId = user.id.toString();
 		}
-		const payments = await this.repository.getAllByUserId(Number(userId));
+		const payments = await this.client.getAllByUserId(Number(userId));
 		if (!payments.length) {
 			await bot.sendMessage(message.chat.id, dict.payments_not_found[lang]);
 		}
@@ -88,8 +86,8 @@ export class PaymentsService {
 	}
 
 	async sum(chatId: number) {
-		const result = await this.repository.sum();
-		const amount = result._sum.amount;
+		const result = await this.client.sum();
+		const amount = result.amount;
 		await bot.sendMessage(chatId, `Сумма всех платежей в системе: ${amount}`);
 		globalHandler.finishCommand();
 	}
@@ -136,7 +134,7 @@ export class PaymentsService {
 			return;
 		}
 		try {
-			const found = await this.repository.getByDate(parse(message.text, 'yyyy-MM-dd', new Date()));
+			const found = await this.client.getAllByDateRange(message.text, message.text);
 			if (found.length) {
 				await bot.sendMessage(message.chat.id, 'В системе найдены следующие платёжи по указанной дате');
 				for (const p of found) {
@@ -175,14 +173,14 @@ export class PaymentsService {
 		}
 		try {
 			const fromStr = this.params.get('from');
-			let from = parse(fromStr, 'yyyy-MM-dd', new Date());
-			let to = parse(message.text, 'yyyy-MM-dd', new Date());
-			if (from > to) {
-				const temp = from;
-				from = to;
-				to = temp;
-			}
-			const found = await this.repository.getByDateRange(from, to);
+			// let from = parse(fromStr, 'yyyy-MM-dd', new Date());
+			// let to = parse(message.text, 'yyyy-MM-dd', new Date());
+			// if (from > to) {
+			// 	const temp = from;
+			// 	from = to;
+			// 	to = temp;
+			// }
+			const found = await this.client.getAllByDateRange(fromStr, message.text);
 			if (found.length) {
 				await bot.sendMessage(message.chat.id, 'В системе найдены следующие платёжи в указанные даты');
 				for (const p of found) {

@@ -7,15 +7,11 @@ import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import pollOptions from '../../pollOptions';
 import { formatDate, setActiveStep } from '../../utils';
-import { ExpensesRepository } from './expenses.repository';
-import { ExpenseCreateContext, ExpensesContext } from './expenses.types';
 import { ExpensesClient } from './expenses.client';
+import { ExpenseCreateContext, ExpensesContext } from './expenses.types';
 
 export class ExpensesService {
-	constructor(
-		private repository: ExpensesRepository = new ExpensesRepository(),
-		private client: ExpensesClient = new ExpensesClient(),
-	) {}
+	constructor(private client: ExpensesClient = new ExpensesClient()) {}
 	params = new Map();
 	createSteps = {
 		category: false,
@@ -102,9 +98,9 @@ Additional info: ${expense.description.replace(/[-.*#_]/g, match => `\\${match}`
 			globalHandler.finishCommand();
 			return;
 		}
-		const result = await this.repository.sum();
+		const result = await this.client.sum();
 
-		await bot.sendMessage(message.chat.id, `Sum of expenses: ${result._sum.amount}`);
+		await bot.sendMessage(message.chat.id, `Sum of expenses: ${result.amount}`);
 		this.params.clear();
 		globalHandler.finishCommand();
 	}
