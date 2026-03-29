@@ -15,6 +15,16 @@ export default {
 			},
 		});
 	},
+	async patch(url: string, params?: RequestInit) {
+		return await fetch(url, {
+			method: 'PATCH',
+			body: params.body,
+			headers: {
+				'Content-Type': 'application/json',
+				...(params?.headers ? { ...params.headers } : {}),
+			},
+		});
+	},
 	async put(url: string, params?: RequestInit) {
 		return await fetch(url, {
 			method: 'PUT',

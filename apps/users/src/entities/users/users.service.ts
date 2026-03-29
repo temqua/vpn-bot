@@ -430,8 +430,8 @@ export class UsersService {
 			}
 			const updateId = this.params.get('updateId');
 			try {
-				const updated = await this.repository.update(updateId, {
-					payerId: context.id,
+				const updated = await this.client.update(updateId, {
+					payerId: Number(context.id),
 				});
 				logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
 				await this.sendUserMenu(chatId, updated);
@@ -820,7 +820,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		try {
 			const result = await this.pasarguardService.deleteUser(user.pasarguardUsername);
 			if (result.success) {
-				const updated = await this.repository.update(user.id, {
+				const updated = await this.client.update(user.id, {
 					subLink: null,
 					pasarguardUsername: null,
 					pasarguardId: null,
@@ -856,7 +856,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		try {
 			const result = await this.pasarguardService.deleteUser(user.pasarguardUsername);
 			if (result.success) {
-				await this.repository.update(user.id, {
+				await this.client.update(user.id, {
 					subLink: null,
 					pasarguardUsername: null,
 					pasarguardId: null,
@@ -1492,7 +1492,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 
 	private async applyUpdate(chatId: number, id: number, prop: string, value: string[] | number | string | boolean) {
 		try {
-			const updated: VPNUser = await this.repository.update(id, {
+			const updated: VPNUser = await this.client.update(id, {
 				[prop]: value,
 			});
 			logger.success(`Field ${prop} has been successfully updated for user ${id}`);
@@ -1652,7 +1652,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			if (!isAdmin) {
 				await this.showSubGuide(message, from);
 			}
-			const updated = await this.repository.update(user.id, {
+			const updated = await this.client.update(user.id, {
 				subLink: newPasarguardUser.subscription_url,
 				pasarguardUsername: newPasarguardUser.username,
 				pasarguardId: newPasarguardUser.id,
