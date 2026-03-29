@@ -5,7 +5,9 @@ import { CreatePlanDto } from './plans.types';
 export class PlansClient {
 	async getAll(price?: number): Promise<Plan[]> {
 		const params = new URLSearchParams();
-		params.append('price', price.toString());
+		if (price) {
+			params.append('price', price.toString());
+		}
 		const result = await client.get(`/plans?${params}`);
 		return result as Plan[];
 	}
