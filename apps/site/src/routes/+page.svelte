@@ -1,4 +1,4 @@
-<h1>VPN WITH AWESOME SPEED</h1>
+<h1>TESSERACT</h1>
 
 <style>
 	h1 {

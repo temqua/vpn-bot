@@ -9,7 +9,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Tesseract VPN</title>
+	<title>Tesseract</title>
 </svelte:head>
 
 <Header></Header>
