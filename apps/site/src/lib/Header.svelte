@@ -1,6 +1,6 @@
 <header>
 	<nav>
-		<a id="logo" href="/">Tesseract VPN</a>
+		<a id="logo" href="/">Tesseract</a>
 	</nav>
 </header>
 
