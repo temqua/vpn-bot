@@ -76,7 +76,18 @@ export class UsersController {
   }
 
   @Get('/:id/servers')
-  async getServers(@Param('id') id: string) {
-    return this.usersService.getUserServers(+id);
+  async getServers(@Param('id') userId: string) {
+    return this.usersService.listUserServers(Number(userId));
+  }
+
+  @Get('/:id/servers/:serverId')
+  async getUserServer(
+    @Param('id') userId: string,
+    @Param('serverId') serverId: string,
+  ) {
+    return this.usersService.listUserServerRecords(
+      Number(userId),
+      Number(serverId),
+    );
   }
 }

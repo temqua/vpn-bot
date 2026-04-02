@@ -46,6 +46,7 @@ import {
 } from './users.types';
 import { PlanRepository } from '../plans/plans.repository';
 import { UsersClient } from './users.client';
+import { UsersServersClient } from './users-servers.client';
 
 export class UsersService {
 	constructor(
@@ -54,6 +55,7 @@ export class UsersService {
 		private serversRepository: ServersRepository = new ServersRepository(),
 		private plansRepository: PlanRepository = new PlanRepository(),
 		private client: UsersClient = new UsersClient(),
+		private usersServersClient: UsersServersClient = new UsersServersClient(),
 	) {}
 
 	params = new Map();
@@ -984,7 +986,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 	}
 
 	async listKeys(message: Message, context: UsersContext) {
-		const list = await this.repository.listUserServers(Number(context.id));
+		const list = await this.client.getUserServers(Number(context.id));
 		for (const record of list) {
 			const pauseButton = {
 				text: 'Pause',
@@ -1001,7 +1003,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 				`${record.server.name} (${record.server.url})
 ${record.protocol}
 ${record.username} 
-Created at ${formatDate(record.assignedAt)}`,
+Created at ${record.assignedAt}`,
 				{
 					reply_markup: {
 						inline_keyboard: [
@@ -1054,13 +1056,13 @@ Created at ${formatDate(record.assignedAt)}`,
 	async listKeysForUser(message: Message, from: TGUser) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		const user = await this.client.getByTelegramId(message.chat.id.toString());
-		const list = await this.repository.listUserServers(user.id);
+		const list = await this.client.getUserServers(user.id);
 		for (const record of list) {
 			await bot.sendMessage(
 				message.chat.id,
 				`Сервер ${record.server.name} (${record.server.url})
 Протокол: ${record.protocol}
-Дата создания: ${formatDate(record.assignedAt)}`,
+Дата создания: ${record.assignedAt}`,
 				{
 					reply_markup: {
 						inline_keyboard: [
@@ -1088,11 +1090,11 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	async deleteKey(message: Message, context: UsersContext, unassign: boolean = false) {
-		const record = await this.repository.getUserServerById(Number(context.rid));
+		const record = await this.usersServersClient.getById(Number(context.rid));
 		const protocol = record.protocol;
 
 		try {
-			await this.repository.deleteUserServer(record.id);
+			await this.usersServersClient.delete(record.id);
 			bot.editMessageText(
 				`Successfully deleted record from database for ${protocol} key and user ${record.user.username}`,
 				{
@@ -1118,7 +1120,7 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	async getKeyFile(message: Message, context: UsersContext) {
-		const record = await this.repository.getUserServerById(Number(context.rid));
+		const record = await this.usersServersClient.getById(Number(context.rid));
 		const protocol = record.protocol;
 		try {
 			const service = new CertificatesService(protocol, record.server.url);
@@ -1134,7 +1136,7 @@ Created at ${formatDate(record.assignedAt)}`,
 	}
 
 	async pauseKey(message: Message, context: UsersContext) {
-		const record = await this.repository.getUserServerById(Number(context.rid));
+		const record = await this.usersServersClient.getById(Number(context.rid));
 		const protocol = record.protocol;
 
 		try {
@@ -1393,7 +1395,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 	}
 
 	private async createUserServer(userId: string, serverId: string, protocol: VPNProtocol, username: string) {
-		return await this.repository.createUserServer(Number(userId), Number(serverId), protocol, username);
+		return await this.usersServersClient.create(Number(userId), Number(serverId), protocol, username);
 	}
 
 	private setCreateStep(current: string) {

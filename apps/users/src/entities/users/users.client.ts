@@ -1,7 +1,7 @@
 import { Payment } from '@prisma/client';
 import client from '../../api-client';
 import { VPNUser } from './users.repository';
-import { CreateUserDto, SearchUserDto } from './users.types';
+import { CreateUserDto, SearchUserDto, UserServerDTO } from './users.types';
 import logger from '../../logger';
 
 export class UsersClient {
@@ -34,17 +34,17 @@ export class UsersClient {
 		const params = new URLSearchParams();
 		params.append('username', username);
 		const result = await client.get(`/users?${params}`);
-		return result as VPNUser;
+		return <VPNUser>result;
 	}
 
 	async getUnpaid(): Promise<VPNUser[]> {
 		const result = await client.get('/users/unpaid');
-		return result as VPNUser[];
+		return <VPNUser[]>result;
 	}
 
 	async getTrial(): Promise<VPNUser[]> {
 		const result = await client.get('/users/trial');
-		return result as VPNUser[];
+		return <VPNUser[]>result;
 	}
 
 	async getLastPayment(id: number): Promise<Payment | null> {
@@ -54,25 +54,30 @@ export class UsersClient {
 		} catch (err) {
 			logger.error(err);
 		}
-		return result as Payment | null;
+		return <Payment | null>result;
 	}
 
 	async create(dto: CreateUserDto): Promise<VPNUser | null> {
 		const result = await client.post(`/users`, {
 			body: JSON.stringify(dto),
 		});
-		return result as VPNUser | null;
+		return <VPNUser | null>result;
 	}
 
 	async update(id: number, dto: Partial<CreateUserDto>): Promise<VPNUser> {
 		const result = await client.patch(`/users/${id}`, {
 			body: JSON.stringify(dto),
 		});
-		return result as VPNUser;
+		return <VPNUser>result;
 	}
 
 	async delete(id: number) {
 		const result = await client.delete(`/users/${id}`);
 		return result;
+	}
+
+	async getUserServers(userId: number) {
+		const result = await client.get(`/users/${userId}/servers`);
+		return <UserServerDTO[]>result;
 	}
 }

@@ -1,4 +1,4 @@
-import { Device, User } from '@prisma/client';
+import { Device, User, VPNProtocol, VpnServer } from '@prisma/client';
 import { CmdCode, UpdateUserPropsMap, VPNUserCommand } from '../../enums';
 import { Message, User as TGUser } from 'node-telegram-bot-api';
 
@@ -58,4 +58,15 @@ export interface SearchUserDto {
 	username?: string;
 	telegramId?: string;
 	firstName?: string;
+}
+
+export interface UserServerDTO {
+	id: number;
+	userId: number;
+	serverId: number;
+	protocol: VPNProtocol;
+	username: string;
+	assignedAt: string;
+	server: VpnServer;
+	user: User;
 }

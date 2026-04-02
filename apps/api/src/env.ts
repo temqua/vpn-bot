@@ -8,6 +8,10 @@ const env = cleanEnv(process.env, {
   API_TOKEN: str({ default: '' }),
   APP_ENV: str({ default: 'local' }),
   SSL_PATH: str({ default: '' }),
+  RW_API_ROOT: str({ default: '' }),
+  RW_USERNAME: str({ default: '' }),
+  RW_PW: str({ default: '' }),
+  RW_TOKEN: str({ default: '' }),
 });
 
 export default env;

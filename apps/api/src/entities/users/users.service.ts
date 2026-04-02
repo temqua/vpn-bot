@@ -66,7 +66,15 @@ export class UsersService {
     return await this.repository.getLastUserPayment(Number(id));
   }
 
-  async getUserServers(id: number) {
+  async listUserServers(id: number) {
     return await this.repository.listUserServers(id);
+  }
+
+  async getUserServerRecordById(id: number) {
+    return await this.repository.getUserServerById(id);
+  }
+
+  async listUserServerRecords(userId: number, serverId: number) {
+    return await this.repository.listUserServerRecords(userId, serverId);
   }
 }

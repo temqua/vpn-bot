@@ -323,6 +323,19 @@ export class UsersRepository {
     });
   }
 
+  async listUserServerRecords(userId: number, serverId: number) {
+    return await this.databaseService.client.serversUsers.findMany({
+      where: {
+        userId,
+        serverId,
+      },
+      include: {
+        server: {},
+        user: {},
+      },
+    });
+  }
+
   async getLastUserPayment(userId: number): Promise<Payment | null> {
     return await this.databaseService.client.payment.findFirst({
       where: {
