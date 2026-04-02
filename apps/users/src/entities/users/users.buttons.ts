@@ -118,6 +118,28 @@ export const getUserMenu = (userId: number, isChildUser: boolean = false) => {
 		],
 		[
 			{
+				text: 'Create RW Subscription',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.CreateRWSubscription,
+						id: userId,
+					},
+				}),
+			},
+			{
+				text: 'Delete RW Subscription',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.DeleteRWSubscription,
+						id: userId,
+					},
+				}),
+			},
+		],
+		[
+			{
 				text: 'Installation Guide',
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Users,

@@ -1,6 +1,10 @@
 import { addDays, addMonths } from 'date-fns';
 
-import { Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import env from '../../env';
 import { isJSONErrorResponse } from '../../utils';
 import {
@@ -13,6 +17,7 @@ import {
 } from './rw.types';
 import client from '../../client';
 
+@Injectable()
 export class RemnawaveService {
   private apiRoot = env.RW_API_ROOT;
   private logger = new Logger('RemnawaveService');
@@ -38,7 +43,11 @@ export class RemnawaveService {
     return responseBody?.response.accessToken;
   }
 
-  async createUser(username: string, expiresAt: Date, isNew = false) {
+  async createUser(
+    username: string,
+    expiresAt: Date | null | undefined,
+    isNew = false,
+  ) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const monthAfter = addMonths(today, 1);
@@ -50,7 +59,7 @@ export class RemnawaveService {
       username,
       expireAt: expire,
     };
-    const response = await client.post(`${this.apiRoot}/api/user`, {
+    const response = await client.post(`${this.apiRoot}/api/users`, {
       headers: {
         Authorization: `Bearer ${env.RW_TOKEN}`,
       },
@@ -61,11 +70,15 @@ export class RemnawaveService {
         await response.json()
       );
       this.logger.error(responseBody.message);
-      return null;
+      throw new InternalServerErrorException(
+        `Error while requesting remnawave: ${responseBody.message}`,
+      );
     }
     if (!response.ok) {
       this.logger.error(`${response.status} ${response.statusText}`);
-      return null;
+      throw new InternalServerErrorException(
+        `Error while requesting remnawave: ${response.status} ${response.statusText}`,
+      );
     }
     const result = (await response.json()) as IRWCreateUserResponse;
 
@@ -158,30 +171,21 @@ export class RemnawaveService {
   //     return result;
   //   }
 
-  async deleteUser(username: string) {
-    const response = await client.delete(
-      `${this.apiRoot}/api/user/${username}`,
-      {
-        headers: {
-          Authorization: `Bearer ${env.RW_TOKEN}`,
-        },
+  async deleteUser(uuid: string) {
+    const response = await client.delete(`${this.apiRoot}/api/users/${uuid}`, {
+      headers: {
+        Authorization: `Bearer ${env.RW_TOKEN}`,
       },
-    );
+    });
     if (!response.ok && isJSONErrorResponse(response)) {
       const responseBody = <IRWServerErrorResponse | IRWClientErrorResponse>(
         await response.json()
       );
-      this.logger.error(responseBody.message);
-      return {
-        success: false,
-        error: responseBody.message,
-      };
+      throw new InternalServerErrorException(
+        `Error while requesting remnawave: ${responseBody.message}`,
+      );
     }
     const result = (await response.json()) as IRWDeleteUserResponse;
-
-    return {
-      success: result?.response.isDeleted,
-      error: null,
-    };
+    return result?.response.isDeleted;
   }
 }

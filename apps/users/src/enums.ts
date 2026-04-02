@@ -35,6 +35,8 @@ export enum VPNUserCommand {
 	Create = 'cr',
 	CreateChild = 'cc',
 	CreateSubscriptionAdmin = 'crsa',
+	CreateRWSubscription = 'cws',
+	DeleteRWSubscription = 'dws',
 	CreateSubscription = 'crs',
 	CreateKey = 'crk',
 	List = 'list',

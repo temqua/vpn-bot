@@ -7,6 +7,10 @@ export const dict = {
 		en: 'Deleting subscription...',
 		ru: 'Удаляем подписку...',
 	},
+	created_sub: {
+		en: 'Your subscription has been successfully created',
+		ru: 'Подписка была успешно создана',
+	},
 	deleted_sub: {
 		en: 'Your subscription has been successfully deleted',
 		ru: 'Подписка была успешно удалена',

@@ -846,6 +846,58 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		}
 	}
 
+	async createRWSubscription(message: Message, context: UsersContext) {
+		this.log('createRWSubscription');
+		const lang = 'ru';
+		const msg = await bot.sendMessage(message.chat.id, dict.creating_sub[lang]);
+		try {
+			const result = await this.client.createSubscription(context.id);
+			if (result) {
+				await bot.editMessageText(dict.create_sub[lang], {
+					message_id: msg.message_id,
+					chat_id: message.chat.id,
+				});
+				await this.sendNewUserMenu(message.chat.id, result);
+			} else {
+				await bot.editMessageText(`Ошибка создания подписки для пользователя ${context.id}`, {
+					message_id: msg.message_id,
+					chat_id: message.chat.id,
+				});
+			}
+		} catch (error) {
+			await bot.editMessageText(`Ошибка создания подписки  ${error.message}`, {
+				message_id: msg.message_id,
+				chat_id: message.chat.id,
+			});
+		}
+	}
+
+	async deleteRWSubscription(message: Message, context: UsersContext) {
+		this.log('deleteRWSubscription');
+		const lang = 'ru';
+		const msg = await bot.sendMessage(message.chat.id, dict.deleting_sub[lang]);
+		try {
+			const result = await this.client.deleteSubscription(context.id);
+			if (result) {
+				await bot.editMessageText(dict.deleted_sub[lang], {
+					message_id: msg.message_id,
+					chat_id: message.chat.id,
+				});
+				await this.sendNewUserMenu(message.chat.id, result);
+			} else {
+				await bot.editMessageText(`Ошибка удаления подписки для пользователя ${context.id}`, {
+					message_id: msg.message_id,
+					chat_id: message.chat.id,
+				});
+			}
+		} catch (error) {
+			await bot.editMessageText(`Ошибка удаления подписки ${error.message}`, {
+				message_id: msg.message_id,
+				chat_id: message.chat.id,
+			});
+		}
+	}
+
 	async deleteSubscription(message: Message, from: TGUser) {
 		this.log('deleteSubscription');
 		const lang = from.is_bot ? 'ru' : from.language_code;
@@ -1603,6 +1655,7 @@ Telegram Id: ${user.telegramId}
 Devices: ${user.devices.join(', ')}
 Price: ${user.price}
 Subscription link: ${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}
+Remnawave link: ${user.rwLink}
 Created At: ${formatDate(user.createdAt)}\n`;
 		if (user.bank) {
 			baseInfo = baseInfo.concat(`Bank: ${user.bank}\n`);

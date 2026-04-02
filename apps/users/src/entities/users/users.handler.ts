@@ -63,6 +63,11 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
+		if (context[CmdCode.Command] === VPNUserCommand.CreateRWSubscription) {
+			await this.service.createRWSubscription(message, context);
+			globalHandler.finishCommand();
+			return;
+		}
 		if (context[CmdCode.Command] === VPNUserCommand.CreateSubscription) {
 			await this.service.createSubscription(message, from);
 			globalHandler.finishCommand();
@@ -70,6 +75,11 @@ class UsersCommandsHandler implements ICommandHandler {
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.DeleteSubscriptionAdmin) {
 			await this.service.deleteSubscriptionAdmin(message, context);
+			globalHandler.finishCommand();
+			return;
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.DeleteRWSubscription) {
+			await this.service.deleteRWSubscription(message, context);
 			globalHandler.finishCommand();
 			return;
 		}

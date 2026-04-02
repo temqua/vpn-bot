@@ -80,4 +80,14 @@ export class UsersClient {
 		const result = await client.get(`/users/${userId}/servers`);
 		return <UserServerDTO[]>result;
 	}
+
+	async createSubscription(userId: string) {
+		const result = await client.post(`/users/${userId}/subscription`);
+		return <VPNUser>result;
+	}
+
+	async deleteSubscription(userId: string) {
+		const result = await client.delete(`/users/${userId}/subscription`);
+		return <VPNUser>result;
+	}
 }

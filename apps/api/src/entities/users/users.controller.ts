@@ -1,17 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  Query,
+  Get,
   Logger,
+  Param,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -89,5 +89,20 @@ export class UsersController {
       Number(userId),
       Number(serverId),
     );
+  }
+
+  @Get('/:id/subscription')
+  async getSubscription(@Param('id') userId: string) {
+    return await this.usersService.getSubscription(Number(userId));
+  }
+
+  @Post('/:id/subscription')
+  async createSubscription(@Param('id') userId: string) {
+    return await this.usersService.createSubscription(Number(userId));
+  }
+
+  @Delete('/:id/subscription')
+  async deleteSubscription(@Param('id') userId: string) {
+    return await this.usersService.deleteSubscription(Number(userId));
   }
 }

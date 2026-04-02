@@ -354,4 +354,47 @@ export class UsersRepository {
       },
     });
   }
+
+  async getSubscription(userId: number): Promise<string | null> {
+    const user = await this.databaseService.client.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    return user?.rwLink ?? null;
+  }
+
+  async createSubscription(
+    userId: number,
+    rwLink: string | null,
+    rwUsername: string | null,
+    rwUUID: string | null,
+    rwId: number | null,
+  ) {
+    return await this.databaseService.client.user.update({
+      data: {
+        rwId,
+        rwLink,
+        rwUsername,
+        rwUUID,
+      },
+      where: {
+        id: userId,
+      },
+    });
+  }
+
+  async deleteSubscription(userId: number) {
+    return await this.databaseService.client.user.update({
+      data: {
+        rwId: null,
+        rwLink: null,
+        rwUsername: null,
+        rwUUID: null,
+      },
+      where: {
+        id: userId,
+      },
+    });
+  }
 }
