@@ -19,12 +19,13 @@ import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import pollOptions from '../../pollOptions';
 import { formatDate, setActiveStep } from '../../utils';
-import { ExpensesRepository } from '../expenses/expenses.repository';
+import { ExpensesClient } from '../expenses/expenses.client';
 import { CertificatesService } from '../keys/certificates.service';
-import { PaymentsRepository } from '../payments/payments.repository';
-import { ServersRepository } from '../servers/servers.repository';
+import { PaymentsClient } from '../payments/payments.client';
+import { PlansClient } from '../plans/plans.client';
+import { ServersClient } from '../servers/servers.client';
 import { PasarguardService } from './pasarguard.service';
-import { exportToSheet } from './sheets.service';
+import { UsersServersClient } from './users-servers.client';
 import {
 	createSubscriptionButton,
 	createUserOperationsKeyboard,
@@ -37,6 +38,7 @@ import {
 	skipButton,
 	skipKeyboard,
 } from './users.buttons';
+import { UsersClient } from './users.client';
 import { UsersRepository, type VPNUser } from './users.repository';
 import {
 	CreatePasarguardUserParams,
@@ -44,18 +46,17 @@ import {
 	UsersContext,
 	UserUpdateCommandContext,
 } from './users.types';
-import { PlanRepository } from '../plans/plans.repository';
-import { UsersClient } from './users.client';
-import { UsersServersClient } from './users-servers.client';
 
 export class UsersService {
 	constructor(
 		private repository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
-		private serversRepository: ServersRepository = new ServersRepository(),
-		private plansRepository: PlanRepository = new PlanRepository(),
 		private client: UsersClient = new UsersClient(),
 		private usersServersClient: UsersServersClient = new UsersServersClient(),
+		private serversClient: ServersClient = new ServersClient(),
+		private plansClient: PlansClient = new PlansClient(),
+		private paymentsClient: PaymentsClient = new PaymentsClient(),
+		private expensesClient: ExpensesClient = new ExpensesClient(),
 	) {}
 
 	params = new Map();
@@ -534,24 +535,8 @@ export class UsersService {
 
 	async exportPayments(message: Message) {
 		this.log('exportPayments');
-
-		const paymentsData = await new PaymentsRepository().getAllForSheet();
-		const preparedPaymentsData = paymentsData.map(row => {
-			return [
-				row.id ?? '',
-				row.user.username ?? '',
-				row.user.firstName ?? '',
-				row.user.lastName ?? '',
-				row.amount ?? 0,
-				row.paymentDate ? new Date(row.paymentDate).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
-				row.expiresOn ? new Date(row.expiresOn).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
-				row.monthsCount ?? 0,
-				row.plan?.name ?? '',
-				row.parentPaymentId ?? '',
-			];
-		});
 		try {
-			await exportToSheet(env.SHEET_ID, 'Payments!A2', preparedPaymentsData);
+			const result = await this.paymentsClient.export();
 			logger.success(`${basename(__filename)}}: Users payments data successfully exported to Google Sheets!`);
 			await bot.sendMessage(message.chat.id, '✅ Users payments data successfully exported to Google Sheets!');
 		} catch (error) {
@@ -563,18 +548,8 @@ export class UsersService {
 	async exportExpenses(message: Message) {
 		this.log('exportExpenses');
 
-		const expensesData = await new ExpensesRepository().list();
-		const preparedExpensesData = expensesData.map(row => {
-			return [
-				row.id ?? '',
-				row.paymentDate ? new Date(row.paymentDate).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
-				row.amount.toNumber() ?? 0,
-				row.category ?? '',
-				row.description ?? '',
-			];
-		});
 		try {
-			await exportToSheet(env.SHEET_ID, 'Expenses!A2', preparedExpensesData);
+			const result = await this.expensesClient.export();
 			logger.success(`${basename(__filename)}}: Expenses data successfully exported to Google Sheets!`);
 			await bot.sendMessage(message.chat.id, '✅ Expenses data successfully exported to Google Sheets!');
 		} catch (error) {
@@ -585,24 +560,9 @@ export class UsersService {
 
 	async export(message: Message) {
 		this.log('export');
-		const data = await this.client.list();
-		const preparedData = data.map(row => {
-			return [
-				row.firstName ?? '',
-				row.lastName ?? '',
-				row.username ?? '',
-				row.telegramId ?? '',
-				row.telegramLink ?? '',
-				row.id ? row.id.toString() : '',
-				row.price ? row.price.toString() : '',
-				row.devices?.length ? row.devices.join(', ') : '',
-				row.createdAt ? new Date(row.createdAt).toLocaleString('ru-RU', { timeZone: 'UTC' }) : '',
-				row.free ? true : false,
-			];
-		});
 
 		try {
-			await exportToSheet(env.SHEET_ID, 'Users!A2', preparedData);
+			const result = await this.client.export();
 			logger.success(`${basename(__filename)}}: Users data successfully exported to Google Sheets!`);
 			await bot.sendMessage(message.chat.id, '✅ Users data successfully exported to Google Sheets!');
 		} catch (error) {
@@ -734,9 +694,7 @@ ${env.PAYMENT_CARDS}
 
 		const user = await this.client.getByTelegramId(message.chat.id.toString());
 		if (user?.subLink) {
-			const builtMessage = `${`\`${env.PASARGUARD_ROOT}${user.subLink.replace(/[-.*#_=()]/g, match => `\\${match}`)}\``}
-${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
-			bot.editMessageText(builtMessage, {
+			bot.editMessageText(dict.installation_guide[lang](`${env.PASARGUARD_ROOT}${user.subLink}`), {
 				parse_mode: 'MarkdownV2',
 				chat_id: message.chat.id,
 				message_id: message.message_id,
@@ -940,7 +898,7 @@ ${dict.your_link[lang].replace(/[-.*#_=()]/g, match => `\\${match}`)}`;
 		const command = assign ? VPNUserCommand.AssignKey : VPNUserCommand.CreateKey;
 		if (start) {
 			this.createKeyParams.set('userId', context.id);
-			const servers = await this.serversRepository.getAll();
+			const servers = await this.serversClient.getAll();
 			const buttons = servers.map(server => {
 				return [
 					{
@@ -1609,7 +1567,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 					}),
 				},
 			]);
-			const plans = await this.plansRepository.findByPriceAndCount(user.price, 1 + user.dependants.length);
+			const plans = await this.plansClient.getAll({ price: user.price, count: 1 + user.dependants.length });
 			const msg = plans
 				.map(p => `${p.amount} ${p.currency} стоит ${getMonthsCountMessage(p.months, 'ru')}`)
 				.join('\n');
@@ -1729,7 +1687,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 	private async getPaymentString(user: VPNUser, lang: string, showCards = true) {
 		const dependantsCount = user.dependants.length ? user.dependants.filter(d => d.active && !d.free).length : 0;
 		const count = 1 + dependantsCount;
-		const plans = await this.plansRepository.findByPriceAndCount(user.price, count);
+		const plans = await this.plansClient.getAll({ price: user.price, count });
 		let mess =
 			dependantsCount > 0
 				? ''

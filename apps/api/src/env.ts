@@ -12,6 +12,7 @@ const env = cleanEnv(process.env, {
   RW_USERNAME: str({ default: '' }),
   RW_PW: str({ default: '' }),
   RW_TOKEN: str({ default: '' }),
+  SHEET_ID: str({ default: '' }),
 });
 
 export default env;

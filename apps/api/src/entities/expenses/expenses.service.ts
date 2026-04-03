@@ -3,6 +3,8 @@ import { ExpenseCategory } from '@prisma/client';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { ExpensesRepository } from './expenses.repository';
+import { exportToSheet } from '../../utils';
+import env from '../../env';
 
 @Injectable()
 export class ExpensesService {
@@ -44,5 +46,27 @@ export class ExpensesService {
       return await this.repository.sumServers();
     }
     return await this.repository.sum();
+  }
+
+  async export() {
+    const expensesData = await this.repository.list();
+    const preparedExpensesData = expensesData.map((row) => {
+      return [
+        row.id ?? '',
+        row.paymentDate
+          ? new Date(row.paymentDate).toLocaleString('ru-RU', {
+              timeZone: 'UTC',
+            })
+          : '',
+        row.amount.toNumber() ?? 0,
+        row.category ?? '',
+        row.description ?? '',
+      ];
+    });
+    return await exportToSheet(
+      env.SHEET_ID,
+      'Expenses!A2',
+      preparedExpensesData,
+    );
   }
 }

@@ -90,4 +90,8 @@ export class UsersClient {
 		const result = await client.delete(`/users/${userId}/subscription`);
 		return <VPNUser>result;
 	}
+
+	async export() {
+		return await client.post('/users/export');
+	}
 }

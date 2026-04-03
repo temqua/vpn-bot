@@ -8,6 +8,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
 import { SearchUserDto } from './dto/search-user.dto';
 import { RemnawaveService } from './rw.service';
+import env from '../../env';
+import { exportToSheet } from '../../utils';
 
 @Injectable()
 export class UsersService {
@@ -133,5 +135,26 @@ export class UsersService {
       );
     }
     return await this.repository.deleteSubscription(userId);
+  }
+
+  async export() {
+    const data = await this.repository.findAll();
+    const preparedData = data.map((row) => {
+      return [
+        row.firstName ?? '',
+        row.lastName ?? '',
+        row.username ?? '',
+        row.telegramId ?? '',
+        row.telegramLink ?? '',
+        row.id ? row.id.toString() : '',
+        row.price ? row.price.toString() : '',
+        row.devices?.length ? row.devices.join(', ') : '',
+        row.createdAt
+          ? new Date(row.createdAt).toLocaleString('ru-RU', { timeZone: 'UTC' })
+          : '',
+        row.free ? true : false,
+      ];
+    });
+    return await exportToSheet(env.SHEET_ID, 'Users!A2', preparedData);
   }
 }

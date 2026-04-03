@@ -1,11 +1,19 @@
 import { Payment } from '@prisma/client';
 import client from '../../api-client';
-import { CreatePaymentDto, PaymentSumDto } from './payments.types';
+import { CreatePaymentDto, PaymentForSheet, PaymentSumDto } from './payments.types';
 
 export class PaymentsClient {
 	async getAll(): Promise<Payment[]> {
 		const result = await client.get(`/payments`);
 		return result as Payment[];
+	}
+
+	async getAllForSheet() {
+		const params = new URLSearchParams();
+		params.append('sheet', 'true');
+		const result = await client.get(`/payments?${params}`);
+
+		return result as PaymentForSheet[];
 	}
 
 	async getById(id: string): Promise<Payment | null> {
@@ -53,5 +61,9 @@ export class PaymentsClient {
 	async getAllByUserId(userId: number): Promise<Payment[]> {
 		const result = await client.get(`/payments?user_id=${userId}`);
 		return result as Payment[];
+	}
+
+	async export() {
+		return await client.post('/payments/export');
 	}
 }

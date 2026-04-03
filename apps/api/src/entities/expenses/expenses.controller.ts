@@ -51,4 +51,9 @@ export class ExpensesController {
   async remove(@Param('id') id: string) {
     return await this.expensesService.remove(id);
   }
+
+  @Post('/export')
+  async export() {
+    return await this.expensesService.export();
+  }
 }

@@ -25,7 +25,7 @@ jobs:
                   ssh-keyscan -H ${{ secrets.BOT_SERVER_HOST }} >> ~/.ssh/known_hosts
 
             - name: Add sheets-api.json
-              working-directory: apps/users
+              working-directory: apps/api
               run: echo '${{ secrets.SHEETS_API }}' > sheets-api.json
 
             - name: Build Docker image

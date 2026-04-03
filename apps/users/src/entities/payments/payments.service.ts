@@ -1,5 +1,5 @@
 import type { Payment, Plan } from '@prisma/client';
-import { addDays, addMonths, subMonths } from 'date-fns';
+import { addDays, addMonths } from 'date-fns';
 import type { InlineKeyboardMarkup, Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
@@ -10,22 +10,23 @@ import env from '../../env';
 import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { formatDate, setActiveStep, uuid32to36 } from '../../utils';
-import { PlanRepository } from '../plans/plans.repository';
+import { PlansClient } from '../plans/plans.client';
 import { NalogService } from '../users/nalog.service';
 import { PasarguardService } from '../users/pasarguard.service';
 import { acceptKeyboard, getUserKeyboard } from '../users/users.buttons';
 import { UsersClient } from '../users/users.client';
-import { UsersRepository, type VPNUser } from '../users/users.repository';
+import { type VPNUser } from '../users/users.repository';
 import { UsersContext } from '../users/users.types';
 import { PaymentsClient } from './payments.client';
 import { PaymentsContext } from './payments.types';
+import { RemnawaveService } from '../users/rw.service';
 export class PaymentsService {
 	constructor(
-		private plansRepository: PlanRepository = new PlanRepository(),
-		private usersRepository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
 		private client: PaymentsClient = new PaymentsClient(),
 		private usersClient: UsersClient = new UsersClient(),
+		private plansClient: PlansClient = new PlansClient(),
+		private rwService = new RemnawaveService(),
 	) {}
 
 	private nalogService: NalogService = new NalogService();
@@ -348,15 +349,6 @@ export class PaymentsService {
 		globalHandler.finishCommand();
 	}
 
-	async checkUnpaid(msg: Message) {
-		this.log('checkUnpaid');
-		const unpaid = await this.usersRepository.isTelegramUserUnpaid(msg.chat.id.toString());
-		if (unpaid) {
-			const message = unpaid.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
-			bot.sendMessage(msg.chat.id, `Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн`);
-		}
-	}
-
 	private async addPaymentNalog(chatId: number, username: string, amount: number, id: string) {
 		this.log('addPaymentNalog');
 		try {
@@ -395,14 +387,20 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 		const amount = this.params.get('amount');
 		const dependants = user.dependants?.filter(d => d.active && !d.free);
 		const dependantsCount = dependants?.length ?? 0;
-		const plan = await this.plansRepository.findPlan(amount, user.price, 1 + dependantsCount);
+		const plans = await this.plansClient.getAll({
+			amount,
+			price: user.price,
+			count: 1 + dependantsCount,
+		});
+
 		if (dependants?.length) {
 			await bot.sendMessage(
 				chatId,
 				`Обнаружено ${dependants.length} зависимых клиентов: ${dependants.map(u => u.username).join(', ')}`,
 			);
 		}
-		if (plan) {
+		if (plans.length) {
+			const plan = plans[0];
 			await bot.sendMessage(
 				chatId,
 				`Найден план ${plan.name} для ${plan.amount} ${plan.currency}. 
@@ -413,8 +411,8 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			);
 			this.params.set('plan', plan);
 		}
-		const monthsCount = plan
-			? plan.months
+		const monthsCount = plans.length
+			? plans[0].months
 			: dependantsCount > 0
 				? Math.floor(amount / (user.price * (dependantsCount + 1)))
 				: Math.floor(amount / user.price);
@@ -500,9 +498,16 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 								parse_mode: 'MarkdownV2',
 							},
 						);
-						await this.pasarguardService.updateUser(`${dep.username}_${dep.id}`, {
-							expire: addDays(childResult.expiresOn, 1).toISOString(),
-						});
+						if (env.BOT_ENV !== 'local') {
+							await this.pasarguardService.updateUser(`${dep.username}_${dep.id}`, {
+								expire: addDays(childResult.expiresOn, 1).toISOString(),
+							});
+							if (dep.rwUUID) {
+								await this.rwService.updateUser(dep.rwUUID, {
+									expireAt: addDays(childResult.expiresOn, 1).toISOString(),
+								});
+							}
+						}
 					} else {
 						const errMessage = `По непредвиденным обстоятельствам платеж для дочернего пользователя ${dep.username} не был создан`;
 						logger.error(`[${basename(__filename)}]: ${errMessage}`);
@@ -513,6 +518,12 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 			if (env.BOT_ENV !== 'local') {
 				await this.pasarguardService.updateUser(`${user.username}_${user.id}`, {
 					expire: addDays(result.expiresOn, 1).toISOString(),
+				});
+			}
+			if (user.rwUUID) {
+				await this.rwService.updateUser({
+					uuid: user.rwUUID,
+					expireAt: addDays(result.expiresOn, 1).toISOString(),
 				});
 			}
 		} catch (err) {

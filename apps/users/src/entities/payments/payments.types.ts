@@ -1,4 +1,6 @@
+import { Payment, Plan } from '@prisma/client';
 import { CmdCode, PaymentCommand } from '../../enums';
+import { VPNUser } from '../users/users.repository';
 
 export interface PaymentsContext {
 	[CmdCode.Command]: PaymentCommand;
@@ -21,4 +23,9 @@ export interface CreatePaymentDto {
 
 export interface PaymentSumDto {
 	amount: string;
+}
+
+export interface PaymentForSheet extends Payment {
+	user: VPNUser;
+	plan: Plan;
 }

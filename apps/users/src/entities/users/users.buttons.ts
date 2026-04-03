@@ -399,15 +399,6 @@ export const deleteSubscriptionButton = (lang: string): InlineKeyboardMarkup => 
 		inline_keyboard: [
 			[
 				{
-					text: dict.delete_sub[lang],
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.DeleteSubscription,
-						},
-					}),
-				},
-				{
 					text: dict.main_menu[lang],
 					callback_data: JSON.stringify({
 						[CmdCode.Scope]: CommandScope.Users,
@@ -498,17 +489,6 @@ export const getUserKeyboard = (lang = 'ru'): InlineKeyboardMarkup => {
 						[CmdCode.Scope]: CommandScope.Users,
 						[CmdCode.Context]: {
 							[CmdCode.Command]: VPNUserCommand.KeysUser,
-						},
-					}),
-				},
-			],
-			[
-				{
-					text: dict.guide[lang],
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.ShowSubLinkGuide,
 						},
 					}),
 				},

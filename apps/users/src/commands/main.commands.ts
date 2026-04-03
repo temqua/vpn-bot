@@ -3,8 +3,10 @@ import TelegramBot from 'node-telegram-bot-api';
 import bot from '../bot';
 import { dict } from '../dict';
 import { getUserContactKeyboard, getUserKeyboard } from '../entities/users/users.buttons';
-import { UsersRepository, type VPNUser } from '../entities/users/users.repository';
+import { UsersClient } from '../entities/users/users.client';
+import { type VPNUser } from '../entities/users/users.repository';
 import { CmdCode, CommandScope, UserRequest, VPNUserCommand } from '../enums';
+import env from '../env';
 import { globalHandler, type CommandDetailCompressed, type CommandDetails } from '../global.handler';
 import logger from '../logger';
 import { formatDate, isAdmin } from '../utils';
@@ -13,9 +15,7 @@ import { paymentsHelpMessage } from './payments.commands';
 import { plansHelpMessage } from './plans.commands';
 import { serversHelpMessage } from './servers.commands';
 import { userHelpMessage } from './users.commands';
-import env from '../env';
-const usersRepository = new UsersRepository();
-
+const usersClient = new UsersClient();
 const mainCommandsList = {
 	ping: {
 		regexp: /\/ping$/,
@@ -44,7 +44,7 @@ bot.onText(/\/start/, async (msg: Message) => {
 		await bot.sendMessage(msg.chat.id, plansHelpMessage);
 		await bot.sendMessage(msg.chat.id, serversHelpMessage);
 	} else {
-		const user = await usersRepository.getByTelegramId(msg?.from?.id.toString() ?? '');
+		const user = await usersClient.getByTelegramId(msg?.from?.id.toString() ?? '');
 		if (user) {
 			await bot.sendMessage(msg.chat.id, `${dict.hello[lang]}, ${msg?.from?.first_name}!`);
 			await bot.sendMessage(msg.chat.id, dict.welcome[lang]);
@@ -142,7 +142,7 @@ bot.onText(mainCommandsList.lookup.regexp, async (msg: Message) => {
 });
 
 bot.onText(/\/me$/, async (msg: Message) => {
-	const user = await usersRepository.getByTelegramId(msg?.from?.id.toString() ?? '');
+	const user = await usersClient.getByTelegramId(msg?.from?.id.toString() ?? '');
 	if (user) {
 		bot.sendMessage(msg.chat.id, formatUserInfo(user));
 	} else {

@@ -3,12 +3,18 @@ import client from '../../api-client';
 import { CreatePlanDto } from './plans.types';
 
 export class PlansClient {
-	async getAll(price?: number): Promise<Plan[]> {
-		const params = new URLSearchParams();
-		if (price) {
-			params.append('price', price.toString());
+	async getAll(params: { price?: number; amount?: number; count?: number }): Promise<Plan[]> {
+		const queryParams = new URLSearchParams();
+		if (params.price) {
+			queryParams.append('price', params.price.toString());
 		}
-		const result = await client.get(`/plans?${params}`);
+		if (params.amount) {
+			queryParams.append('amount', params.amount.toString());
+		}
+		if (params.count) {
+			queryParams.append('count', params.count.toString());
+		}
+		const result = await client.get(`/plans?${queryParams}`);
 		return result as Plan[];
 	}
 

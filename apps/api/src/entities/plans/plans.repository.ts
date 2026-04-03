@@ -7,7 +7,7 @@ import { UpdatePlanDto } from './dto/update-plan.dto';
 export class PlansRepository {
   constructor(private databaseService: DatabaseService) {}
   async findPlan(amount: number, price: number, count: number) {
-    return await this.databaseService.client.plan.findFirst({
+    return await this.databaseService.client.plan.findMany({
       where: {
         amount,
         price,
@@ -40,6 +40,15 @@ export class PlansRepository {
     });
   }
 
+  async findByPriceAndAmount(price: number, amount: number) {
+    return await this.databaseService.client.plan.findMany({
+      where: {
+        price,
+        amount,
+      },
+    });
+  }
+
   async findByCount(count: number) {
     return await this.databaseService.client.plan.findMany({
       where: {
@@ -49,6 +58,19 @@ export class PlansRepository {
         maxCount: {
           gte: count,
         },
+      },
+      orderBy: [
+        {
+          months: 'asc',
+        },
+      ],
+    });
+  }
+
+  async findByAmount(amount: number) {
+    return await this.databaseService.client.plan.findMany({
+      where: {
+        amount,
       },
       orderBy: [
         {

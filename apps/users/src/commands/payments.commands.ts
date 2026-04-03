@@ -1,12 +1,12 @@
 import type { Message } from 'node-telegram-bot-api';
+import TelegramBot from 'node-telegram-bot-api';
 import bot from '../bot';
+import { paymentButtons } from '../entities/payments/payments.buttons';
 import { PaymentsService } from '../entities/payments/payments.service';
-import { UsersRepository } from '../entities/users/users.repository';
+import { UsersClient } from '../entities/users/users.client';
 import { CmdCode, CommandScope, PaymentCommand, VPNUserCommand } from '../enums';
 import { globalHandler } from '../global.handler';
 import { isAdmin } from '../utils';
-import { paymentButtons } from '../entities/payments/payments.buttons';
-import TelegramBot from 'node-telegram-bot-api';
 
 export const paymentCommandsList = {
 	menu: {
@@ -44,8 +44,7 @@ export const paymentsHelpMessage = Object.values(paymentCommandsList)
 	.map(c => c.docs)
 	.join('\n');
 
-const usersRepository = new UsersRepository();
-
+const usersClient = new UsersClient();
 bot.onText(paymentCommandsList.menu.regexp, async (msg: Message) => {
 	if (!isAdmin(msg)) {
 		return;
@@ -73,7 +72,7 @@ bot.onText(paymentCommandsList.all.regexp, async (msg: Message) => {
 		);
 		return;
 	}
-	const user = await usersRepository.getByTelegramId(msg.from ? msg.from?.id.toString() : '');
+	const user = await usersClient.getByTelegramId(msg.from ? msg.from?.id.toString() : '');
 	if (!user) {
 		await bot.sendMessage(msg.chat.id, 'Вы не зарегистрированы в системе');
 		return;

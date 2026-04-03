@@ -75,6 +75,14 @@
 			"problemMatcher": [],
 			"label": "npm: start - apps/api",
 			"detail": "nest start"
+		},
+		{
+			"type": "npm",
+			"script": "start:dev",
+			"path": "apps/users",
+			"problemMatcher": [],
+			"label": "npm: start:dev - apps/users",
+			"detail": "bun --watch src/index.ts"
 		}
 	]
 }

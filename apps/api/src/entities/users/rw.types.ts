@@ -27,6 +27,11 @@ export interface IRWClientError {
 export enum IRWUserStatus {
   ACTIVE = 'ACTIVE',
   DISABLED = 'DISABLED',
+}
+
+export enum IRWNewUserStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED',
   LIMITED = 'LIMITED',
   EXPIRED = 'EXPIRED',
 }
@@ -49,12 +54,27 @@ export interface IRWNewUserDTO {
   expireAt: string;
 }
 
+export interface IRWUpdateUserDTO {
+  uuid?: string;
+  username?: string;
+  status?: IRWUserStatus;
+  trafficLimitBytes?: number;
+  trafficLimitStrategy?: IRWTrafficLimitStrategy;
+  expireAt?: string;
+  description?: string | null;
+  telegramId?: number | null;
+  email?: null;
+  tag?: string | null;
+  hwidDeviceLimit?: null;
+  activeInternalSquads?: IRWInternalSquad[];
+}
+
 export interface IRWUser {
   uuid: string;
   id: number;
   shortUuid: string;
   username: string;
-  status: IRWUserStatus;
+  status: IRWNewUserStatus;
   trafficLimitBytes: number;
   trafficLimitStrategy: IRWTrafficLimitStrategy;
   expireAt: string;

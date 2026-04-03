@@ -105,4 +105,9 @@ export class UsersController {
   async deleteSubscription(@Param('id') userId: string) {
     return await this.usersService.deleteSubscription(Number(userId));
   }
+
+  @Post('/export')
+  async export() {
+    return await this.usersService.export();
+  }
 }

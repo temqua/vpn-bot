@@ -50,4 +50,8 @@ export class ExpensesClient {
 		const result = await client.get('/expenses/sum');
 		return result as ExpenseSumDto;
 	}
+
+	async export() {
+		return await client.post('/expenses/export');
+	}
 }

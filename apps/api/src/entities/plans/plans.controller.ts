@@ -22,10 +22,15 @@ export class PlansController {
   }
 
   @Get()
-  async findAll(@Query('price') price: string, @Query('count') count: string) {
+  async findAll(
+    @Query('price') price: string,
+    @Query('count') count: string,
+    @Query('amount') amount: string,
+  ) {
     return await this.plansService.findAll({
       price,
       count,
+      amount,
     });
   }
 
