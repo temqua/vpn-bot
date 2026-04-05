@@ -66,7 +66,7 @@ export interface IRWUpdateUserDTO {
   email?: null;
   tag?: string | null;
   hwidDeviceLimit?: null;
-  activeInternalSquads?: IRWInternalSquad[];
+  activeInternalSquads?: string[];
 }
 
 export interface IRWUser {

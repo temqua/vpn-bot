@@ -74,7 +74,7 @@ export class PlansService {
 		const lang = from.is_bot ? 'ru' : from.language_code;
 		this.log('showForUser');
 		const user = await this.usersRepo.getByTelegramId(chatId.toString());
-		const plans = await this.client.getAll(user.price);
+		const plans = await this.client.getAll({ price: user.price });
 		const plansGroupped = Object.groupBy(plans, p => p.minCount);
 
 		const prepared = Object.keys(plansGroupped)

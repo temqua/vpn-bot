@@ -68,11 +68,11 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context[CmdCode.Command] === VPNUserCommand.CreateSubscription) {
-			await this.service.createSubscription(message, from);
-			globalHandler.finishCommand();
-			return;
-		}
+		// if (context[CmdCode.Command] === VPNUserCommand.CreateSubscription) {
+		// 	await this.service.createSubscription(message, from);
+		// 	globalHandler.finishCommand();
+		// 	return;
+		// }
 		if (context[CmdCode.Command] === VPNUserCommand.DeleteSubscriptionAdmin) {
 			await this.service.deleteSubscriptionAdmin(message, context);
 			globalHandler.finishCommand();
@@ -128,6 +128,9 @@ class UsersCommandsHandler implements ICommandHandler {
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.ShowLastPayment) {
 			await this.paymentsService.showLastPayment(message, context, from);
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.ShowLastPaymentAdmin) {
+			await this.paymentsService.showLastPaymentAdmin(message, context);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.ShowPayments) {
 			await this.paymentsService.showPayments(message, context, from);
@@ -187,6 +190,9 @@ class UsersCommandsHandler implements ICommandHandler {
 			await this.paymentsService.approvePayment(message, context, this.state.init);
 		}
 		if (context[CmdCode.Command] === VPNUserCommand.RequestCreation) {
+			await this.service.signUpUser(message, context, from, this.state.init);
+		}
+		if (context[CmdCode.Command] === VPNUserCommand.RequestCreationAdmin) {
 			await this.service.signUp(message, context, from, this.state.init);
 		}
 	}

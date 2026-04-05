@@ -61,11 +61,13 @@ export enum VPNUserCommand {
 	ExportExpenses = 'expe',
 	Expand = 'e',
 	RequestCreation = 'rc',
+	RequestCreationAdmin = 'rca',
 	ShowInstallationGuide = 'sig',
 	ShowPaymentGuide = 'spg',
 	ShowPaymentIntroGuide = 'spig',
 	ShowPayments = 'sp',
 	ShowLastPayment = 'slp',
+	ShowLastPaymentAdmin = 'slpa',
 	ShowUnpaid = 'su',
 	NotifyUnpaid = 'nu',
 	ShowSubLink = 'ssl',
@@ -148,6 +150,7 @@ export enum UpdateUserPropsMap {
 	free = 'fr',
 	payerId = 'pid',
 	subLink = 's',
+	rwLink = 'rl',
 }
 
 export enum UpdatePlanPropsMap {

@@ -81,6 +81,27 @@ export class PaymentsService {
 				logger.error(err);
 			}
 		} else {
+			await bot.editMessageText(dict.payments_not_found[lang], {
+				message_id: message.message_id,
+				chat_id: message.chat.id,
+				reply_markup: getUserKeyboard(lang),
+			});
+		}
+		globalHandler.finishCommand();
+	}
+
+	async showLastPaymentAdmin(message: Message, context: UsersContext, from?: TGUser) {
+		const lang = from?.is_bot ? 'ru' : from?.language_code;
+		const payment = await this.usersClient.getLastPayment(Number(context.id));
+		if (payment) {
+			try {
+				bot.sendMessage(message.chat.id, this.formatUserPayment(payment), {
+					parse_mode: 'MarkdownV2',
+				});
+			} catch (err) {
+				logger.error(err);
+			}
+		} else {
 			await bot.sendMessage(message.chat.id, dict.payments_not_found[lang]);
 		}
 		globalHandler.finishCommand();
@@ -503,7 +524,8 @@ ${p.parentPaymentId ? 'Parent payment ID: ' + p.parentPaymentId : ''}`;
 								expire: addDays(childResult.expiresOn, 1).toISOString(),
 							});
 							if (dep.rwUUID) {
-								await this.rwService.updateUser(dep.rwUUID, {
+								await this.rwService.updateUser({
+									uuid: dep.rwUUID,
 									expireAt: addDays(childResult.expiresOn, 1).toISOString(),
 								});
 							}

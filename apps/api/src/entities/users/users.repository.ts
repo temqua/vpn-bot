@@ -63,8 +63,8 @@ export class UsersRepository {
     });
   }
 
-  async getByTelegramId(telegramId: string): Promise<VPNUser | null> {
-    return await this.databaseService.client.user.findUnique({
+  async getByTelegramId(telegramId: string): Promise<VPNUser[]> {
+    return await this.databaseService.client.user.findMany({
       where: {
         telegramId,
       },

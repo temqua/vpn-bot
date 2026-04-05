@@ -1,7 +1,7 @@
 import { Payment } from '@prisma/client';
 import client from '../../api-client';
 import { VPNUser } from './users.repository';
-import { CreateUserDto, SearchUserDto, UserServerDTO } from './users.types';
+import { CreateUserDto, SearchUserDto, UpdateUserDto, UserServerDTO } from './users.types';
 import logger from '../../logger';
 
 export class UsersClient {
@@ -21,8 +21,11 @@ export class UsersClient {
 	async getByTelegramId(telegramId: string): Promise<VPNUser> {
 		const params = new URLSearchParams();
 		params.append('telegram_id', telegramId.toString());
-		const result = await client.get(`/users?${params}`);
-		return result as VPNUser;
+		const result = (await client.get(`/users?${params}`)) as VPNUser[];
+		if (!result?.length) {
+			return null;
+		}
+		return result[0] as VPNUser;
 	}
 
 	async getById(id: number): Promise<VPNUser> {
@@ -64,7 +67,7 @@ export class UsersClient {
 		return <VPNUser | null>result;
 	}
 
-	async update(id: number, dto: Partial<CreateUserDto>): Promise<VPNUser> {
+	async update(id: number, dto: UpdateUserDto): Promise<VPNUser> {
 		const result = await client.patch(`/users/${id}`, {
 			body: JSON.stringify(dto),
 		});

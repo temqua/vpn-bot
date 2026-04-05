@@ -52,6 +52,16 @@ export const getUserMenu = (userId: number, isChildUser: boolean = false) => {
 				}),
 			},
 			{
+				text: 'Last Payment',
+				callback_data: JSON.stringify({
+					[CmdCode.Scope]: CommandScope.Users,
+					[CmdCode.Context]: {
+						[CmdCode.Command]: VPNUserCommand.ShowLastPaymentAdmin,
+						id: userId,
+					},
+				}),
+			},
+			{
 				text: 'Pay',
 				callback_data: JSON.stringify({
 					[CmdCode.Scope]: CommandScope.Users,
@@ -394,6 +404,24 @@ export const replySetNullPropKeyboard = (prop: UpdateUserPropsMap, userId: strin
 	];
 };
 
+export const mainMenuButton = (lang: string): InlineKeyboardMarkup => {
+	return {
+		inline_keyboard: [
+			[
+				{
+					text: dict.main_menu[lang],
+					callback_data: JSON.stringify({
+						[CmdCode.Scope]: CommandScope.Users,
+						[CmdCode.Context]: {
+							[CmdCode.Command]: VPNUserCommand.ShowMenu,
+						},
+					}),
+				},
+			],
+		],
+	};
+};
+
 export const deleteSubscriptionButton = (lang: string): InlineKeyboardMarkup => {
 	return {
 		inline_keyboard: [
@@ -416,15 +444,15 @@ export const createSubscriptionButton = (lang: string): InlineKeyboardMarkup => 
 	return {
 		inline_keyboard: [
 			[
-				{
-					text: dict.create_sub[lang],
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							[CmdCode.Command]: VPNUserCommand.CreateSubscription,
-						},
-					}),
-				},
+				// {
+				// 	text: dict.create_sub[lang],
+				// 	callback_data: JSON.stringify({
+				// 		[CmdCode.Scope]: CommandScope.Users,
+				// 		[CmdCode.Context]: {
+				// 			[CmdCode.Command]: VPNUserCommand.CreateSubscription,
+				// 		},
+				// 	}),
+				// },
 				{
 					text: dict.main_menu[lang],
 					callback_data: JSON.stringify({

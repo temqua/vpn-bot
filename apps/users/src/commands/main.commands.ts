@@ -45,6 +45,7 @@ bot.onText(/\/start/, async (msg: Message) => {
 		await bot.sendMessage(msg.chat.id, serversHelpMessage);
 	} else {
 		const user = await usersClient.getByTelegramId(msg?.from?.id.toString() ?? '');
+
 		if (user) {
 			await bot.sendMessage(msg.chat.id, `${dict.hello[lang]}, ${msg?.from?.first_name}!`);
 			await bot.sendMessage(msg.chat.id, dict.welcome[lang]);

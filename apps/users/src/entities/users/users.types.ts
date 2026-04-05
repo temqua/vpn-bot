@@ -16,6 +16,7 @@ export interface UsersContext {
 	a?: string;
 	rid?: string;
 	username?: string;
+	tgid?: number;
 	[CmdCode.SubOperation]?: VPNUserCommand;
 }
 
@@ -48,10 +49,17 @@ export interface CreateUserDto {
 
 	lastName?: string | null;
 	payerId?: number | null;
-	subLink?: string | null;
 	devices?: Device[];
+}
+
+export interface UpdateUserDto extends Partial<CreateUserDto> {
+	subLink?: string | null;
 	pasarguardUsername?: string | null;
 	pasarguardId?: number | null;
+	rwLink?: string | null;
+	rwUsername?: string | null;
+	rwUUID?: string | null;
+	rwId?: number | null;
 }
 
 export interface SearchUserDto {

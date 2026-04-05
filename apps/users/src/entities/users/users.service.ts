@@ -25,14 +25,14 @@ import { PaymentsClient } from '../payments/payments.client';
 import { PlansClient } from '../plans/plans.client';
 import { ServersClient } from '../servers/servers.client';
 import { PasarguardService } from './pasarguard.service';
+import { RemnawaveService } from './rw.service';
 import { UsersServersClient } from './users-servers.client';
 import {
-	createSubscriptionButton,
 	createUserOperationsKeyboard,
-	deleteSubscriptionButton,
 	getUserContactKeyboard,
 	getUserKeyboard,
 	getUserMenu,
+	mainMenuButton,
 	payersKeyboard,
 	replySetNullPropKeyboard,
 	skipButton,
@@ -51,6 +51,7 @@ export class UsersService {
 	constructor(
 		private repository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
+		private rwService = new RemnawaveService(),
 		private client: UsersClient = new UsersClient(),
 		private usersServersClient: UsersServersClient = new UsersServersClient(),
 		private serversClient: ServersClient = new ServersClient(),
@@ -86,9 +87,11 @@ export class UsersService {
 		pasarguard: false,
 	};
 	private signUpParams = new Map();
-	private textProps = ['telegramLink', 'firstName', 'lastName', 'username', 'subLink'];
+	private newUsers = new Map();
+	private textProps = ['telegramLink', 'firstName', 'lastName', 'username', 'subLink', 'rwLink'];
 	private boolProps = ['active', 'free'];
 	private numberProps = ['price'];
+	private paymentRequestParams = new Map();
 
 	async create(
 		message: Message | null,
@@ -176,7 +179,7 @@ export class UsersService {
 			return;
 		}
 		if (this.createSteps.subLink) {
-			this.params.set('pasarguard', context.accept);
+			this.params.set('remnawave', context.accept);
 			delete context.accept;
 			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
 				allows_multiple_answers: true,
@@ -210,14 +213,14 @@ export class UsersService {
 			});
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			let finalUser = newUser;
-			if (params.get('pasarguard')) {
-				const result = await this.createPasarguardUser({
-					message,
-					user: newUser,
-					isAdmin: true,
-					isNew: true,
-				});
-				finalUser = result.user;
+			if (params.get('remnawave')) {
+				// const result = await this.createPasarguardUser({
+				// 	message,
+				// 	user: newUser,
+				// 	isAdmin: true,
+				// 	isNew: true,
+				// });
+				finalUser = await this.createRWUser(newUser.username, newUser.id);
 			}
 			await this.sendNewUserMenu(chatId, finalUser);
 		} catch (error) {
@@ -493,7 +496,23 @@ export class UsersService {
 						: `User ${user.pasarguardUsername} has not been removed from pasarguard. Reason ${deleteResult.error}`;
 					await bot.sendMessage(msg.chat.id, deleteMessage);
 				}
-				await this.client.delete(Number(context.id));
+				if (user.rwUUID) {
+					const errorMessage = `User ${user.rwUUID} has not been removed from remnawave.`;
+					try {
+						const deleteResult = await this.rwService.deleteUser(user.rwUUID);
+						if (deleteResult) {
+							await bot.sendMessage(
+								msg.chat.id,
+								`User ${user.rwUUID} has been successfully removed from remnawave`,
+							);
+						} else {
+							await bot.sendMessage(msg.chat.id, errorMessage);
+						}
+					} catch (err) {
+						await bot.sendMessage(msg.chat.id, `${errorMessage} Reason ${err}`);
+					}
+				}
+				const result = await this.client.delete(Number(context.id));
 				const message = `User with id ${context.id} has been successfully removed`;
 				logger.success(`[${basename(__filename)}]: ${message}`);
 				await bot.editMessageText(message, {
@@ -693,29 +712,43 @@ ${env.PAYMENT_CARDS}
 		const lang = from?.is_bot ? 'ru' : from?.language_code;
 
 		const user = await this.client.getByTelegramId(message.chat.id.toString());
-		if (user?.subLink) {
-			bot.editMessageText(dict.installation_guide[lang](`${env.PASARGUARD_ROOT}${user.subLink}`), {
+		if (user?.rwLink) {
+			bot.editMessageText(dict.installation_guide[lang](user.rwLink), {
 				parse_mode: 'MarkdownV2',
 				chat_id: message.chat.id,
 				message_id: message.message_id,
-				reply_markup: deleteSubscriptionButton(lang),
+				reply_markup: mainMenuButton(lang),
 			});
 		} else {
-			const isPaid = await this.repository.isUserPaid(user.id);
-
-			if (isPaid) {
-				bot.editMessageText(dict.no_sub[lang], {
-					message_id: message.message_id,
-					chat_id: message.chat.id,
-					reply_markup: createSubscriptionButton(lang),
-				});
-			} else {
-				bot.editMessageText(dict.no_payments[lang](env.CHANNEL_URL), {
-					message_id: message.message_id,
-					chat_id: message.chat.id,
-				});
-			}
+			bot.editMessageText(dict.no_sub[lang], {
+				message_id: message.message_id,
+				chat_id: message.chat.id,
+				reply_markup: mainMenuButton(lang),
+			});
 		}
+		// if (user?.subLink) {
+		// 	bot.editMessageText(dict.installation_guide[lang](`${env.PASARGUARD_ROOT}${user.subLink}`), {
+		// 		parse_mode: 'MarkdownV2',
+		// 		chat_id: message.chat.id,
+		// 		message_id: message.message_id,
+		// 		reply_markup: mainMenuButton(lang),
+		// 	});
+		// } else {
+		// 	const isPaid = await this.repository.isUserPaid(user.id);
+
+		// 	if (isPaid) {
+		// 		bot.editMessageText(dict.no_sub[lang], {
+		// 			message_id: message.message_id,
+		// 			chat_id: message.chat.id,
+		// 			reply_markup: createSubscriptionButton(lang),
+		// 		});
+		// 	} else {
+		// 		bot.editMessageText(dict.no_payments[lang](env.CHANNEL_URL), {
+		// 			message_id: message.message_id,
+		// 			chat_id: message.chat.id,
+		// 		});
+		// 	}
+		// }
 	}
 
 	async showSubGuide(message: Message, from?: TGUser) {
@@ -733,27 +766,36 @@ ${env.PAYMENT_CARDS}
 		}
 	}
 
-	async createSubscription(message: Message, from: TGUser) {
-		this.log('createSubscription');
-		const lang = from?.is_bot ? 'ru' : from?.language_code;
-		try {
-			await bot.editMessageText(dict.creating_sub[lang], {
-				message_id: message.message_id,
-				chat_id: message.chat.id,
-				reply_markup: getUserKeyboard(lang),
-			});
-		} catch (err) {
-			logger.error(err);
-		}
-		const user = await this.client.getByTelegramId(message.chat.id.toString());
-		const expiresOn = user.payments.length ? user.payments[0].expiresOn : undefined;
-		await this.createPasarguardUser({
-			message,
-			user,
-			from,
-			expiresOn,
-		});
-	}
+	// async createSubscription(message: Message, from: TGUser) {
+	// 	this.log('createSubscription');
+	// 	const lang = from?.is_bot ? 'ru' : from?.language_code;
+	// 	try {
+	// 		await bot.editMessageText(dict.creating_sub[lang], {
+	// 			message_id: message.message_id,
+	// 			chat_id: message.chat.id,
+	// 			reply_markup: getUserKeyboard(lang),
+	// 		});
+	// 	} catch (err) {
+	// 		logger.error(err);
+	// 	}
+	// 	const user = await this.client.getByTelegramId(message.chat.id.toString());
+	// 	const expiresOn = user?.payments.length ? user?.payments[0].expiresOn : undefined;
+	// 	const result = await this.createRWUser(user.username, user.id);
+	// 	if (result) {
+	// 	} else {
+	// 		await bot.editMessageText(dict.createSubError[lang], {
+	// 			message_id: message.message_id,
+	// 			chat_id: message.chat.id,
+	// 			reply_markup: getUserKeyboard(lang),
+	// 		});
+	// 	}
+	// 	await this.createPasarguardUser({
+	// 		message,
+	// 		user,
+	// 		from,
+	// 		expiresOn,
+	// 	});
+	// }
 
 	async createSubscriptionAdmin(message: Message, context: UsersContext) {
 		this.log('createSubscriptionAdmin');
@@ -1237,7 +1279,15 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 		if (!start) {
 			const user = await this.client.getById(Number(context.id));
 			const userInfo = this.params.get('user_info') ?? '';
-			bot.sendMessage(message.chat.id, dict.payment_request[lang]);
+			const mesId = this.paymentRequestParams.get('msg_id');
+			bot.editMessageText(dict.payment_request[lang], {
+				reply_markup: getUserKeyboard(lang),
+				message_id: mesId,
+				chat_id: message.chat.id,
+			});
+			// bot.sendMessage(message.chat.id, dict.payment_request[lang], {
+			// 	reply_markup: getUserKeyboard(lang),
+			// });
 			bot.sendMessage(
 				env.ADMIN_USER_ID,
 				`Пользователь ${user.username} (id = ${context.id}) ${userInfo} оставил заявку на платёж`,
@@ -1268,7 +1318,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 		try {
 			const user = await this.client.getByTelegramId(message.chat.id.toString());
 			const mess = await this.getPaymentString(user, lang);
-			bot.sendMessage(message.chat.id, `${mess}\n${dict.click_to_confirm_payment[lang]}`, {
+			const ms = await bot.sendMessage(message.chat.id, `${mess}\n${dict.click_to_confirm_payment[lang]}`, {
 				parse_mode: 'MarkdownV2',
 				reply_markup: {
 					inline_keyboard: [
@@ -1288,18 +1338,19 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 					],
 				},
 			});
+			this.paymentRequestParams.set('msg_id', ms.message_id);
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка обработки платежа ${error}`);
 			bot.sendMessage(env.ADMIN_USER_ID, `Ошибка обработки платежа для пользователя ${message.chat.id} ${error}`);
+			this.paymentRequestParams.clear();
 			globalHandler.finishCommand();
 		}
 	}
 
-	async signUp(message: Message, context: UsersContext, from: TGUser, start = true) {
+	async signUpUser(message: Message, context: UsersContext, from: TGUser, start = true) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 
 		if (start) {
-			setActiveStep('send', this.signUpSteps);
 			if (!from.username) {
 				bot.sendMessage(message.chat.id, dict.enter_username[lang]);
 				this.signUpParams.set('interaction', true);
@@ -1307,58 +1358,60 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			}
 		}
 
-		if (this.signUpSteps.send) {
-			const interacted = this.signUpParams.get('interaction');
-			const username = interacted ? message.text : from.username;
-			this.signUpParams.set('new-user', {
-				...from,
-				username,
+		const interacted = this.signUpParams.get('interaction');
+		const username = interacted ? message.text : from.username;
+		this.newUsers.set(from.id, {
+			...from,
+			username,
+		});
+		if (interacted) {
+			bot.sendMessage(message.chat.id, dict.wait_for_admin[lang]);
+		} else {
+			bot.editMessageText(dict.wait_for_admin[lang], {
+				message_id: message.message_id,
+				chat_id: message.chat.id,
 			});
-			if (interacted) {
-				bot.sendMessage(message.chat.id, dict.wait_for_admin[lang]);
-			} else {
-				bot.editMessageText(dict.wait_for_admin[lang], {
-					message_id: message.message_id,
-					chat_id: message.chat.id,
-				});
-			}
-			bot.sendMessage(
-				env.ADMIN_USER_ID,
-				`Пользователь с id=${from.id} username=${username}, first_name=${from.first_name}, last_name=${from.last_name} оставил заявку на создание`,
-				{
-					reply_markup: {
-						inline_keyboard: [
-							[
-								{
-									text: 'Подтвердить',
-									callback_data: JSON.stringify({
-										[CmdCode.Scope]: CommandScope.Users,
-										[CmdCode.Context]: {
-											[CmdCode.Command]: VPNUserCommand.RequestCreation,
-										},
-										[CmdCode.Processing]: 1,
-									}),
-								},
-							],
-						],
-					},
-				},
-			);
-			setActiveStep('pasarguard', this.signUpSteps);
-			return;
 		}
-		if (this.signUpSteps.pasarguard) {
-			await bot.sendMessage(env.ADMIN_USER_ID, 'Create user in pasarguard?', {
+		bot.sendMessage(
+			env.ADMIN_USER_ID,
+			`Пользователь с id=${from.id} username=${username}, first_name=${from.first_name}, last_name=${from.last_name} оставил заявку на создание`,
+			{
 				reply_markup: {
-					inline_keyboard: getYesNoKeyboard(VPNUserCommand.RequestCreation),
+					inline_keyboard: [
+						[
+							{
+								text: 'Подтвердить',
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Users,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: VPNUserCommand.RequestCreationAdmin,
+										tgid: from.id,
+									},
+								}),
+							},
+						],
+					],
 				},
-			});
-			Object.keys(this.signUpSteps).forEach(k => {
-				this.signUpSteps[k] = false;
-			});
-			return;
-		}
-		const fr: TGUser = this.signUpParams.get('new-user');
+			},
+		);
+	}
+
+	async signUp(message: Message, context: UsersContext, from: TGUser, start = true) {
+		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
+
+		// if (start) {
+		// 	await bot.sendMessage(env.ADMIN_USER_ID, 'Create user in remnawave?', {
+		// 		reply_markup: {
+		// 			inline_keyboard: getYesNoKeyboard(VPNUserCommand.RequestCreationAdmin),
+		// 		},
+		// 	});
+		// 	Object.keys(this.signUpSteps).forEach(k => {
+		// 		this.signUpSteps[k] = false;
+		// 	});
+		// 	return;
+		// }
+
+		const fr: TGUser = this.newUsers.get(context.tgid);
 		try {
 			const newUser: User = await this.client.create({
 				username: fr.username,
@@ -1370,13 +1423,13 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			await bot.sendMessage(env.ADMIN_USER_ID, `User ${newUser.username} has been successfully created`);
 			let finalUser = newUser;
 			if (context.accept) {
-				const result = await this.createPasarguardUser({
-					message,
-					user: newUser,
-					isAdmin: true,
-					isNew: true,
-				});
-				finalUser = result.user;
+				// const result = await this.createPasarguardUser({
+				// 	message,
+				// 	user: newUser,
+				// 	isAdmin: true,
+				// 	isNew: true,
+				// });
+				finalUser = await this.createRWUser(newUser.username, newUser.id);
 			}
 			delete context.accept;
 			await this.sendNewUserMenu(env.ADMIN_USER_ID, finalUser);
@@ -1397,6 +1450,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			);
 		} finally {
 			this.signUpParams.clear();
+			this.newUsers.delete(context.tgid);
 			Object.keys(this.signUpSteps).forEach(k => {
 				this.signUpSteps[k] = false;
 			});
@@ -1702,6 +1756,20 @@ Created At: ${formatDate(user.createdAt)}\n`;
 			? `${mess}
 ${env.PAYMENT_CARDS}`
 			: mess;
+	}
+
+	private async createRWUser(username: string, id: number) {
+		const createdRWUser = await this.rwService.createUser(`${username}_${id}`);
+		const addToSquad = await this.rwService.updateUser({
+			uuid: createdRWUser.response.uuid,
+			activeInternalSquads: ['f99e56f3-f961-44a1-b919-930643c0fc09'],
+		});
+		return await this.client.update(id, {
+			rwLink: createdRWUser.response.subscriptionUrl,
+			rwId: createdRWUser.response.id,
+			rwUsername: createdRWUser.response.username,
+			rwUUID: createdRWUser.response.uuid,
+		});
 	}
 
 	private log(message: string) {

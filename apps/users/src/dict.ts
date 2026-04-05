@@ -90,8 +90,8 @@ The setup process is similar in all apps:
 		en: '/me — to view the information stored about you',
 	},
 	no_sub: {
-		ru: 'У вас пока нет ключей. Вы можете создать новый',
-		en: "You don't have subscriptions yet. You can create new one.",
+		ru: 'У вас пока нет ключей',
+		en: "You don't have subscriptions yet.",
 	},
 	create_sub: {
 		ru: 'Создать ключ',

@@ -57,6 +57,13 @@ export class UsersService {
   }
 
   async remove(id: number) {
+    const user = await this.repository.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    // if (user.rwUUID) {
+    //   await this.rwService.deleteUser(user.rwUUID);
+    // }
     try {
       return await this.repository.remove(id);
     } catch (err) {
@@ -90,6 +97,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
+
     const expiresOn = user?.payments.length
       ? user?.payments[0].expiresOn
       : undefined;
@@ -98,6 +106,10 @@ export class UsersService {
       expiresOn,
     );
     const resp = result?.response;
+    const addToSquad = await this.rwService.updateUser({
+      uuid: resp.uuid,
+      activeInternalSquads: ['f99e56f3-f961-44a1-b919-930643c0fc09'],
+    });
     return await this.repository.createSubscription(
       userId,
       resp?.subscriptionUrl ?? null,
