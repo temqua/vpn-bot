@@ -1218,8 +1218,7 @@ Created at ${record.assignedAt}`,
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		try {
 			const user = await this.client.getById(Number(context.id));
-			const link = `${user.subLink ? env.PASARGUARD_ROOT : ''}${user.subLink}`;
-			const messg = dict.installation_guide[lang](link);
+			const messg = dict.installation_guide[lang](user?.rwLink ?? '');
 			bot.sendMessage(message.chat.id, messg, {
 				parse_mode: 'MarkdownV2',
 			});

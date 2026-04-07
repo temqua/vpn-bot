@@ -15,6 +15,23 @@ on:
                     - msk
                     - greece
                     - norway
+                    - albania-subs
+                    - austria-subs
+                    - brazil-subs
+                    - croatia-subs
+                    - de-subs
+                    - fin-subs
+                    - fin4-subs
+                    - greece-subs
+                    - korea-subs
+                    - norway-subs
+                    - neth-subs
+                    - neth2-subs
+                    - neth3-subs
+                    - sweden-subs
+                    - swiss-subs
+                    - turkey-subs
+                    - turkey2-subs
 
 jobs:
     build-deploy:
