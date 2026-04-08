@@ -1421,24 +1421,26 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			});
 			await bot.sendMessage(env.ADMIN_USER_ID, `User ${newUser.username} has been successfully created`);
 			let finalUser = newUser;
-			if (context.accept) {
-				// const result = await this.createPasarguardUser({
-				// 	message,
-				// 	user: newUser,
-				// 	isAdmin: true,
-				// 	isNew: true,
-				// });
-				finalUser = await this.createRWUser(newUser.username, newUser.id);
-			}
-			delete context.accept;
+			// if (context.accept) {
+			// const result = await this.createPasarguardUser({
+			// 	message,
+			// 	user: newUser,
+			// 	isAdmin: true,
+			// 	isNew: true,
+			// });
+			finalUser = await this.createRWUser(newUser.username, newUser.id);
+			// }
+			// delete context.accept;
 			await this.sendNewUserMenu(env.ADMIN_USER_ID, finalUser);
 			await bot.sendMessage(newUser.telegramId, dict.request_approved[lang]);
-			const link = `${finalUser.subLink ? env.PASARGUARD_ROOT : ''}${finalUser.subLink}`;
-			const messg = dict.installation_guide[lang](link);
+			const messg = dict.installation_guide[lang](finalUser.rwLink);
 			await bot.sendMessage(newUser.telegramId, messg, {
 				parse_mode: 'MarkdownV2',
 			});
 			await bot.sendMessage(newUser.telegramId, dict.payment_intro[lang](finalUser.price, finalUser.currency));
+			await bot.sendMessage(newUser.telegramId, dict.start[lang], {
+				reply_markup: getUserKeyboard(lang),
+			});
 		} catch (error) {
 			logger.error(
 				`[${basename(__filename)}]: Unexpected error occurred while creating user ${fr?.username}: ${error}`,
