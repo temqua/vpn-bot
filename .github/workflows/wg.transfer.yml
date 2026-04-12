@@ -9,18 +9,22 @@ on:
                 default: t
                 type: choice
                 options:
-                    - us2
-                    - neth
+                    - austria
                     - brazil
-                    - msk
                     - greece
+                    - msk
+                    - neth
                     - norway
+                    - sweden
+                    - us2
                     - albania-subs
                     - austria-subs
                     - brazil-subs
                     - croatia-subs
                     - de-subs
                     - fin-subs
+                    - fin2-subs
+                    - fin3-subs
                     - fin4-subs
                     - greece-subs
                     - korea-subs
@@ -31,7 +35,6 @@ on:
                     - sweden-subs
                     - swiss-subs
                     - turkey-subs
-                    - turkey2-subs
 
 jobs:
     build-deploy:
