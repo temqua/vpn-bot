@@ -12,6 +12,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { UserQueryDto } from './dto/user-query.dto';
 
 @Controller('users')
 export class UsersController {
@@ -24,16 +25,8 @@ export class UsersController {
   }
 
   @Get()
-  async findAll(
-    @Query('username') username: string,
-    @Query('telegram_id') telegramId: string,
-    @Query('first_name') firstName: string,
-  ) {
-    return await this.usersService.findAll({
-      username,
-      telegramId,
-      firstName,
-    });
+  async findAll(@Query() query: UserQueryDto) {
+    return await this.usersService.findAll(query);
   }
 
   @Get('/unpaid')

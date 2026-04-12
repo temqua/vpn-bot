@@ -3,13 +3,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UsersRepository } from './users.repository';
-import { SearchUserDto } from './dto/search-user.dto';
-import { RemnawaveService } from './rw.service';
 import env from '../../env';
 import { exportToSheet } from '../../utils';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
+import { RemnawaveService } from './rw.service';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +22,7 @@ export class UsersService {
     return await this.repository.create(createUserDto);
   }
 
-  async findAll(dto: SearchUserDto) {
+  async findAll(dto: UserQueryDto) {
     if (dto.username) {
       return await this.repository.findByUsername(dto.username);
     }
@@ -32,7 +32,12 @@ export class UsersService {
     if (dto.telegramId) {
       return await this.repository.getByTelegramId(dto.telegramId);
     }
-
+    if (dto.orderBy) {
+      return await this.repository.findAll({
+        by: dto.orderBy,
+        direction: dto.orderDirection ?? 'asc',
+      });
+    }
     return await this.repository.findAll();
   }
 

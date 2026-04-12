@@ -68,6 +68,14 @@ export interface SearchUserDto {
 	firstName?: string;
 }
 
+export class UserQueryDto {
+	username?: string;
+	telegramId?: string;
+	firstName?: string;
+	orderBy?: 'username' | 'firstName';
+	orderDirection?: 'asc' | 'desc';
+}
+
 export interface UserServerDTO {
 	id: number;
 	userId: number;

@@ -1,18 +1,24 @@
 import { Payment } from '@prisma/client';
 import client from '../../api-client';
-import { VPNUser } from './users.repository';
-import { CreateUserDto, SearchUserDto, UpdateUserDto, UserServerDTO } from './users.types';
 import logger from '../../logger';
+import { VPNUser } from './users.repository';
+import { CreateUserDto, UpdateUserDto, UserQueryDto, UserServerDTO } from './users.types';
 
 export class UsersClient {
-	async list(dto?: SearchUserDto): Promise<VPNUser[]> {
+	async list(dto?: UserQueryDto): Promise<VPNUser[]> {
 		const params = new URLSearchParams();
 		if (dto?.firstName) {
-			params.append('first_name', dto.firstName);
+			params.append('firstName', dto.firstName);
 		}
 
 		if (dto?.username) {
 			params.append('username', dto.username);
+		}
+		if (dto?.orderBy) {
+			params.append('orderBy', dto.orderBy);
+		}
+		if (dto?.orderDirection) {
+			params.append('orderDirection', dto.orderDirection);
 		}
 		const result = await client.get(`/users?${params}`);
 		return result as VPNUser[];
@@ -20,7 +26,7 @@ export class UsersClient {
 
 	async getByTelegramId(telegramId: string): Promise<VPNUser> {
 		const params = new URLSearchParams();
-		params.append('telegram_id', telegramId.toString());
+		params.append('telegramId', telegramId.toString());
 		const result = (await client.get(`/users?${params}`)) as VPNUser[];
 		if (!result?.length) {
 			return null;

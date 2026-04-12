@@ -39,7 +39,7 @@ import {
 	skipKeyboard,
 } from './users.buttons';
 import { UsersClient } from './users.client';
-import { UsersRepository, type VPNUser } from './users.repository';
+import { type VPNUser } from './users.repository';
 import {
 	CreatePasarguardUserParams,
 	UserCreateCommandContext,
@@ -49,7 +49,6 @@ import {
 
 export class UsersService {
 	constructor(
-		private repository: UsersRepository = new UsersRepository(),
 		private pasarguardService: PasarguardService = new PasarguardService(),
 		private rwService = new RemnawaveService(),
 		private client: UsersClient = new UsersClient(),
@@ -1520,7 +1519,11 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 	}
 
 	private async getPossiblePayers(message: Message, context: UsersContext, userId: string) {
-		const possibleUsers = await this.repository.payersList(Number(userId));
+		const response = await this.client.list({
+			orderBy: 'firstName',
+			orderDirection: 'asc'
+		});
+		const possibleUsers = response.filter(user => user.id !== Number(userId));
 		const users = context.accept
 			? possibleUsers
 			: possibleUsers?.filter(u => u.username.startsWith(message?.text ?? ''));

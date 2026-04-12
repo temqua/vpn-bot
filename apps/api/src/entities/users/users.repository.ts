@@ -4,7 +4,7 @@ import { subMonths, subWeeks } from 'date-fns';
 import { DatabaseService } from '../../database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { VPNUser } from './users.types';
+import { UserOrderParams, VPNUser } from './users.types';
 
 @Injectable()
 export class UsersRepository {
@@ -18,8 +18,15 @@ export class UsersRepository {
     });
   }
 
-  async findAll() {
-    return await this.databaseService.client.user.findMany();
+  async findAll(orderParams?: UserOrderParams) {
+    const params = orderParams
+      ? {
+          orderBy: {
+            [orderParams.by]: orderParams.direction,
+          },
+        }
+      : undefined;
+    return await this.databaseService.client.user.findMany(params);
   }
 
   async findOne(id: number) {

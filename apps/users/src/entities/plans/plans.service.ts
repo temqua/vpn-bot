@@ -9,13 +9,13 @@ import { globalHandler } from '../../global.handler';
 import logger from '../../logger';
 import { setActiveStep } from '../../utils';
 import { getUserKeyboard } from '../users/users.buttons';
-import { UsersRepository } from '../users/users.repository';
+import { UsersClient } from '../users/users.client';
 import { PlansClient } from './plans.client';
 import { PlansContext } from './plans.types';
 export class PlansService {
 	constructor(
-		private readonly usersRepo: UsersRepository = new UsersRepository(),
 		private client: PlansClient = new PlansClient(),
+		private usersClient = new UsersClient(),
 	) {}
 
 	createSteps: { [key: string]: boolean } = {
@@ -73,7 +73,7 @@ export class PlansService {
 		const chatId: number = message.chat.id;
 		const lang = from.is_bot ? 'ru' : from.language_code;
 		this.log('showForUser');
-		const user = await this.usersRepo.getByTelegramId(chatId.toString());
+		const user = await this.usersClient.getByTelegramId(chatId.toString());
 		const plans = await this.client.getAll({ price: user.price });
 		const plansGroupped = Object.groupBy(plans, p => p.minCount);
 

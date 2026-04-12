@@ -5,3 +5,8 @@ export type VPNUser = User & {
   payments: Payment[];
   dependants: User[];
 };
+
+export type UserOrderParams = {
+  by: 'username' | 'firstName';
+  direction: 'asc' | 'desc';
+};
