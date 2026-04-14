@@ -429,7 +429,7 @@ export class UsersService {
 			const updateId = this.params.get('updateId');
 			try {
 				const updated = await this.client.update(updateId, {
-					payerId: Number(context.id),
+					payerId: context.id != null ? Number(context.id) : (context.id as null | undefined),
 				});
 				logger.success(`Payer has been successfully set to ${context.id} for user ${updateId}`);
 				await this.sendUserMenu(chatId, updated);
