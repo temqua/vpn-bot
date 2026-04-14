@@ -13,36 +13,37 @@ datasource db {
 }
 
 model User {
-  id                 Int            @id @default(autoincrement())
-  username           String         @unique
-  telegramId         String?        @unique @map(name: "telegram_id")
-  telegramLink       String?        @unique @map(name: "telegram_link")
-  createdAt          DateTime       @default(now()) @map("created_at")
-  firstName          String?        @map(name: "first_name")
-  lastName           String?        @map(name: "last_name")
-  languageCode       String?        @default("ru") @map(name: "language_code")
-  price              Int            @default(150) @map(name: "price")
-  free               Boolean        @default(false) @map(name: "is_free")
-  active             Boolean        @default(true)
+  id                 Int               @id @default(autoincrement())
+  username           String            @unique
+  telegramId         String?           @unique @map(name: "telegram_id")
+  telegramLink       String?           @unique @map(name: "telegram_link")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  firstName          String?           @map(name: "first_name")
+  lastName           String?           @map(name: "last_name")
+  languageCode       String?           @default("ru") @map(name: "language_code")
+  price              Int               @default(150) @map(name: "price")
+  free               Boolean           @default(false) @map(name: "is_free")
+  active             Boolean           @default(true)
   bank               String?
-  currency           String         @default("RUB")
-  subLink            String?        @default("") @map(name: "subscription_url")
-  pasarguardUsername String?        @unique @map(name: "pasarguard_username")
-  pasarguardId       Int?           @map(name: "pasarguard_id")
-  rwLink             String?        @default("") @map(name: "rw_subscription_url")
-  rwUsername         String?        @map(name: "rw_username")
-  rwId               Int?           @map(name: "rw_id")
-  rwUUID             String?        @map(name: "rw_uuid")
-  payerId            Int?           @map(name: "payer_id")
-  referrerId         Int?           @map(name: "referrer_id")
-  devices            Device[]       @default([])
+  currency           String            @default("RUB")
+  subLink            String?           @default("") @map(name: "subscription_url")
+  pasarguardUsername String?           @unique @map(name: "pasarguard_username")
+  pasarguardId       Int?              @map(name: "pasarguard_id")
+  rwLink             String?           @default("") @map(name: "rw_subscription_url")
+  rwUsername         String?           @map(name: "rw_username")
+  rwId               Int?              @map(name: "rw_id")
+  rwUUID             String?           @map(name: "rw_uuid")
+  payerId            Int?              @map(name: "payer_id")
+  referrerId         Int?              @map(name: "referrer_id")
+  devices            Device[]          @default([])
   payments           Payment[]
-  payer              User?          @relation("UserToPayer", fields: [payerId], references: [id])
-  referrer           User?          @relation("UserToReferer", fields: [referrerId], references: [id])
-  dependants         User[]         @relation("UserToPayer")
+  payer              User?             @relation("UserToPayer", fields: [payerId], references: [id])
+  referrer           User?             @relation("UserToReferer", fields: [referrerId], references: [id])
+  dependants         User[]            @relation("UserToPayer")
   servers            ServersUsers[]
   actions            UserAction[]
-  referrals          User[]         @relation("UserToReferer")
+  referrals          User[]            @relation("UserToReferer")
+  messageDeliveries  MessageDelivery[]
 
   @@map("users")
 }
@@ -123,6 +124,19 @@ model UserAction {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("user_actions")
+}
+
+model MessageDelivery {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map(name: "user_id")
+  user      User      @relation(fields: [userId], references: [id])
+  message   String
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+  success   Boolean
+  error     String?
+
+  @@map("audit_message_deliveries")
 }
 
 enum VPNProtocol {

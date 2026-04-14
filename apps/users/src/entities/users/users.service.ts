@@ -169,7 +169,7 @@ export class UsersService {
 				this.params.set('telegram_link', message?.text);
 			}
 			delete context.skip;
-			await bot.sendMessage(chatId, 'Create user in pasarguard?', {
+			await bot.sendMessage(chatId, 'Create user in remnawave?', {
 				reply_markup: {
 					inline_keyboard: getYesNoKeyboard(VPNUserCommand.Create),
 				},
@@ -180,23 +180,23 @@ export class UsersService {
 		if (this.createSteps.subLink) {
 			this.params.set('remnawave', context.accept);
 			delete context.accept;
-			await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
-				allows_multiple_answers: true,
-			});
-			await bot.sendMessage(chatId, 'Skip', skipKeyboard);
-			this.setCreateStep('devices');
-			return;
-		}
-		if (this.createSteps.devices) {
-			if (!context.skip) {
-				this.params.set('devices', selectedOptions);
-			}
-			delete context.skip;
-			// await bot.sendPoll(chatId, 'Choose bank', pollOptions.bank, {
-			// 	allows_multiple_answers: false,
+			// await bot.sendPoll(chatId, 'Choose devices', pollOptions.devices, {
+			// 	allows_multiple_answers: true,
 			// });
 			// await bot.sendMessage(chatId, 'Skip', skipKeyboard);
+			// this.setCreateStep('devices');
+			// return;
 		}
+		// if (this.createSteps.devices) {
+		// 	if (!context.skip) {
+		// 		this.params.set('devices', selectedOptions);
+		// 	}
+		// 	delete context.skip;
+		// 	// await bot.sendPoll(chatId, 'Choose bank', pollOptions.bank, {
+		// 	// 	allows_multiple_answers: false,
+		// 	// });
+		// 	// await bot.sendMessage(chatId, 'Skip', skipKeyboard);
+		// }
 		const params = this.params;
 		const username = params.get('username');
 
@@ -207,18 +207,11 @@ export class UsersService {
 				telegramId: params.get('telegram_id'),
 				telegramLink: params.get('telegram_link'),
 				lastName: params.get('last_name'),
-				devices: params.get('devices'),
 				payerId: params.get('payer_id'),
 			});
 			await bot.sendMessage(chatId, `User ${newUser.username} has been successfully created`);
 			let finalUser = newUser;
 			if (params.get('remnawave')) {
-				// const result = await this.createPasarguardUser({
-				// 	message,
-				// 	user: newUser,
-				// 	isAdmin: true,
-				// 	isNew: true,
-				// });
 				finalUser = await this.createRWUser(newUser.username, newUser.id);
 			}
 			await this.sendNewUserMenu(chatId, finalUser);
@@ -691,13 +684,11 @@ currently have a trial period `,
 			if (user.telegramId) {
 				const message = user.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
 				try {
-					await bot.sendMessage(
-						user.telegramId,
-						`Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн @whirliswaiting
+					const messg = `Уважаемый пользователь! Время ${message} истекло. Необходимо оплатить впн @whirliswaiting
 ${user.price} рублей стоит месяц
 ${env.PAYMENT_CARDS}
-`,
-					);
+`;
+					await bot.sendMessage(user.telegramId, messg);
 				} catch (err) {
 					logger.error(err);
 				}
@@ -1521,7 +1512,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 	private async getPossiblePayers(message: Message, context: UsersContext, userId: string) {
 		const response = await this.client.list({
 			orderBy: 'firstName',
-			orderDirection: 'asc'
+			orderDirection: 'asc',
 		});
 		const possibleUsers = response.filter(user => user.id !== Number(userId));
 		const users = context.accept
