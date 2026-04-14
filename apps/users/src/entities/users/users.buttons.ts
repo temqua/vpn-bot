@@ -184,10 +184,11 @@ export const getUserMenu = (userId: number, isChildUser: boolean = false) => {
 				}),
 			},
 		],
+		[createChildBtn],
 	];
-	if (!isChildUser) {
-		buttons.push([createChildBtn]);
-	}
+	// if (!isChildUser) {
+	// 	buttons.push([createChildBtn]);
+	// }
 	return buttons;
 };
 
