@@ -47,11 +47,14 @@ bot.onText(/\/start/, async (msg: Message) => {
 		const user = await usersClient.getByTelegramId(msg?.from?.id.toString() ?? '');
 
 		if (user) {
-			await bot.sendMessage(msg.chat.id, `${dict.hello[lang]}, ${msg?.from?.first_name}!`);
-			await bot.sendMessage(msg.chat.id, dict.welcome[lang]);
+			const mg = `${dict.hello[lang]}, ${msg?.from?.first_name}! ${dict.welcome[lang]}`;
+			await bot.sendMessage(msg.chat.id, mg);
 			await bot.sendMessage(msg.chat.id, dict.start[lang], {
 				reply_markup: getUserKeyboard(lang),
 			});
+			usersClient.createAction(user.id, '/start', '');
+			usersClient.captureDelivery(user.id, mg);
+			usersClient.captureDelivery(user.id, dict.start[lang]);
 		} else {
 			await bot.sendMessage(
 				msg.chat.id,
@@ -145,7 +148,10 @@ bot.onText(mainCommandsList.lookup.regexp, async (msg: Message) => {
 bot.onText(/\/me$/, async (msg: Message) => {
 	const user = await usersClient.getByTelegramId(msg?.from?.id.toString() ?? '');
 	if (user) {
-		bot.sendMessage(msg.chat.id, formatUserInfo(user));
+		const mg = formatUserInfo(user);
+		bot.sendMessage(msg.chat.id, mg);
+		usersClient.createAction(user.id, '/me', '');
+		usersClient.captureDelivery(user.id, mg);
 	} else {
 		bot.sendMessage(msg.chat.id, 'Вы не зарегистрированы в системе');
 	}
