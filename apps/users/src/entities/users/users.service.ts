@@ -1,5 +1,5 @@
 import { Device, User, VPNProtocol } from '@prisma/client';
-import { subMonths } from 'date-fns';
+import { parseISO, subMonths } from 'date-fns';
 import type { InlineKeyboardButton, Message, SendBasicOptions, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
@@ -32,11 +32,9 @@ import {
 	getUserContactKeyboard,
 	getUserKeyboard,
 	getUserMenu,
-	mainMenuButton,
 	payersKeyboard,
 	replySetNullPropKeyboard,
 	skipButton,
-	skipKeyboard,
 } from './users.buttons';
 import { UsersClient } from './users.client';
 import { type VPNUser } from './users.repository';
@@ -584,7 +582,12 @@ export class UsersService {
 
 	async showUnpaid(message: Message) {
 		this.log('showUnpaid');
-		const users = await this.client.getUnpaid();
+		const fetchedUsers = await this.client.getUnpaid();
+		const users = fetchedUsers.map(u => ({
+			...u,
+			createdAt: parseISO(u.createdAt),
+		}));
+		const monthAgo = subMonths(new Date(), 1);
 		for (const user of users) {
 			if (user.payments.length) {
 				const lastPayment = user.payments[0];
@@ -599,7 +602,7 @@ export class UsersService {
 						parse_mode: 'MarkdownV2',
 					},
 				);
-			} else if (user.createdAt > subMonths(new Date(), 1)) {
+			} else if (user.createdAt > monthAgo) {
 				await bot.sendMessage(
 					message.chat.id,
 					`User ${user.username} ${user.telegramLink ?? ''} created at ${formatDate(user.createdAt)} has to pay soon`,
@@ -607,8 +610,8 @@ export class UsersService {
 			}
 		}
 		if (users.length) {
-			const trialUsers = users.filter(user => user.createdAt > subMonths(new Date(), 1));
-			const oldtimers = users.filter(user => user.createdAt < subMonths(new Date(), 1));
+			const trialUsers = users.filter(user => user.createdAt > monthAgo);
+			const oldtimers = users.filter(user => user.createdAt < monthAgo);
 			await bot.sendMessage(
 				message.chat.id,
 				`Users 
@@ -703,7 +706,11 @@ currently have a trial period `,
 
 	async notifyUnpaid() {
 		this.log('notifyUnpaid');
-		const users = await this.client.getUnpaid();
+		const fetchedUsers = await this.client.getUnpaid();
+		const users = fetchedUsers.map(u => ({
+			...u,
+			createdAt: parseISO(u.createdAt),
+		}));
 		for (const user of users) {
 			if (user.telegramId) {
 				const message = user.createdAt < subMonths(new Date(), 1) ? 'пробного периода' : 'подписки';
@@ -713,6 +720,7 @@ ${user.price} рублей стоит месяц
 ${env.PAYMENT_CARDS}
 `;
 					await bot.sendMessage(user.telegramId, messg);
+					await this.client.captureDelivery(user.id, messg);
 				} catch (err) {
 					logger.error(err);
 				}

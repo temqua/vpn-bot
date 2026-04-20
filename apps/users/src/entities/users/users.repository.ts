@@ -3,6 +3,7 @@ import { subMonths, subWeeks } from 'date-fns';
 import { prisma } from '../../prisma';
 
 export type VPNUser = User & {
+	createdAt: string;
 	payer: User | null;
 	payments: Payment[];
 	dependants: User[];
