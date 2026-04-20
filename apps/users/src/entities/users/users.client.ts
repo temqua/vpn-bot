@@ -103,4 +103,21 @@ export class UsersClient {
 	async export() {
 		return await client.post('/users/export');
 	}
+
+	async createAction(userId: string | number, command: string, action: string) {
+		return await client.post(`/users/${userId}/actions`, {
+			body: JSON.stringify({
+				command,
+				action,
+			}),
+		});
+	}
+
+	async captureDelivery(userId: string | number, message: string) {
+		return await client.post(`/users/${userId}/delivered-messages`, {
+			body: JSON.stringify({
+				message,
+			}),
+		});
+	}
 }

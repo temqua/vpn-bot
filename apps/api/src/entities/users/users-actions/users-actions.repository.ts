@@ -26,7 +26,6 @@ export class UsersActionsRepository {
   }
 
   async findAll(userId: number) {
-    console.log('userId :>> ', userId);
     return await this.databaseService.client.userAction.findMany({
       where: {
         userId,

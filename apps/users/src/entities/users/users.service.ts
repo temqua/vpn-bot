@@ -607,16 +607,15 @@ export class UsersService {
 			}
 		}
 		if (users.length) {
+			const trialUsers = users.filter(user => user.createdAt > subMonths(new Date(), 1));
+			const oldtimers = users.filter(user => user.createdAt < subMonths(new Date(), 1));
 			await bot.sendMessage(
 				message.chat.id,
 				`Users 
-${users
-	.filter(user => user.createdAt < subMonths(new Date(), 1))
-	.map(u => `${u.username} ${u.telegramLink ?? ''}`)
-	.join('\n')} 
+${oldtimers.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
 have no payments for next month.`,
 			);
-			const userButtons: InlineKeyboardButton[][] = users.map(user => {
+			const oldtimersButtons: InlineKeyboardButton[][] = oldtimers.map(user => {
 				return [
 					{
 						text: user.username,
@@ -630,9 +629,34 @@ have no payments for next month.`,
 					},
 				];
 			});
-			await bot.sendMessage(message.chat.id, 'Select user', {
+			await bot.sendMessage(message.chat.id, 'Select oldtimer user', {
 				reply_markup: {
-					inline_keyboard: userButtons,
+					inline_keyboard: oldtimersButtons,
+				},
+			});
+			await bot.sendMessage(
+				message.chat.id,
+				`Users 
+${trialUsers.map(u => `${u.username} ${u.telegramLink ?? ''}`).join('\n')} 
+have to pay soon.`,
+			);
+			const trialUsersButtons: InlineKeyboardButton[][] = trialUsers.map(user => {
+				return [
+					{
+						text: user.username,
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								[CmdCode.Command]: VPNUserCommand.GetById,
+								id: user.id,
+							},
+						}),
+					},
+				];
+			});
+			await bot.sendMessage(message.chat.id, 'Select trial user', {
+				reply_markup: {
+					inline_keyboard: trialUsersButtons,
 				},
 			});
 		} else {
@@ -702,19 +726,21 @@ ${env.PAYMENT_CARDS}
 		const lang = from?.is_bot ? 'ru' : from?.language_code;
 
 		const user = await this.client.getByTelegramId(message.chat.id.toString());
+		this.client.createAction(user.id, 'ShowSubLink', `${dict.subscription[lang]}`);
 		if (user?.rwLink) {
 			bot.editMessageText(dict.installation_guide[lang](user.rwLink), {
-				parse_mode: 'MarkdownV2',
 				chat_id: message.chat.id,
 				message_id: message.message_id,
-				reply_markup: mainMenuButton(lang),
+				reply_markup: getUserKeyboard(lang),
 			});
+			this.client.captureDelivery(user.id, dict.installation_guide[lang](user.rwLink));
 		} else {
 			bot.editMessageText(dict.no_sub[lang], {
 				message_id: message.message_id,
 				chat_id: message.chat.id,
-				reply_markup: mainMenuButton(lang),
+				reply_markup: getUserKeyboard(lang),
 			});
+			this.client.captureDelivery(user.id, dict.no_sub[lang]);
 		}
 		// if (user?.subLink) {
 		// 	bot.editMessageText(dict.installation_guide[lang](`${env.PASARGUARD_ROOT}${user.subLink}`), {
@@ -1098,35 +1124,36 @@ Created at ${record.assignedAt}`,
 	async listKeysForUser(message: Message, from: TGUser) {
 		const lang = from?.is_bot || !from ? 'ru' : from?.language_code;
 		const user = await this.client.getByTelegramId(message.chat.id.toString());
+		this.client.createAction(user.id, 'KeysUser', `${dict.keys[lang]}`);
+
 		const list = await this.client.getUserServers(user.id);
 		for (const record of list) {
-			await bot.sendMessage(
-				message.chat.id,
-				`Сервер ${record.server.name} (${record.server.url})
+			const msg = `Сервер ${record.server.name} (${record.server.url})
 Протокол: ${record.protocol}
-Дата создания: ${record.assignedAt}`,
-				{
-					reply_markup: {
-						inline_keyboard: [
-							[
-								{
-									text: dict.get_file[lang],
-									callback_data: JSON.stringify({
-										[CmdCode.Scope]: CommandScope.Users,
-										[CmdCode.Context]: {
-											[CmdCode.Command]: VPNUserCommand.GetKeyFile,
-											rid: record.id,
-										},
-									}),
-								},
-							],
+Дата создания: ${record.assignedAt}`;
+			await bot.sendMessage(message.chat.id, msg, {
+				reply_markup: {
+					inline_keyboard: [
+						[
+							{
+								text: dict.get_file[lang],
+								callback_data: JSON.stringify({
+									[CmdCode.Scope]: CommandScope.Users,
+									[CmdCode.Context]: {
+										[CmdCode.Command]: VPNUserCommand.GetKeyFile,
+										rid: record.id,
+									},
+								}),
+							},
 						],
-					},
+					],
 				},
-			);
+			});
+			this.client.captureDelivery(user.id, msg);
 		}
 		if (!list.length) {
 			bot.sendMessage(message.chat.id, dict.no_keys[lang]);
+			this.client.captureDelivery(user.id, dict.no_keys[lang]);
 		}
 		globalHandler.finishCommand();
 	}
@@ -1274,6 +1301,8 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 				message_id: mesId,
 				chat_id: message.chat.id,
 			});
+			this.client.createAction(user.id, 'UserPay', `${dict.paid[lang]}`);
+			this.client.captureDelivery(user.id, dict.payment_request[lang]);
 			// bot.sendMessage(message.chat.id, dict.payment_request[lang], {
 			// 	reply_markup: getUserKeyboard(lang),
 			// });
@@ -1304,8 +1333,8 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			return;
 		}
 		this.params.set('user_info', `${from.username ?? ''} ${from.first_name ?? ''} ${from.last_name ?? ''}`);
+		const user = await this.client.getByTelegramId(message.chat.id.toString());
 		try {
-			const user = await this.client.getByTelegramId(message.chat.id.toString());
 			const mess = await this.getPaymentString(user, lang);
 			const ms = await bot.sendMessage(message.chat.id, `${mess}\n${dict.click_to_confirm_payment[lang]}`, {
 				parse_mode: 'MarkdownV2',
@@ -1328,8 +1357,11 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 				},
 			});
 			this.paymentRequestParams.set('msg_id', ms.message_id);
+			this.client.captureDelivery(user.id, `${mess}\n${dict.click_to_confirm_payment[lang]}`);
+			this.client.createAction(user.id, 'UserPay', dict.pay[lang]);
 		} catch (error) {
 			bot.sendMessage(message.chat.id, `Ошибка обработки платежа ${error}`);
+			this.client.captureDelivery(user.id, `Ошибка обработки платежа ${error}`);
 			bot.sendMessage(env.ADMIN_USER_ID, `Ошибка обработки платежа для пользователя ${message.chat.id} ${error}`);
 			this.paymentRequestParams.clear();
 			globalHandler.finishCommand();

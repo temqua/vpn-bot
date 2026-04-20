@@ -5,5 +5,8 @@ export class CreateUsersActionDto {
   command: string;
 
   @IsString()
-  action: string;
+  action?: string;
+
+  @IsString()
+  message?: string;
 }

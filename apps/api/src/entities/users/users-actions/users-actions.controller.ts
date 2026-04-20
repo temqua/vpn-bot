@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -11,7 +10,7 @@ import {
 import { UsersService } from '../users.service';
 import { CreateUsersActionDto } from './dto/create-users-action.dto';
 import { UpdateUsersActionDto } from './dto/update-users-action.dto';
-import { UserExistsPipe } from './user-exists-pipe';
+import { UserExistsPipe } from '../user-exists-pipe';
 import { UsersActionsService } from './users-actions.service';
 
 @Controller('users/:userId/actions')

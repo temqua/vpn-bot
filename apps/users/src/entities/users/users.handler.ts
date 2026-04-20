@@ -53,11 +53,6 @@ class UsersCommandsHandler implements ICommandHandler {
 			globalHandler.finishCommand();
 			return;
 		}
-		if (context[CmdCode.Command] === VPNUserCommand.ShowSubLinkGuide) {
-			await this.service.showSubGuide(message, from);
-			globalHandler.finishCommand();
-			return;
-		}
 		if (context[CmdCode.Command] === VPNUserCommand.CreateSubscriptionAdmin) {
 			await this.service.createSubscriptionAdmin(message, context);
 			globalHandler.finishCommand();

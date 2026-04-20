@@ -12,6 +12,7 @@ class ApiClient {
 			...params,
 			headers: {
 				'Content-Type': 'application/json',
+				'X-Source': 'bot',
 				'Authorization': `Bearer ${env.API_TOKEN}`,
 				...(params?.headers ? { ...params.headers } : {}),
 			},

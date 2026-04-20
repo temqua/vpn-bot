@@ -2,7 +2,7 @@ import { Plan } from '@prisma/client';
 import { InlineKeyboardButton, Message, User as TGUser } from 'node-telegram-bot-api';
 import { basename } from 'path';
 import bot from '../../bot';
-import { getMonthsCountMessage, getPeopleCountMessage } from '../../dict';
+import { dict, getMonthsCountMessage, getPeopleCountMessage } from '../../dict';
 import { CmdCode, CommandScope, PlanCommand, UpdatePlanPropsMap } from '../../enums';
 import env from '../../env';
 import { globalHandler } from '../../global.handler';
@@ -76,7 +76,7 @@ export class PlansService {
 		const user = await this.usersClient.getByTelegramId(chatId.toString());
 		const plans = await this.client.getAll({ price: user.price });
 		const plansGroupped = Object.groupBy(plans, p => p.minCount);
-
+		this.usersClient.createAction(user.id, 'ShowPlans', `${dict.last_payment[lang]}`);
 		const prepared = Object.keys(plansGroupped)
 			.map(k => {
 				const count = Number(k);

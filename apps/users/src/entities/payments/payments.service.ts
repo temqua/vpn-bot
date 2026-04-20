@@ -68,15 +68,18 @@ export class PaymentsService {
 			const user = await this.usersClient.getByTelegramId(message.chat.id.toString());
 			userId = user.id.toString();
 		}
+		this.usersClient.createAction(userId, 'ShowLastPayment', `${dict.last_payment[lang]}`);
 		const payment = await this.usersClient.getLastPayment(Number(userId));
 		if (payment) {
 			try {
-				await bot.editMessageText(this.formatUserPayment(payment), {
+				const p = this.formatUserPayment(payment);
+				await bot.editMessageText(p, {
 					parse_mode: 'MarkdownV2',
 					message_id: message.message_id,
 					chat_id: message.chat.id,
 					reply_markup: getUserKeyboard(lang),
 				});
+				this.usersClient.captureDelivery(userId, p);
 			} catch (err) {
 				logger.error(err);
 			}
@@ -86,6 +89,7 @@ export class PaymentsService {
 				chat_id: message.chat.id,
 				reply_markup: getUserKeyboard(lang),
 			});
+			this.usersClient.captureDelivery(userId, dict.payments_not_found[lang]);
 		}
 		globalHandler.finishCommand();
 	}

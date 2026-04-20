@@ -110,7 +110,7 @@ model ServersUsers {
   serverId   Int
   protocol   VPNProtocol
   username   String?
-  assignedAt DateTime    @default(now())
+  assignedAt DateTime    @default(now()) @map("assigned_at")
 
   @@map("servers_users")
 }
@@ -127,16 +127,26 @@ model UserAction {
 }
 
 model MessageDelivery {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @map(name: "user_id")
-  user      User      @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map(name: "user_id")
+  user      User     @relation(fields: [userId], references: [id])
   message   String
-  createdAt DateTime  @default(now())
-  sentAt    DateTime?
-  success   Boolean
-  error     String?
+  createdAt DateTime @default(now()) @map("created_at")
 
-  @@map("audit_message_deliveries")
+  @@map("user_delivered_messages")
+}
+
+model BotApiRequestException {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now()) @map("created_at")
+  message        String
+  url            String
+  method         String
+  statusCode     Int
+  requestBody    String?
+  requestHeaders String?
+
+  @@map("audit_bot_api_request_exceptions")
 }
 
 enum VPNProtocol {
