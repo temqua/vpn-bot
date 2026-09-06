@@ -1,6 +1,6 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { BaseListDto } from 'src/dto/base-dto';
-import { OrderDirection } from 'src/enums';
+import { BaseListDto } from '../../../dto/base-dto';
+import { OrderDirection } from '../../../enums';
 
 export enum OrderByPlanField {
   Amount = 'amount',

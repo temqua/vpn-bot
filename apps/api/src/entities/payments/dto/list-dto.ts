@@ -1,6 +1,6 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { BaseListDto } from '../../../dto/base-dto';
-import { OrderDirection } from 'src/enums';
+import { OrderDirection } from '../../../enums';
 
 export enum OrderByPaymentField {
   Amount = 'amount',
