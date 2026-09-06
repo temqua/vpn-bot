@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Patch,
   Post,
@@ -13,10 +14,12 @@ import { PaymentListDto } from './dto/list-dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { PaymentsService } from './payments.service';
 import type { IYooKassaWebHook } from './yookassa.definitions';
+import { IsPublic } from '../../decorators/is-public';
 
 @Controller('admin/payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
+  private logger = new Logger('PaymentsController');
 
   @Post()
   async create(@Body() createPaymentDto: CreatePaymentDto) {
@@ -56,14 +59,16 @@ export class PaymentsController {
     return await this.paymentsService.export();
   }
 
+  @IsPublic()
   @Post('/webhook')
   async hook(@Body() dto: IYooKassaWebHook) {
     return await this.paymentsService.handleHook(dto);
   }
 
-  @Post('/webhook-hest')
+  @IsPublic()
+  @Post('/webhook-test')
   hookTest(@Body() dto: IYooKassaWebHook) {
-    console.log(dto);
+    this.logger.log(dto);
     return JSON.stringify(dto);
   }
 }
