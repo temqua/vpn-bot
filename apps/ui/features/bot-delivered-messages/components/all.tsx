@@ -1,10 +1,18 @@
 'use client';
 
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from '@/app/components/combobox';
 import ContentArea from '@/app/components/content-area';
 import { Input } from '@/app/components/input';
 import Table, { IColumn } from '@/app/components/table';
 import { deliveredMessagesClient } from '@/app/lib/api/bot-delivered-messages/client';
-import { IBotDeliveredMessage, IBotDeliveredMessageUI } from '@/app/lib/api/bot-delivered-messages/definitions';
+import { IBotDeliveredMessageUI } from '@/app/lib/api/bot-delivered-messages/definitions';
 import { IListParams } from '@/app/lib/definitions.global';
 import { OrderDirection } from '@/app/lib/enums';
 import { useUpdateParams } from '@/app/lib/use-update-params';
@@ -15,6 +23,10 @@ import { useCallback, useMemo, useRef } from 'react';
 interface IDeliveredMessagesPageProps {
 	count: number;
 	initialData: IBotDeliveredMessageUI[];
+	users: {
+		label: string;
+		value: string;
+	}[];
 }
 
 const baseColumns: IColumn<IBotDeliveredMessageUI>[] = [
@@ -28,7 +40,7 @@ const baseColumns: IColumn<IBotDeliveredMessageUI>[] = [
 		prop: 'message',
 	},
 	{
-		label: 'User ID',
+		label: 'User',
 		prop: 'userId',
 		sortable: true,
 	},
@@ -51,7 +63,7 @@ const baseColumns: IColumn<IBotDeliveredMessageUI>[] = [
 interface IBotDeliveredMessageForm {
 	id?: string;
 	telegramId?: string;
-	createAt?: string;
+	createdAt?: string;
 	userId?: string;
 }
 
@@ -60,7 +72,7 @@ interface IBotDeliveredMessageFormWithOrder extends IBotDeliveredMessageForm {
 	orderDirection?: OrderDirection;
 }
 
-export default function DeliveredMessagesClientSide({ initialData, count }: IDeliveredMessagesPageProps) {
+export default function DeliveredMessagesClientSide({ initialData, count, users }: IDeliveredMessagesPageProps) {
 	const searchParams = useSearchParams();
 	const id = searchParams.get('id') || '';
 	const userId = searchParams.get('userId') || '';
@@ -79,6 +91,7 @@ export default function DeliveredMessagesClientSide({ initialData, count }: IDel
 		},
 		[updateParams],
 	);
+	console.log('userId :>> ', userId);
 	const { data: fetched, isLoading } = useQuery({
 		queryKey: ['bot-delivered-messages', page, take, id, userId, orderBy, orderDirection],
 		queryFn: () => {
@@ -120,12 +133,25 @@ export default function DeliveredMessagesClientSide({ initialData, count }: IDel
 				</th>
 				<th></th>
 				<th>
-					<Input
-						type="search"
-						placeholder={'User ID'}
-						defaultValue={userId}
-						onChange={event => debouncedUpdateFilter('userId', event.target.value)}
-					></Input>
+					<Combobox
+						items={users}
+						value={userId ?? undefined}
+						onValueChange={v => {
+							debouncedUpdateFilter('userId', v ?? '');
+						}}
+					>
+						<ComboboxInput placeholder="Select user"></ComboboxInput>
+						<ComboboxContent>
+							<ComboboxEmpty>No users found.</ComboboxEmpty>
+							<ComboboxList>
+								{item => (
+									<ComboboxItem key={item.value} value={item.value}>
+										{item.label}
+									</ComboboxItem>
+								)}
+							</ComboboxList>
+						</ComboboxContent>
+					</Combobox>
 				</th>
 				<th></th>
 				<th></th>

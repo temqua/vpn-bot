@@ -11,6 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
 import { RemnawaveService } from './rw.service';
 import { UsersRepository } from './users.repository';
+import { UserExportRow } from './users.types';
 
 @Injectable()
 export class UsersService {
@@ -182,7 +183,28 @@ export class UsersService {
   }
 
   async export() {
-    const { data } = await this.repository.findAll();
+    const {
+      data,
+    }: {
+      data: UserExportRow[];
+      count: number;
+    } = await this.repository.findAll({
+      select: [
+        'firstName',
+        'lastName',
+        'username',
+        'telegramId',
+        'telegramLink',
+        'id',
+        'price',
+        'devices',
+        'createdAt',
+        'free',
+        'active',
+        'rwLink',
+        'rwId',
+      ].join(','),
+    });
     const preparedData = data.map((row) => {
       return [
         row.firstName ?? '',
@@ -197,6 +219,9 @@ export class UsersService {
           ? new Date(row.createdAt).toLocaleString('ru-RU', { timeZone: 'UTC' })
           : '',
         row.free ? true : false,
+        row.active ? true : false,
+        row.rwLink ? row.rwLink.toString() : '',
+        row.rwId ? row.rwId.toString() : '',
       ];
     });
     return await exportToSheet(env.SHEET_ID, 'Users!A2', preparedData);

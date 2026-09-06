@@ -1,5 +1,6 @@
 import DeliveredMessagesClientSide from '@/features/bot-delivered-messages/components/all';
 import { deliveredMessagesSSRClient } from '@/features/bot-delivered-messages/lib/ssr-client';
+import { usersSSRClient } from '@/features/users/lib/ssr-client';
 import { redirect } from 'next/navigation';
 
 export default async function DeliveredMessagesPage(props: {
@@ -29,13 +30,18 @@ export default async function DeliveredMessagesPage(props: {
 		}
 		redirect(`/admin/bot-delivered-messages?${params.toString()}`);
 	}
-	const response = await deliveredMessagesSSRClient.getAll({
+	const deliveredMessagesPromise = deliveredMessagesSSRClient.getAll({
 		skip: (page - 1) * take,
 		take,
 		...(id && { id }),
 		...(userId && { userId }),
 		...(username && { username }),
 	});
+	const usersPromise = usersSSRClient.getAll({
+		select: ['id', 'username'],
+	});
+
+	const [response, usersResponse] = await Promise.all([deliveredMessagesPromise, usersPromise]);
 	return (
 		<DeliveredMessagesClientSide
 			initialData={response.data.map(record => ({
@@ -44,6 +50,10 @@ export default async function DeliveredMessagesPage(props: {
 				message: record.message,
 				userId: record.userId,
 				username: record.user.username,
+			}))}
+			users={usersResponse.data.map(u => ({
+				value: u.id.toString(),
+				label: u.username,
 			}))}
 			count={response.count}
 		/>

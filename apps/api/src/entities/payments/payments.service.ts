@@ -6,6 +6,7 @@ import { PaymentsRepository } from './payments.repository';
 import env from '../../env';
 import { exportToSheet } from '../../utils';
 import { PaymentListDto } from './dto/list-dto';
+import { IYooKassaWebHook } from './yookassa.definitions';
 @Injectable()
 export class PaymentsService {
   constructor(private repository: PaymentsRepository) {}
@@ -77,5 +78,9 @@ export class PaymentsService {
       'Payments!A2',
       preparedPaymentsData,
     );
+  }
+
+  async handleHook(dto: IYooKassaWebHook) {
+    return JSON.stringify(dto);
   }
 }

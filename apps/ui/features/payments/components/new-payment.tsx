@@ -1,49 +1,48 @@
 'use client';
-import { Button } from '@/app/components/button';
-import { Calendar } from '@/app/components/calendar';
 import ContentArea from '@/app/components/content-area';
 import { FieldSet } from '@/app/components/field';
 import FormField from '@/app/components/form-field';
-import { Input } from '@/app/components/input';
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/app/components/input-group';
-import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/popover';
-import { getUpdateAction } from '@/app/lib/actions/payments';
 import { IPayment } from '@/app/lib/api/payments/definitions';
-import { isValidDate } from '@/app/lib/utils';
-import { formatISO } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { useActionState, useState } from 'react';
 import { PaymentFormState } from '../lib/definitions';
-export default function PaymentClientSide({ data, id }: { data: IPayment; id: string }) {
-	const updateAction = getUpdateAction(id);
-	const [state, formAction, isPendingUpdate] = useActionState<PaymentFormState, FormData>(updateAction, {});
+import { createAction } from '@/app/lib/actions/payments';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/app/components/input-group';
+import { isValidDate } from '@/app/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/popover';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/app/components/calendar';
+import { formatISO } from 'date-fns';
+import { Input } from '@/app/components/input';
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from '@/app/components/combobox';
+import { Button } from '@/app/components/button';
 
-	const [paymentDate, setPaymentDate] = useState(data?.paymentDate);
-	const [amount, setAmount] = useState(data?.amount);
-	const [monthsCount, setMonthsCount] = useState(data?.monthsCount ?? undefined);
-	const [expiresOn, setExpiresOn] = useState(data?.expiresOn ?? undefined);
-	const [expiresOnDate, setExpiresOnDate] = useState(data.expiresOn ? new Date(data.expiresOn) : undefined);
+export default function NewPaymentClientSide({
+	users,
+}: {
+	users: {
+		label: string;
+		value: string;
+	}[];
+}) {
+	const [state, formAction, isPendingUpdate] = useActionState<PaymentFormState, FormData>(createAction, {});
+
+	const [amount, setAmount] = useState(0);
+	const [monthsCount, setMonthsCount] = useState(0);
+	const [expiresOn, setExpiresOn] = useState('');
+	const [userId, setUserID] = useState(0);
+	const [expiresOnDate, setExpiresOnDate] = useState(new Date());
 	const [isExpiresOnOpened, setExpiresOnOpened] = useState(false);
-	const [userId, setUserID] = useState(data?.userId);
-	const [planId, setPlanID] = useState(data?.planId);
 	return (
 		<ContentArea>
 			<form action={formAction}>
 				<FieldSet>
-					<FormField
-						id="paymentDate"
-						label="Payment date"
-						errors={state?.errors?.properties?.paymentDate?.errors}
-					>
-						<Input
-							value={paymentDate}
-							onChange={event => setPaymentDate(event.target.value)}
-							id="paymentDate"
-							name="paymentDate"
-							placeholder="Payment date"
-							aria-invalid={Boolean(state?.errors?.properties?.paymentDate?.errors?.length)}
-						/>
-					</FormField>
 					<FormField id="amount" label="Amount" errors={state?.errors?.properties?.amount?.errors}>
 						<Input
 							value={amount}
@@ -51,9 +50,9 @@ export default function PaymentClientSide({ data, id }: { data: IPayment; id: st
 							id="amount"
 							name="amount"
 							type="number"
+							step="0.01"
 							autoComplete="off"
 							placeholder="Amount"
-							step="0.01"
 							aria-invalid={Boolean(state?.errors?.properties?.amount?.errors?.length)}
 						/>
 					</FormField>
@@ -68,17 +67,28 @@ export default function PaymentClientSide({ data, id }: { data: IPayment; id: st
 							id="monthsCount"
 							name="monthsCount"
 							type="number"
+							min="1"
 							autoComplete="off"
 							placeholder="Months count"
 							aria-invalid={Boolean(state?.errors?.properties?.monthsCount?.errors?.length)}
 						/>
 					</FormField>
 					<FormField id="expiresOn" label="Expires on" errors={state?.errors?.properties?.expiresOn?.errors}>
+						{/* <Input
+							value={expiresOn}
+							onChange={event => setExpiresOn(event.target.value)}
+							id="expiresOn"
+							name="expiresOn"
+							autoComplete="off"
+							placeholder="Expires On"
+							aria-invalid={Boolean(state?.errors?.properties?.expiresOn?.errors?.length)}
+						/> */}
 						<InputGroup>
 							<InputGroupInput
 								id="expiresOn"
 								name="expiresOn"
 								value={expiresOn}
+								placeholder="Expires On"
 								readOnly
 								onChange={e => {
 									const date = new Date(e.target.value);
@@ -131,41 +141,54 @@ export default function PaymentClientSide({ data, id }: { data: IPayment; id: st
 								</Popover>
 							</InputGroupAddon>
 						</InputGroup>
-						{/* <Input
-							value={expiresOn}
-							onChange={event => setExpiresOn(event.target.value)}
-							id="expiresOn"
-							name="expiresOn"
-							autoComplete="off"
-							placeholder="Expires On"
-							aria-invalid={Boolean(state?.errors?.properties?.expiresOn?.errors?.length)}
-						/> */}
 					</FormField>
-					<FormField id="userId" label="User ID" errors={state?.errors?.properties?.userId?.errors}>
-						<Input
+					<FormField id="userId" label="User" errors={state?.errors?.properties?.userId?.errors}>
+						<Combobox
+							items={users}
+							value={userId ?? undefined}
+							onValueChange={v => {
+								setUserID(Number(v));
+							}}
+						>
+							<ComboboxInput placeholder="Select user"></ComboboxInput>
+							<ComboboxContent>
+								<ComboboxEmpty>No users found.</ComboboxEmpty>
+								<ComboboxList>
+									{item => (
+										<ComboboxItem key={item.value} value={item.value}>
+											{item.label}
+										</ComboboxItem>
+									)}
+								</ComboboxList>
+							</ComboboxContent>
+						</Combobox>
+						{/* <Input
 							value={userId}
 							onChange={event => setUserID(Number(event.target.value))}
 							id="userId"
 							name="userId"
+							min="1"
 							autoComplete="off"
 							placeholder="User ID"
 							type="number"
 							aria-invalid={Boolean(state?.errors?.properties?.userId?.errors?.length)}
-						/>
+						/> */}
 					</FormField>
 					{/* <div className="flex flex-col">
-                <label htmlFor="planId">Plan ID</label>
-                <Input
-                    value={planId}
-                    onChange={event => setPlanID(Number(event.target.value))}
-                    id="planId"
-                    name="planId"
-                    autoComplete="off"
-                    placeholder="Plan ID"
-                />
-            </div>
-            {state?.errors?.properties?.planId && <p>{state.errors?.properties.planId?.errors.join()}</p>} */}
+                    <label htmlFor="planId">Plan ID</label>
+                    <Input
+                        value={planId}
+                        onChange={event => setPlanID(Number(event.target.value))}
+                        id="planId"
+                        name="planId"
+                        autoComplete="off"
+                        placeholder="Plan ID"
+                    />
+                </div>
+                {state?.errors?.properties?.planId && <p>{state.errors?.properties.planId?.errors.join()}</p>} */}
 					<Button type="submit">Submit</Button>
+					{state?.errors?.errors?.length ? state?.errors?.errors.join(',') : ''}
+					{state?.data?.id ? `Successfully created payment ${state?.data.id}` : ''}
 				</FieldSet>
 			</form>
 		</ContentArea>

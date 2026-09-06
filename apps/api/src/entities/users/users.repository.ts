@@ -20,70 +20,47 @@ export class UsersRepository {
   }
 
   async findAll(dto?: UserQueryDto) {
-    const where: Prisma.UserWhereInput = {};
-    if (dto?.id) {
-      where.id = Number(dto.id);
-    }
-    if (dto?.username) {
-      where.username = {
-        mode: 'insensitive',
-        contains: dto.username,
-      };
-    }
-    if (dto?.telegramId) {
-      where.telegramId = dto.telegramId;
-    }
-    if (dto?.firstName) {
-      where.firstName = {
-        mode: 'insensitive',
-        contains: dto.firstName,
-      };
-    }
-    if (dto?.lastName) {
-      where.lastName = {
-        mode: 'insensitive',
-        contains: dto.lastName,
-      };
-    }
-    if (dto?.active !== undefined) {
-      where.active = dto.active === 'true';
-    }
-    if (dto?.free !== undefined) {
-      where.free = dto.free === 'true';
-    }
-    if (dto?.trial !== undefined) {
-      where.createdAt =
-        dto.trial === 'true'
-          ? {
-              gt: subDays(new Date(), 3),
-            }
-          : {
-              lt: subDays(new Date(), 3),
-            };
-    }
-    if (dto?.expiresAfterDays !== undefined) {
-      const gt = addDays(new Date(), Number(dto.expiresAfterDays));
-      where.payments = {
-        none: {
-          expiresOn: {
-            gt: gt,
-          },
-        },
-      };
-    }
-    const params = {
-      skip: dto?.skip ? Number(dto.skip) : undefined,
-      take: dto?.take ? Number(dto.take) : undefined,
+    const where = this.buildWhere(dto);
+    const select = dto?.select ? dto.select.split(',') : [];
+    const baseParams = {
       where,
-      omit: {
-        password: true,
-      },
       orderBy:
         dto?.orderBy && dto?.orderDirection
           ? {
               [dto.orderBy]: dto.orderDirection,
             }
           : undefined,
+    };
+    const countParams = {
+      where,
+    };
+    if (dto?.select?.length) {
+      const params = {
+        ...baseParams,
+        select: select.reduce((acc, curr) => {
+          return {
+            ...acc,
+            [curr]: true,
+          };
+        }, {} as Prisma.UserSelect),
+      };
+
+      const [data, count] = await this.databaseService.client.$transaction([
+        this.databaseService.client.user.findMany(params),
+        this.databaseService.client.user.count(countParams),
+      ]);
+      return {
+        data,
+        count,
+      };
+    }
+    const params = {
+      ...baseParams,
+      skip: dto?.skip != null ? Number(dto.skip) : undefined,
+      take: dto?.take != null ? Number(dto.take) : undefined,
+      omit: {
+        password: true,
+      },
       include: {
         payer: true,
         payments: {
@@ -117,9 +94,7 @@ export class UsersRepository {
         },
       },
     };
-    const countParams = {
-      where,
-    };
+
     const [data, count] = await this.databaseService.client.$transaction([
       this.databaseService.client.user.findMany(params),
       this.databaseService.client.user.count(countParams),
@@ -128,6 +103,41 @@ export class UsersRepository {
       data,
       count,
     };
+  }
+
+  private buildWhere(dto?: UserQueryDto): Prisma.UserWhereInput {
+    const where: Prisma.UserWhereInput = {};
+    if (!dto) return where;
+
+    if (dto.id) where.id = Number(dto.id);
+    if (dto.telegramId) where.telegramId = dto.telegramId;
+
+    if (dto.username)
+      where.username = { mode: 'insensitive', contains: dto.username };
+    if (dto.firstName)
+      where.firstName = { mode: 'insensitive', contains: dto.firstName };
+    if (dto.lastName)
+      where.lastName = { mode: 'insensitive', contains: dto.lastName };
+
+    if (dto.active !== undefined) where.active = dto.active === 'true';
+    if (dto.free !== undefined) where.free = dto.free === 'true';
+
+    if (dto.trial !== undefined) {
+      where.createdAt =
+        dto.trial === 'true'
+          ? { gt: subDays(new Date(), 3) }
+          : { lt: subDays(new Date(), 3) };
+    }
+
+    if (dto.expiresAfterDays !== undefined) {
+      where.payments = {
+        none: {
+          expiresOn: { gt: addDays(new Date(), Number(dto.expiresAfterDays)) },
+        },
+      };
+    }
+
+    return where;
   }
 
   async findAllActive() {

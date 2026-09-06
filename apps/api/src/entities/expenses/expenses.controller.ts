@@ -7,10 +7,8 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import { ExpenseCategory } from '@prisma/client';
-import type { Request } from 'express';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseListDto } from './dto/list-dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
@@ -36,7 +34,7 @@ export class ExpensesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req: Request) {
+  async findOne(@Param('id') id: string) {
     return await this.expensesService.findOne(id);
   }
 

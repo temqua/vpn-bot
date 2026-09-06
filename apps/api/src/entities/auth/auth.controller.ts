@@ -9,7 +9,7 @@ export class AuthController {
   @IsPublic()
   @HttpCode(HttpStatus.OK)
   @Post('/')
-  signIn(@Body() dto: Record<string, any>) {
+  signIn(@Body() dto: Record<string, string>) {
     return this.authService.signIn(dto.username, dto.password);
   }
 

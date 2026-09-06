@@ -57,7 +57,9 @@ export default async function PaymentsPage(props: {
 		...(orderDirection && { orderDirection }),
 	});
 
-	const usersPromise = usersSSRClient.getAll();
+	const usersPromise = usersSSRClient.getAll({
+		select: ['id', 'username'],
+	});
 	const plansPromise = plansSSRClient.getAll();
 
 	const [response, usersResponse, plansResponse] = await Promise.all([paymentsPromise, usersPromise, plansPromise]);
@@ -69,5 +71,6 @@ export default async function PaymentsPage(props: {
 		label: p.name,
 		value: p.id.toString(),
 	}));
+	console.log('users :>> ', users);
 	return <PaymentsClientSide initialData={response.data} count={response.count} users={users} plans={plans} />;
 }

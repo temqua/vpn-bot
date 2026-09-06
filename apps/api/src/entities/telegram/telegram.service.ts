@@ -6,7 +6,7 @@ export class TelegramService {
   private readonly logger = new Logger(TelegramService.name);
 
   private readonly chatId = env.TG_NOTIFICATIONS_CHAT_ID;
-  async send(text: string, chatId = this.chatId) {
+  async send(text: string, chatId = this.chatId): Promise<void> {
     if (env.APP_ENV === 'local') {
       return;
     }

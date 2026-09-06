@@ -38,4 +38,5 @@ export class UserQueryDto extends BaseListDto {
   paymentsOrder?: OrderDirection;
   expiresAfterDays?: string;
   trial?: string;
+  select?: string;
 }
