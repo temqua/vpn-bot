@@ -9,9 +9,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { PaymentListDto } from './dto/list-dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { PaymentsService } from './payments.service';
-import { PaymentListDto } from './dto/list-dto';
 import type { IYooKassaWebHook } from './yookassa.definitions';
 
 @Controller('admin/payments')
@@ -59,5 +59,11 @@ export class PaymentsController {
   @Post('/webhook')
   async hook(@Body() dto: IYooKassaWebHook) {
     return await this.paymentsService.handleHook(dto);
+  }
+
+  @Post('/webhook-hest')
+  hookTest(@Body() dto: IYooKassaWebHook) {
+    console.log(dto);
+    return JSON.stringify(dto);
   }
 }
