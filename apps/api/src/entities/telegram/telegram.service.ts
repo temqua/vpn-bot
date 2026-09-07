@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import env from '../../env';
+import { SendMessageBody } from './telegram.definitions';
 
 @Injectable()
 export class TelegramService {
@@ -11,10 +12,11 @@ export class TelegramService {
       return;
     }
     try {
-      const body = JSON.stringify({
-        chatId,
+      const sendMessageBody: SendMessageBody = {
+        chat_id: chatId,
         text,
-      });
+      };
+      const body = JSON.stringify(sendMessageBody);
       const response = await fetch(
         `https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`,
         {
