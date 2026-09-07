@@ -62,7 +62,27 @@ export class DeactivateUnpaidJob implements Job {
       },
     });
 
+    const deactivatedChildren =
+      await this.databaseService.client.user.updateManyAndReturn({
+        where: {
+          payerId: {
+            not: null,
+          },
+          payer: {
+            active: false,
+          },
+        },
+        data: {
+          active: false,
+        },
+      });
+
     for (const user of updated) {
+      const deactivatedMsg = `User ${user.username} has been deactivated`;
+      this.logger.log(deactivatedMsg);
+      this.telegramService.send(deactivatedMsg);
+    }
+    for (const user of deactivatedChildren) {
       const deactivatedMsg = `User ${user.username} has been deactivated`;
       this.logger.log(deactivatedMsg);
       this.telegramService.send(deactivatedMsg);
