@@ -1,6 +1,13 @@
 'use client';
 import ActionsCell from '@/app/components/actions-cell';
-import { Combobox, ComboboxInput } from '@/app/components/combobox';
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from '@/app/components/combobox';
 import ContentArea from '@/app/components/content-area';
 import { Input } from '@/app/components/input';
 import { Select } from '@/app/components/select';
@@ -19,6 +26,10 @@ export interface IServerUsersPageProps {
 	initialData: IUserServer[];
 	count: number;
 	id: string;
+	users: {
+		label: string;
+		value: string;
+	}[];
 }
 
 const baseColumns: IColumn<IServerUserUI>[] = [
@@ -52,6 +63,7 @@ interface IServerUserForm {
 	id?: string;
 	username?: string;
 	protocol?: string;
+	userId?: string;
 }
 
 interface IServerUserFormWithOrder extends IServerUserForm {
@@ -59,12 +71,13 @@ interface IServerUserFormWithOrder extends IServerUserForm {
 	orderDirection?: OrderDirection;
 }
 
-export default function ServerUsersClientSide({ initialData, id: serverId, count }: IServerUsersPageProps) {
+export default function ServerUsersClientSide({ initialData, id: serverId, count, users }: IServerUsersPageProps) {
 	const searchParams = useSearchParams();
 	const id = searchParams.get('id') || '';
 	const page = Number(searchParams.get('page')) || 1;
 	const take = Number(searchParams.get('take')) || 25;
 	const username = searchParams.get('username');
+	const userId = searchParams.get('userId');
 	const protocol = searchParams.get('protocol');
 	const orderBy = (searchParams.get('orderBy') as keyof IServerUserForm) || '';
 	const orderDirection = (searchParams.get('orderDirection') as OrderDirection) || '';
@@ -106,10 +119,11 @@ export default function ServerUsersClientSide({ initialData, id: serverId, count
 		[orderDirection],
 	);
 	const { data: fetched, isLoading } = useQuery({
-		queryKey: ['serverUsers', page, take, id, orderBy, orderDirection, protocol, username],
+		queryKey: ['serverUsers', page, take, id, orderBy, orderDirection, protocol, username, userId],
 		queryFn: () => {
 			const params: IListParams & Partial<IServerUserFormWithOrder> = { skip: (page - 1) * take, take };
 			if (id) params.id = id;
+			if (userId) params.userId = userId;
 			if (protocol) params.protocol = protocol;
 			if (orderBy) params.orderBy = orderBy;
 			if (orderDirection) params.orderDirection = orderDirection;
@@ -131,7 +145,27 @@ export default function ServerUsersClientSide({ initialData, id: serverId, count
 						onChange={event => debouncedUpdateFilter('id', event.target.value)}
 					></Input>
 				</th>
-				<th></th>
+				<th>
+					<Combobox
+						items={users}
+						value={userId ?? undefined}
+						onValueChange={v => {
+							debouncedUpdateFilter('userId', v ?? '');
+						}}
+					>
+						<ComboboxInput placeholder="Select user"></ComboboxInput>
+						<ComboboxContent>
+							<ComboboxEmpty>No users found.</ComboboxEmpty>
+							<ComboboxList>
+								{item => (
+									<ComboboxItem key={item.value} value={item.value}>
+										{item.label}
+									</ComboboxItem>
+								)}
+							</ComboboxList>
+						</ComboboxContent>
+					</Combobox>
+				</th>
 				<th>
 					<Input
 						type="search"

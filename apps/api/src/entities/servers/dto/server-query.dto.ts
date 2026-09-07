@@ -35,12 +35,15 @@ export class ServerQueryDto extends BaseListDto {
 }
 
 export class ServerUserQueryDto extends BaseListDto {
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  id?: number;
+  id?: string;
   @IsString()
   @IsOptional()
   username?: string;
+  @IsString()
+  @IsOptional()
+  userId?: string;
   @IsString()
   @IsOptional()
   protocol?: string;

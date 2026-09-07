@@ -1,6 +1,7 @@
 import { OrderDirection } from '@/app/lib/enums';
 import ServerUsersClientSide from '@/features/servers/components/users';
 import { serversSSRClient } from '@/features/servers/lib/ssr-client';
+import { usersSSRClient } from '@/features/users/lib/ssr-client';
 import { redirect } from 'next/navigation';
 
 export default async function ServerUsers(props: {
@@ -10,6 +11,7 @@ export default async function ServerUsers(props: {
 		take?: string;
 		id?: string;
 		username?: string;
+		userId?: string;
 		protocol?: string;
 		orderBy?: string;
 		orderDirection?: OrderDirection;
@@ -22,6 +24,7 @@ export default async function ServerUsers(props: {
 	const orderDirection = searchParams.orderDirection;
 	const recordId = searchParams.id || '';
 	const username = searchParams.username || '';
+	const userId = searchParams.userId || '';
 	const protocol = searchParams.protocol || '';
 
 	const { id } = await props.params;
@@ -36,15 +39,31 @@ export default async function ServerUsers(props: {
 		}
 		redirect(`/admin/servers/${id}/users?${params.toString()}`);
 	}
-	const { data, count } = await serversSSRClient.getUsers(id, {
+	const usersPromise = usersSSRClient.getAll({
+		select: ['id', 'username'],
+	});
+	const keysPromise = serversSSRClient.getUsers(id, {
 		skip: (page - 1) * take,
 		take,
 		...(recordId && { id: recordId }),
 		...(username && { username }),
+		...(userId && { userId }),
 		...(protocol && { protocol }),
 		...(orderBy && { orderBy }),
 		...(orderDirection && { orderDirection }),
 	});
 
-	return <ServerUsersClientSide initialData={data} id={id} count={count} />;
+	const [usersResponse, keysResponse] = await Promise.all([usersPromise, keysPromise]);
+
+	return (
+		<ServerUsersClientSide
+			users={usersResponse.data.map(u => ({
+				label: u.username,
+				value: u.id.toString(),
+			}))}
+			initialData={keysResponse.data}
+			id={id}
+			count={keysResponse.count}
+		/>
+	);
 }

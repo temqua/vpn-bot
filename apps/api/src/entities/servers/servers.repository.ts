@@ -77,7 +77,10 @@ export class ServersRepository {
       serverId: id,
     };
     if (dto?.id) {
-      where.id = dto.id;
+      where.id = Number(dto.id);
+    }
+    if (dto?.userId) {
+      where.userId = Number(dto.userId);
     }
     if (dto?.protocol) {
       where.protocol = dto.protocol as VPNProtocol;
