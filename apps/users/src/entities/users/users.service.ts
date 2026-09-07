@@ -1916,18 +1916,34 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 			},
 		});
 		if (user.dependants?.length) {
-			const buttons: InlineKeyboardButton[][] = user.dependants.map(d => [
-				{
-					text: d.username,
-					callback_data: JSON.stringify({
-						[CmdCode.Scope]: CommandScope.Users,
-						[CmdCode.Context]: {
-							id: d.id,
-							[CmdCode.Command]: VPNUserCommand.GetById,
-						},
-					}),
-				},
-			]);
+			const activeDepButtons: InlineKeyboardButton[][] = user.dependants
+				.filter(u => u.active)
+				.map(d => [
+					{
+						text: d.username,
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								id: d.id,
+								[CmdCode.Command]: VPNUserCommand.GetById,
+							},
+						}),
+					},
+				]);
+			const inactiveDepButtons: InlineKeyboardButton[][] = user.dependants
+				.filter(u => !u.active)
+				.map(d => [
+					{
+						text: d.username,
+						callback_data: JSON.stringify({
+							[CmdCode.Scope]: CommandScope.Users,
+							[CmdCode.Context]: {
+								id: d.id,
+								[CmdCode.Command]: VPNUserCommand.GetById,
+							},
+						}),
+					},
+				]);
 			const plans = await this.plansClient.getAll({ price: user.price, count: 1 + user.dependants.length });
 			const msg = plans
 				.map(p => `${p.amount} ${p.currency} стоит ${getMonthsCountMessage(p.months, 'ru')}`)
@@ -1936,11 +1952,20 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 				chatId,
 				`Подходящие планы для подписки на ${1 + user.dependants.length} человек при цене ${user.price}:\n${msg}`,
 			);
-			await bot.sendMessage(chatId, 'Dependants', {
-				reply_markup: {
-					inline_keyboard: buttons,
-				},
-			});
+			if (activeDepButtons.length) {
+				await bot.sendMessage(chatId, 'Active dependants', {
+					reply_markup: {
+						inline_keyboard: activeDepButtons,
+					},
+				});
+			}
+			if (inactiveDepButtons) {
+				await bot.sendMessage(chatId, 'Inactive dependants', {
+					reply_markup: {
+						inline_keyboard: inactiveDepButtons,
+					},
+				});
+			}
 		}
 		if (user.referred?.length) {
 			const buttons: InlineKeyboardButton[][] = user.referred.map(ref => [
@@ -2041,7 +2066,7 @@ Created At: ${formatDate(user.createdAt)}\n`;
 		}
 		if (user.dependants?.length) {
 			userInfo = userInfo.concat(
-				`Dependants: ${user.dependants?.map(u => `${u.username} ${u.telegramLink ?? ''}\n`).join(', ')}\n`,
+				`Dependants: ${user.dependants?.map(u => `${u.username} ${u.telegramLink ?? ''} ${u.active ? '' : '(Inactive)'}\n`).join(', ')}\n`,
 			);
 		}
 		return userInfo;
