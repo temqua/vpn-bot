@@ -27,6 +27,13 @@ export class TelegramService {
         this.logger.error(
           `Error while sending telegram message ${text}: ${response.status} ${response.statusText}`,
         );
+        const isJson = response.headers
+          .get('Content-Type')
+          ?.includes('application/json');
+        if (response.body && isJson) {
+          const parsed = await response.text();
+          this.logger.error(parsed);
+        }
       }
     } catch (err) {
       this.logger.error(`Failed to send to telegram message ${text}. ${err}`);
