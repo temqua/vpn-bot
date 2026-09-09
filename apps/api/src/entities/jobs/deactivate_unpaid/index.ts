@@ -71,6 +71,8 @@ export class DeactivateUnpaidJob implements Job {
           payer: {
             active: false,
           },
+          active: true,
+          free: false,
         },
         data: {
           active: false,
