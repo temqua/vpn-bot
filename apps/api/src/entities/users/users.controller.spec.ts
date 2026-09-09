@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { RemnawaveService } from './rw.service';
 import { UsersRepository } from './users.repository';
 import { DatabaseModule } from '../../database.module';
+import { RemnawaveService } from '../remnawave/remnawave.service';
 
 describe('UsersController', () => {
   let controller: UsersController;

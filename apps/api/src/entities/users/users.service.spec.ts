@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { DatabaseModule } from '../../database.module';
 import { UsersRepository } from './users.repository';
-import { RemnawaveService } from './rw.service';
+import { RemnawaveService } from '../remnawave/remnawave.service';
 
 describe('UsersService', () => {
   let service: UsersService;
