@@ -1,6 +1,6 @@
-import PaymentsClientSide from '@/features/payments/components/all';
 import ReferralTransactionsClientSide from '@/features/referral-transactions/components/all';
 import { referralTransactionsSSRClient } from '@/features/referral-transactions/lib/ssr-client';
+import { usersSSRClient } from '@/features/users/lib/ssr-client';
 import { redirect } from 'next/navigation';
 
 export default async function ReferralTransactionsPage(props: {
@@ -31,7 +31,7 @@ export default async function ReferralTransactionsPage(props: {
 		}
 		redirect(`/admin/referral-transactions?${params.toString()}`);
 	}
-	const response = await referralTransactionsSSRClient.getAll({
+	const refPromise = referralTransactionsSSRClient.getAll({
 		skip: (page - 1) * take,
 		take,
 		...(id && { id }),
@@ -39,6 +39,15 @@ export default async function ReferralTransactionsPage(props: {
 		...(referrerId && { referrerId }),
 		...(paymentId && { paymentId }),
 	});
-
-	return <ReferralTransactionsClientSide initialData={response.data} count={response.count} />;
+	const usersPromise = usersSSRClient.getAll({
+		select: ['id', 'username'],
+	});
+	const [usersResponse, refResponse] = await Promise.all([usersPromise, refPromise]);
+	return (
+		<ReferralTransactionsClientSide
+			initialData={refResponse.data}
+			count={refResponse.count}
+			users={usersResponse.data.map(user => ({ label: user.username, value: user.id.toString() }))}
+		/>
+	);
 }

@@ -1,6 +1,6 @@
 import { IListParams, ListResponse } from '../../definitions.global';
 import apiClient from '../api-client';
-import { ICreateUserDto, IUpdateUserDto, IVPNUser, IVPNUserListDTO, IVPNUserUI } from './definitions';
+import { ICreateUserDto, IUpdateUserDto, IVPNUser, IVPNUserListDTO } from './definitions';
 
 export class UsersClient {
 	async getAll(listParams?: IListParams): Promise<ListResponse<IVPNUserListDTO>> {

@@ -110,6 +110,7 @@ export class UsersRepository {
     if (!dto) return where;
 
     if (dto.id) where.id = Number(dto.id);
+    if (dto.price) where.price = Number(dto.price);
     if (dto.telegramId) where.telegramId = dto.telegramId;
 
     if (dto.username)
@@ -118,9 +119,12 @@ export class UsersRepository {
       where.firstName = { mode: 'insensitive', contains: dto.firstName };
     if (dto.lastName)
       where.lastName = { mode: 'insensitive', contains: dto.lastName };
-
+    if (dto.telegramLink)
+      where.telegramLink = { mode: 'insensitive', contains: dto.telegramLink };
     if (dto.active !== undefined) where.active = dto.active === 'true';
     if (dto.free !== undefined) where.free = dto.free === 'true';
+    if (dto.muted !== undefined) where.muted = dto.muted === 'true';
+    
 
     if (dto.trial !== undefined) {
       where.createdAt =

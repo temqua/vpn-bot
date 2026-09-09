@@ -22,7 +22,6 @@ class SSRClient {
 			...params,
 			headers: {
 				'Content-Type': 'application/json',
-				'X-Source': 'bot',
 				'Authorization': `Bearer ${token}`,
 				...(params?.headers ? { ...params.headers } : {}),
 			},

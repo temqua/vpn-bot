@@ -79,6 +79,7 @@ export interface IVPNUserUI {
 	price: number;
 	free: boolean;
 	active: boolean;
+	muted: boolean | null;
 }
 
 export interface ICreateUserDto {

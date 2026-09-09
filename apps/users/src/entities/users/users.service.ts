@@ -1959,7 +1959,7 @@ ${dict.payment_through[lang]} @tesseract\\_users\\_bot`;
 					},
 				});
 			}
-			if (inactiveDepButtons) {
+			if (inactiveDepButtons.length) {
 				await bot.sendMessage(chatId, 'Inactive dependants', {
 					reply_markup: {
 						inline_keyboard: inactiveDepButtons,

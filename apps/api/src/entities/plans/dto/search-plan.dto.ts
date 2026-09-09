@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { BaseListDto } from '../../../dto/base-dto';
 import { OrderDirection } from '../../../enums';
 
@@ -12,20 +12,20 @@ export enum OrderByPlanField {
 export class SearchPlanDto extends BaseListDto {
   @IsString()
   name?: string;
-  @IsNumber()
-  count?: number;
-  @IsNumber()
-  minCount?: number;
-  @IsNumber()
-  maxCount?: number;
-  @IsNumber()
-  price?: number;
-  @IsNumber()
-  months?: number;
-  @IsNumber()
-  amount?: number;
-  @IsNumber()
-  id?: number;
+  @IsString()
+  count?: string;
+  @IsString()
+  minCount?: string;
+  @IsString()
+  maxCount?: string;
+  @IsString()
+  price?: string;
+  @IsString()
+  months?: string;
+  @IsString()
+  amount?: string;
+  @IsString()
+  id?: string;
   @IsOptional()
   @IsEnum(OrderByPlanField)
   orderBy?: OrderByPlanField;
@@ -33,4 +33,7 @@ export class SearchPlanDto extends BaseListDto {
   @IsOptional()
   @IsEnum(OrderDirection)
   orderDirection?: OrderDirection;
+  @IsString()
+  @IsOptional()
+  select?: string;
 }

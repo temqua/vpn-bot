@@ -91,7 +91,6 @@ export default function DeliveredMessagesClientSide({ initialData, count, users 
 		},
 		[updateParams],
 	);
-	console.log('userId :>> ', userId);
 	const { data: fetched, isLoading } = useQuery({
 		queryKey: ['bot-delivered-messages', page, take, id, userId, orderBy, orderDirection],
 		queryFn: () => {

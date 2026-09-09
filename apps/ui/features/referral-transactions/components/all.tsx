@@ -1,6 +1,15 @@
 'use client';
 
+import ActionsCell from '@/app/components/actions-cell';
 import { Button } from '@/app/components/button';
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from '@/app/components/combobox';
 import ContentArea from '@/app/components/content-area';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/dialog';
 import { Input } from '@/app/components/input';
@@ -11,6 +20,7 @@ import { IReferralTransaction, IReferralTransactionUI } from '@/app/lib/api/refe
 import { IListParams } from '@/app/lib/definitions.global';
 import { useUpdateParams } from '@/app/lib/use-update-params';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Pencil, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -31,6 +41,10 @@ const baseColumns: IColumn<IReferralTransactionUI>[] = [
 		prop: 'referredId',
 		searchable: true,
 	},
+	{
+		label: 'Created At',
+		prop: 'createdAt',
+	},
 ];
 interface IRefTransactionForm {
 	id?: string;
@@ -42,16 +56,21 @@ interface IRefTransactionForm {
 interface IReferralTransactionsPageProps {
 	initialData: IReferralTransaction[];
 	count?: number;
+	users: {
+		label: string;
+		value: string;
+	}[];
 }
 
-export default function ReferralTransactionsClientSide({ initialData, count }: IReferralTransactionsPageProps) {
+export default function ReferralTransactionsClientSide({ initialData, count, users }: IReferralTransactionsPageProps) {
 	const [isModalOpened, setModalOpened] = useState(false);
 	const [deleteId, setDeleteId] = useState<string | null>(null);
 	const searchParams = useSearchParams();
 	const id = searchParams.get('id') || '';
 	const page = Number(searchParams.get('page')) || 1;
 	const take = Number(searchParams.get('take')) || 25;
-	const userId = searchParams.get('userId');
+	const referrerId = searchParams.get('referrerId');
+	const referredId = searchParams.get('referredId');
 	const updateParams = useUpdateParams(useRouter(), usePathname());
 	const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const debouncedUpdateFilter = useCallback(
@@ -69,27 +88,31 @@ export default function ReferralTransactionsClientSide({ initialData, count }: I
 			label: 'Actions',
 			actions: row => {
 				return (
-					<>
-						<Link href={`/admin/referral-transactions/${row.id}`}>✏️</Link>
+					<ActionsCell>
+						{/* <Link href={`/admin/referral-transactions/${row.id}`}>
+							<Pencil />
+						</Link> */}
 						<button
 							onClick={() => {
 								setDeleteId(row.id);
 								setModalOpened(true);
 							}}
 						>
-							🗑️
+							<Trash />
 						</button>
-					</>
+					</ActionsCell>
 				);
 			},
 		},
 	];
 
 	const { data: fetched, isLoading } = useQuery({
-		queryKey: ['referral-transactions', page, take, id],
+		queryKey: ['referral-transactions', page, take, id, referredId, referrerId],
 		queryFn: () => {
 			const params: IListParams & Partial<IRefTransactionForm> = { skip: (page - 1) * take, take };
 			if (id) params.id = id;
+			if (referredId) params.referredId = referredId;
+			if (referrerId) params.referrerId = referrerId;
 			return referralTransactionsClient.getAll(params);
 		},
 		placeholderData: keepPreviousData,
@@ -117,7 +140,48 @@ export default function ReferralTransactionsClientSide({ initialData, count }: I
 						onChange={event => debouncedUpdateFilter('id', event.target.value)}
 					></Input>
 				</th>
-				<th></th>
+				<th>
+					<Combobox
+						items={users}
+						value={referrerId ?? undefined}
+						onValueChange={v => {
+							debouncedUpdateFilter('referrerId', v ?? '');
+						}}
+					>
+						<ComboboxInput placeholder="Select user"></ComboboxInput>
+						<ComboboxContent>
+							<ComboboxEmpty>No users found.</ComboboxEmpty>
+							<ComboboxList>
+								{item => (
+									<ComboboxItem key={item.value} value={item.value}>
+										{item.label}
+									</ComboboxItem>
+								)}
+							</ComboboxList>
+						</ComboboxContent>
+					</Combobox>
+				</th>
+				<th>
+					<Combobox
+						items={users}
+						value={referredId ?? undefined}
+						onValueChange={v => {
+							debouncedUpdateFilter('referredId', v ?? '');
+						}}
+					>
+						<ComboboxInput placeholder="Select user"></ComboboxInput>
+						<ComboboxContent>
+							<ComboboxEmpty>No users found.</ComboboxEmpty>
+							<ComboboxList>
+								{item => (
+									<ComboboxItem key={item.value} value={item.value}>
+										{item.label}
+									</ComboboxItem>
+								)}
+							</ComboboxList>
+						</ComboboxContent>
+					</Combobox>
+				</th>
 				<th></th>
 				<th></th>
 			</>

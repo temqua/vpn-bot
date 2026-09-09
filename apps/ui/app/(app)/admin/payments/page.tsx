@@ -71,6 +71,5 @@ export default async function PaymentsPage(props: {
 		label: p.name,
 		value: p.id.toString(),
 	}));
-	console.log('users :>> ', users);
 	return <PaymentsClientSide initialData={response.data} count={response.count} users={users} plans={plans} />;
 }

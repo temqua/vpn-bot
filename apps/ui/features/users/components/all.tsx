@@ -20,8 +20,11 @@ const baseColumns: IColumn<IVPNUserUI>[] = [
 	{ label: 'First name', prop: 'firstName', sortable: true },
 	{ label: 'Last name', prop: 'lastName', sortable: true },
 	{ label: 'Telegram ID', prop: 'telegramId', sortable: true },
+	{ label: 'Telegram Link', prop: 'telegramLink' },
+	{ label: 'Price', prop: 'price' },
 	{ label: 'Active', prop: 'active' },
 	{ label: 'Free', prop: 'free' },
+	{ label: 'Muted', prop: 'muted' },
 ];
 
 interface IUsersPageProps {
@@ -35,8 +38,11 @@ interface IUserForm {
 	firstName?: string;
 	lastName?: string;
 	telegramId?: string;
+	telegramLink?: string;
+	price?: string;
 	free?: string;
 	active?: string;
+	muted?: string;
 }
 interface IUserFormWithOrder extends IUserForm {
 	orderBy?: keyof IUserForm;
@@ -49,12 +55,15 @@ export default function UsersClientSide({ initialData, count }: IUsersPageProps)
 	const page = Number(searchParams.get('page')) || 1;
 	const take = Number(searchParams.get('take')) || 25;
 	const id = searchParams.get('id') || '';
+	const price = searchParams.get('price') || '';
 	const active = searchParams.get('active') || '';
 	const free = searchParams.get('free') || '';
+	const muted = searchParams.get('muted') || '';
 	const username = searchParams.get('username') || '';
 	const firstName = searchParams.get('firstName') || '';
 	const lastName = searchParams.get('lastName') || '';
 	const telegramId = searchParams.get('telegramId') || '';
+	const telegramLink = searchParams.get('telegramLink') || '';
 	const orderBy = (searchParams.get('orderBy') as keyof IUserForm) || '';
 	const orderDirection = (searchParams.get('orderDirection') as OrderDirection) || '';
 	const updateParams = useUpdateParams(useRouter(), usePathname());
@@ -106,9 +115,12 @@ export default function UsersClientSide({ initialData, count }: IUsersPageProps)
 			lastName,
 			active,
 			free,
+			muted,
 			orderBy,
 			orderDirection,
 			telegramId,
+			price,
+			telegramLink,
 		],
 		queryFn: () => {
 			const params: IListParams & IUserFormWithOrder = { skip: (page - 1) * take, take };
@@ -119,6 +131,9 @@ export default function UsersClientSide({ initialData, count }: IUsersPageProps)
 			if (telegramId) params.telegramId = telegramId;
 			if (active) params.active = active;
 			if (free) params.free = free;
+			if (muted) params.muted = muted;
+			if (price) params.price = price;
+			if (telegramLink) params.telegramLink = telegramLink;
 			if (orderBy) params.orderBy = orderBy;
 			if (orderDirection) params.orderDirection = orderDirection;
 			return usersClient.getAll(params);
@@ -215,6 +230,21 @@ export default function UsersClientSide({ initialData, count }: IUsersPageProps)
 					/>
 				</th>
 				<th>
+					<Input
+						type="search"
+						placeholder="Telegram Link"
+						defaultValue={telegramLink}
+						onChange={e => debouncedUpdateFilter('telegramLink', e.target.value)}
+					/>
+				</th>
+				<th>
+					<Select onChange={event => debouncedUpdateFilter('price', event.target.value)}>
+						<option value=""></option>
+						<option value="80">80</option>
+						<option value="150">150</option>
+					</Select>
+				</th>
+				<th>
 					<Select onChange={event => debouncedUpdateFilter('active', event.target.value)}>
 						<option value=""></option>
 						<option value="true">True</option>
@@ -223,6 +253,13 @@ export default function UsersClientSide({ initialData, count }: IUsersPageProps)
 				</th>
 				<th>
 					<Select onChange={event => debouncedUpdateFilter('free', event.target.value)}>
+						<option value=""></option>
+						<option value="true">True</option>
+						<option value="false">False</option>
+					</Select>
+				</th>
+				<th>
+					<Select onChange={event => debouncedUpdateFilter('muted', event.target.value)}>
 						<option value=""></option>
 						<option value="true">True</option>
 						<option value="false">False</option>

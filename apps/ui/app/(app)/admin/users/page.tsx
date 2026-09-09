@@ -12,6 +12,11 @@ export default async function UsersPage(props: {
 		firstName?: string;
 		lastName?: string;
 		telegramId?: string;
+		telegramLink?: string;
+		price?: string;
+		active?: string;
+		free?: string;
+		muted?: string;
 		orderBy?: string;
 		orderDirection?: OrderDirection;
 	}>;
@@ -25,6 +30,11 @@ export default async function UsersPage(props: {
 	const firstName = searchParams.firstName || '';
 	const lastName = searchParams.lastName || '';
 	const telegramId = searchParams.telegramId || '';
+	const telegramLink = searchParams.telegramLink || '';
+	const price = searchParams.price || '';
+	const active = searchParams.active || '';
+	const free = searchParams.free || '';
+	const muted = searchParams.muted || '';
 	const orderBy = searchParams.orderBy;
 	const orderDirection = searchParams.orderDirection;
 	if (!searchParams.page || !searchParams.take) {
@@ -46,6 +56,11 @@ export default async function UsersPage(props: {
 		...(firstName && { firstName }),
 		...(lastName && { lastName }),
 		...(telegramId && { telegramId }),
+		...(telegramLink && { telegramLink }),
+		...(price && { price }),
+		...(active && { active }),
+		...(free && { free }),
+		...(muted && { muted }),
 		...(orderBy && { orderBy }),
 		...(orderDirection && { orderDirection }),
 	});

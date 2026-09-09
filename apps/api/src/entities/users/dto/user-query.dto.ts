@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { BaseListDto } from '../../../dto/base-dto';
 import { OrderDirection } from '../../../enums';
 
@@ -8,9 +8,9 @@ export enum OrderByUserField {
 }
 
 export class UserQueryDto extends BaseListDto {
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  id?: number;
+  id?: string;
   @IsString()
   @IsOptional()
   username?: string;
@@ -19,10 +19,16 @@ export class UserQueryDto extends BaseListDto {
   telegramId?: string;
   @IsString()
   @IsOptional()
+  telegramLink?: string;
+  @IsString()
+  @IsOptional()
   firstName?: string;
   @IsString()
   @IsOptional()
   lastName?: string;
+  @IsString()
+  @IsOptional()
+  price?: string;
   @IsOptional()
   @IsEnum(OrderByUserField)
   orderBy?: OrderByUserField;
@@ -30,13 +36,22 @@ export class UserQueryDto extends BaseListDto {
   @IsOptional()
   @IsEnum(OrderDirection)
   orderDirection?: OrderDirection;
+  @IsString()
+  @IsOptional()
   active?: string;
+  @IsString()
+  @IsOptional()
   free?: string;
+  @IsString()
+  @IsOptional()
+  muted?: string;
   @IsString()
   @IsOptional()
   @IsEnum(OrderDirection)
   paymentsOrder?: OrderDirection;
   expiresAfterDays?: string;
   trial?: string;
+  @IsString()
+  @IsOptional()
   select?: string;
 }

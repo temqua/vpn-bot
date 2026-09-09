@@ -8,7 +8,59 @@ import { SearchPlanDto } from './dto/search-plan.dto';
 export class PlansRepository {
   constructor(private databaseService: DatabaseService) {}
   async findPlan(dto?: SearchPlanDto) {
+    const where: Prisma.PlanWhereInput = this.buildWhere(dto);
+    const select = dto?.select ? dto.select.split(',') : [];
+    const baseParams = {
+      where,
+      orderBy:
+        dto?.orderBy && dto?.orderDirection
+          ? {
+              [dto.orderBy]: dto.orderDirection,
+            }
+          : undefined,
+    };
+    const countParams = {
+      where,
+    };
+    if (dto?.select?.length) {
+      const params = {
+        ...baseParams,
+        select: select.reduce((acc, curr) => {
+          return {
+            ...acc,
+            [curr]: true,
+          };
+        }, {} as Prisma.PlanSelect),
+      };
+
+      const [data, count] = await this.databaseService.client.$transaction([
+        this.databaseService.client.plan.findMany(params),
+        this.databaseService.client.plan.count(countParams),
+      ]);
+      return {
+        data,
+        count,
+      };
+    }
+    const params = {
+      skip: dto?.skip ? Number(dto.skip) : undefined,
+      take: dto?.take ? Number(dto.take) : undefined,
+      ...baseParams,
+    };
+
+    const [data, count] = await this.databaseService.client.$transaction([
+      this.databaseService.client.plan.findMany(params),
+      this.databaseService.client.plan.count(countParams),
+    ]);
+    return {
+      data,
+      count,
+    };
+  }
+
+  buildWhere(dto?: SearchPlanDto) {
     const where: Prisma.PlanWhereInput = {};
+    if (!dto) return where;
     if (dto?.id) {
       where.id = Number(dto.id);
     }
@@ -40,28 +92,7 @@ export class PlansRepository {
         gte: Number(dto.count),
       };
     }
-    const params = {
-      skip: dto?.skip ? Number(dto.skip) : undefined,
-      take: dto?.take ? Number(dto.take) : undefined,
-      where,
-      orderBy:
-        dto?.orderBy && dto?.orderDirection
-          ? {
-              [dto.orderBy]: dto.orderDirection,
-            }
-          : undefined,
-    };
-    const countParams = {
-      where,
-    };
-    const [data, count] = await this.databaseService.client.$transaction([
-      this.databaseService.client.plan.findMany(params),
-      this.databaseService.client.plan.count(countParams),
-    ]);
-    return {
-      data,
-      count,
-    };
+    return where;
   }
 
   async findByPriceAndCount(price: number, count: number) {

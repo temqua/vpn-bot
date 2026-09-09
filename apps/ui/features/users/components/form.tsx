@@ -47,7 +47,6 @@ export default function UserClientSide({ user, id }: { user: IVPNUser; id: strin
 	const [rwLink, setRWLink] = useState(user?.rwLink ?? '');
 	const [free, setFree] = useState<boolean>(user?.free);
 	const [active, setActive] = useState<boolean>(user?.active);
-	console.log('user :>> ', user);
 	return (
 		<ContentArea>
 			<form action={formAction}>

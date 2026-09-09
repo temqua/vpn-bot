@@ -25,8 +25,13 @@ import { Button } from '@/app/components/button';
 
 export default function NewPaymentClientSide({
 	users,
+	plans,
 }: {
 	users: {
+		label: string;
+		value: string;
+	}[];
+	plans: {
 		label: string;
 		value: string;
 	}[];
@@ -36,7 +41,8 @@ export default function NewPaymentClientSide({
 	const [amount, setAmount] = useState(0);
 	const [monthsCount, setMonthsCount] = useState(0);
 	const [expiresOn, setExpiresOn] = useState('');
-	const [userId, setUserID] = useState(0);
+	const [userId, setUserID] = useState<number | null>(null);
+	const [planId, setPlanID] = useState<number | null>(null);
 	const [expiresOnDate, setExpiresOnDate] = useState(new Date());
 	const [isExpiresOnOpened, setExpiresOnOpened] = useState(false);
 	return (
@@ -83,64 +89,35 @@ export default function NewPaymentClientSide({
 							placeholder="Expires On"
 							aria-invalid={Boolean(state?.errors?.properties?.expiresOn?.errors?.length)}
 						/> */}
-						<InputGroup>
-							<InputGroupInput
-								id="expiresOn"
-								name="expiresOn"
-								value={expiresOn}
-								placeholder="Expires On"
-								readOnly
-								onChange={e => {
-									const date = new Date(e.target.value);
-									setExpiresOn(e.target.value);
-									if (isValidDate(date)) {
-										setExpiresOnDate(date);
-									}
-								}}
-								onKeyDown={e => {
-									if (e.key === 'ArrowDown') {
-										e.preventDefault();
-										setExpiresOnOpened(true);
-									}
-								}}
-								aria-invalid={Boolean(state?.errors?.properties?.expiresOn?.errors?.length)}
+						<Popover open={isExpiresOnOpened} onOpenChange={setExpiresOnOpened}>
+							<PopoverTrigger
+								render={
+									<Button variant="outline" id="date" className="justify-start w-full">
+										<CalendarIcon data-icon="inline-start" />
+										{expiresOn ? expiresOn : <span>Select date</span>}
+									</Button>
+								}
 							/>
-							<InputGroupAddon align="inline-end">
-								<Popover open={isExpiresOnOpened} onOpenChange={setExpiresOnOpened}>
-									<PopoverTrigger
-										render={
-											<InputGroupButton
-												id="date-picker"
-												variant="ghost"
-												size="icon-xs"
-												aria-label="Select date"
-											>
-												<CalendarIcon />
-												<span className="sr-only">Select date</span>
-											</InputGroupButton>
+							<PopoverContent
+								className="w-auto overflow-hidden p-0"
+								align="start"
+								alignOffset={-8}
+								sideOffset={10}
+							>
+								<Calendar
+									mode="single"
+									captionLayout="dropdown"
+									selected={expiresOnDate}
+									onSelect={date => {
+										if (date) {
+											setExpiresOnDate(date);
+											setExpiresOn(formatISO(date));
 										}
-									/>
-									<PopoverContent
-										className="w-auto overflow-hidden p-0"
-										align="end"
-										alignOffset={-8}
-										sideOffset={10}
-									>
-										<Calendar
-											mode="single"
-											selected={expiresOnDate}
-											onSelect={date => {
-												if (date) {
-													setExpiresOnDate(date);
-													setExpiresOn(formatISO(date));
-												}
-												setExpiresOnOpened(false);
-											}}
-										/>
-									</PopoverContent>
-								</Popover>
-							</InputGroupAddon>
-						</InputGroup>
+										setExpiresOnOpened(false);
+									}}
+								/>
+							</PopoverContent>
+						</Popover>
 					</FormField>
 					<FormField id="userId" label="User" errors={state?.errors?.properties?.userId?.errors}>
 						<Combobox
@@ -162,17 +139,27 @@ export default function NewPaymentClientSide({
 								</ComboboxList>
 							</ComboboxContent>
 						</Combobox>
-						{/* <Input
-							value={userId}
-							onChange={event => setUserID(Number(event.target.value))}
-							id="userId"
-							name="userId"
-							min="1"
-							autoComplete="off"
-							placeholder="User ID"
-							type="number"
-							aria-invalid={Boolean(state?.errors?.properties?.userId?.errors?.length)}
-						/> */}
+					</FormField>
+					<FormField id="planId" label="Plan" errors={state?.errors?.properties?.planId?.errors}>
+						<Combobox
+							items={plans}
+							value={planId ?? undefined}
+							onValueChange={v => {
+								setPlanID(Number(v));
+							}}
+						>
+							<ComboboxInput placeholder="Select plan"></ComboboxInput>
+							<ComboboxContent>
+								<ComboboxEmpty>No plans found.</ComboboxEmpty>
+								<ComboboxList>
+									{item => (
+										<ComboboxItem key={item.value} value={item.value}>
+											{item.label}
+										</ComboboxItem>
+									)}
+								</ComboboxList>
+							</ComboboxContent>
+						</Combobox>
 					</FormField>
 					{/* <div className="flex flex-col">
                     <label htmlFor="planId">Plan ID</label>
