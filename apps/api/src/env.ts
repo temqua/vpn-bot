@@ -23,6 +23,9 @@ const env = cleanEnv(process.env, {
   BOT_TOKEN: str({ default: '' }),
   TG_NOTIFICATIONS_CHAT_ID: str({ default: '' }),
   CORS_ALLOWED_ORIGINS: json({ default: '[]' }),
+  NALOG_USERNAME: str({ default: '' }),
+  NALOG_PASSWORD: str({ default: '' }),
+  NALOG_DEVICE_ID: str({ default: '' }),
 });
 
 export default env;

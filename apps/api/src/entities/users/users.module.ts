@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { RemnawaveService } from './rw.service';
 import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
+import { RemnawaveModule } from '../remnawave/remnawave.module';
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, RemnawaveService, UsersRepository],
+  imports: [RemnawaveModule],
+  providers: [UsersService, UsersRepository],
   exports: [UsersService],
 })
 export class UsersModule {}

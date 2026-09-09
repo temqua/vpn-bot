@@ -124,7 +124,6 @@ export class UsersRepository {
     if (dto.active !== undefined) where.active = dto.active === 'true';
     if (dto.free !== undefined) where.free = dto.free === 'true';
     if (dto.muted !== undefined) where.muted = dto.muted === 'true';
-    
 
     if (dto.trial !== undefined) {
       where.createdAt =

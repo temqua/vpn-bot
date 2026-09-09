@@ -46,10 +46,10 @@ describe('Payments (e2e)', () => {
     await app.close();
   });
 
-  describe('GET /api/v1/payments', () => {
+  describe('GET /api/v1/admin/payments', () => {
     it('should return all seeded payments', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/payments')
+        .get('/api/v1/admin/payments')
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
@@ -59,7 +59,7 @@ describe('Payments (e2e)', () => {
 
     it('should filter by userId', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/api/v1/payments?userId=${userId}`)
+        .get(`/api/v1/admin/payments?userId=${userId}`)
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
@@ -69,7 +69,7 @@ describe('Payments (e2e)', () => {
 
     // it('should filter by date range', async () => {
     //   const res = await request(app.getHttpServer())
-    //     .get('/api/v1/payments?from=2025-01-01&to=2025-04-01')
+    //     .get('/api/v1/admin/payments?from=2025-01-01&to=2025-04-01')
     //     .set('Authorization', AUTH_HEADER)
     //     .expect(200);
 
@@ -85,7 +85,7 @@ describe('Payments (e2e)', () => {
 
     it('should paginate results', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/payments?take=2&skip=0')
+        .get('/api/v1/admin/payments?take=2&skip=0')
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
@@ -94,7 +94,7 @@ describe('Payments (e2e)', () => {
 
     it('should paginate with skip', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/payments?take=2&skip=2')
+        .get('/api/v1/admin/payments?take=2&skip=2')
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
@@ -102,15 +102,17 @@ describe('Payments (e2e)', () => {
     });
 
     it('should return 401 without auth header', async () => {
-      await request(app.getHttpServer()).get('/api/v1/payments').expect(401);
+      await request(app.getHttpServer())
+        .get('/api/v1/admin/payments')
+        .expect(401);
     });
   });
 
-  describe('GET /api/v1/payments/:id', () => {
+  describe('GET /api/v1/admin/payments/:id', () => {
     it('should return a single payment by id', async () => {
       const id = seededIds[0];
       const res = await request(app.getHttpServer())
-        .get(`/api/v1/payments/${id}`)
+        .get(`/api/v1/admin/payments/${id}`)
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
@@ -121,16 +123,16 @@ describe('Payments (e2e)', () => {
 
     it('should return 404 for non-existent id', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/payments/00000000-0000-0000-0000-000000000000')
+        .get('/api/v1/admin/payments/00000000-0000-0000-0000-000000000000')
         .set('Authorization', AUTH_HEADER)
         .expect(404);
     });
   });
 
-  describe('GET /api/v1/payments/sum', () => {
+  describe('GET /api/v1/admin/payments/sum', () => {
     it('should return total sum of all payments', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/payments/sum')
+        .get('/api/v1/admin/payments/sum')
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
@@ -138,7 +140,7 @@ describe('Payments (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/payments', () => {
+  describe('POST /api/v1/admin/payments', () => {
     it('should create a new payment', async () => {
       const dto = {
         userId,
@@ -148,7 +150,7 @@ describe('Payments (e2e)', () => {
       };
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/payments')
+        .post('/api/v1/admin/payments')
         .set('Authorization', AUTH_HEADER)
         .send(dto)
         .expect(201);
@@ -163,16 +165,16 @@ describe('Payments (e2e)', () => {
 
     it('should return 401 without auth', async () => {
       await request(app.getHttpServer())
-        .post('/api/v1/payments')
+        .post('/api/v1/admin/payments')
         .send({ userId, amount: 100, monthsCount: 1, expiresOn: '2026-01-01' })
         .expect(401);
     });
   });
 
-  describe('PATCH /api/v1/payments/:id', () => {
+  describe('PATCH /api/v1/admin/payments/:id', () => {
     it('should update an existing payment', async () => {
       const createRes = await request(app.getHttpServer())
-        .post('/api/v1/payments')
+        .post('/api/v1/admin/payments')
         .set('Authorization', AUTH_HEADER)
         .send({
           userId,
@@ -185,7 +187,7 @@ describe('Payments (e2e)', () => {
       const id = createRes.body.id;
 
       const patchRes = await request(app.getHttpServer())
-        .patch(`/api/v1/payments/${id}`)
+        .patch(`/api/v1/admin/payments/${id}`)
         .set('Authorization', AUTH_HEADER)
         .send({ amount: 2222 })
         .expect(200);
@@ -198,16 +200,16 @@ describe('Payments (e2e)', () => {
 
     it('should return 401 without auth', async () => {
       await request(app.getHttpServer())
-        .patch(`/api/v1/payments/${seededIds[0]}`)
+        .patch(`/api/v1/admin/payments/${seededIds[0]}`)
         .send({ amount: 1 })
         .expect(401);
     });
   });
 
-  describe('DELETE /api/v1/payments/:id', () => {
+  describe('DELETE /api/v1/admin/payments/:id', () => {
     it('should delete a payment', async () => {
       const createRes = await request(app.getHttpServer())
-        .post('/api/v1/payments')
+        .post('/api/v1/admin/payments')
         .set('Authorization', AUTH_HEADER)
         .send({
           userId,
@@ -220,19 +222,19 @@ describe('Payments (e2e)', () => {
       const id = createRes.body.id;
 
       await request(app.getHttpServer())
-        .delete(`/api/v1/payments/${id}`)
+        .delete(`/api/v1/admin/payments/${id}`)
         .set('Authorization', AUTH_HEADER)
         .expect(200);
 
       await request(app.getHttpServer())
-        .get(`/api/v1/payments/${id}`)
+        .get(`/api/v1/admin/payments/${id}`)
         .set('Authorization', AUTH_HEADER)
         .expect(404);
     });
 
     it('should return 401 without auth', async () => {
       await request(app.getHttpServer())
-        .delete(`/api/v1/payments/${seededIds[0]}`)
+        .delete(`/api/v1/admin/payments/${seededIds[0]}`)
         .expect(401);
     });
   });

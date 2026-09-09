@@ -16,7 +16,7 @@ import {
   IRWNewUserDTO,
   IRWServerErrorResponse,
   IRWUpdateUserDTO,
-} from './rw.types';
+} from './remnawave.types';
 
 @Injectable()
 export class RemnawaveService {

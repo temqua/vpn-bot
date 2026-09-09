@@ -9,9 +9,9 @@ import { exportToSheet, generateDownloadLink, getQRLink } from '../../utils';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
-import { RemnawaveService } from './rw.service';
 import { UsersRepository } from './users.repository';
 import { UserExportRow } from './users.types';
+import { RemnawaveService } from '../remnawave/remnawave.service';
 
 @Injectable()
 export class UsersService {
